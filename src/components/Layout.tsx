@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -13,6 +15,7 @@ const navLinks = [
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
@@ -22,7 +25,6 @@ const Navbar = () => {
           <span className="text-2xl font-display font-bold text-foreground">Brand</span>
         </Link>
 
-        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((l) => (
             <Link
@@ -35,33 +37,34 @@ const Navbar = () => {
               {l.label}
             </Link>
           ))}
+          {user ? (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/dashboard"><LayoutDashboard className="h-4 w-4 mr-1" /> Dashboard</Link>
+            </Button>
+          ) : (
+            <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-gold-dark">
+              <Link to="/auth"><LogIn className="h-4 w-4 mr-1" /> Sign In</Link>
+            </Button>
+          )}
         </nav>
 
-        {/* Mobile toggle */}
-        <button
-          className="md:hidden p-2 text-foreground"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
+        <button className="md:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Mobile nav */}
       {mobileOpen && (
         <nav className="md:hidden border-t border-border bg-card px-6 pb-4">
           {navLinks.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              onClick={() => setMobileOpen(false)}
-              className={`block py-3 text-sm font-medium transition-colors hover:text-accent ${
-                location.pathname === l.to ? "text-accent" : "text-muted-foreground"
-              }`}
-            >
+            <Link key={l.to} to={l.to} onClick={() => setMobileOpen(false)} className={`block py-3 text-sm font-medium transition-colors hover:text-accent ${location.pathname === l.to ? "text-accent" : "text-muted-foreground"}`}>
               {l.label}
             </Link>
           ))}
+          {user ? (
+            <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block py-3 text-sm font-medium text-accent">Dashboard</Link>
+          ) : (
+            <Link to="/auth" onClick={() => setMobileOpen(false)} className="block py-3 text-sm font-medium text-accent">Sign In</Link>
+          )}
         </nav>
       )}
     </header>
