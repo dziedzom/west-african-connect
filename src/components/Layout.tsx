@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/rfps", label: "RFP Listings" },
+  { to: "/pricing", label: "Pricing" },
   { to: "/join", label: "Join Us" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
