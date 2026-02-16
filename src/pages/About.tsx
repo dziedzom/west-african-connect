@@ -12,10 +12,10 @@ const About = () => (
     <div className="container max-w-3xl">
       <div className="mb-12">
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          About <span className="text-accent">MiddlBrand</span>
+          About MiddleBrand
         </h1>
         <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
-          MiddlBrand was born from a simple observation: qualified West African companies consistently miss
+          MiddleBrand was born from a simple observation: qualified West African companies consistently miss
           business opportunities — not due to lack of capability, but lack of access. We bridge that gap.
         </p>
       </div>

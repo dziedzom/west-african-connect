@@ -39,7 +39,7 @@ const CompanySignUp = () => {
       <div className="container max-w-2xl">
         <div className="mb-10">
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-            Join the <span className="text-accent">MiddlBrand</span> Directory
+            Join the MiddleBrand Directory
           </h1>
           <p className="mt-2 text-muted-foreground">Register your company to receive matched opportunities. It's free — we only earn when you win.</p>
         </div>

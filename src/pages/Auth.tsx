@@ -49,7 +49,7 @@ const Auth = () => {
             {isLogin ? "Welcome Back" : "Create Account"}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            {isLogin ? "Sign in to your MiddlBrand account" : "Join MiddlBrand to access opportunities"}
+            {isLogin ? "Sign in to your MiddleBrand account" : "Join MiddleBrand to access opportunities"}
           </p>
         </div>
 

@@ -46,8 +46,7 @@ const Index = () => {
         <div className="container relative z-10 py-24 md:py-36 lg:py-44">
           <div className="max-w-2xl animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-primary-foreground leading-tight">
-              Connecting West African
-              <span className="text-accent"> Businesses</span> to Real Opportunities
+              Connecting West African Businesses to Real Opportunities.
             </h1>
             <p className="mt-6 text-lg text-primary-foreground/80 max-w-xl">
               We connect vetted companies to missed opportunities and earn 3% commission on wins. No upfront fees. No risk.
@@ -81,7 +80,7 @@ const Index = () => {
         <div className="container">
           <div className="text-center max-w-xl mx-auto mb-14">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-              How <span className="text-accent">MiddlBrand</span> Works
+              How MiddleBrand Works
             </h2>
             <p className="mt-4 text-muted-foreground">
               We bridge the gap between qualified West African businesses and the contracts they deserve.
@@ -112,7 +111,7 @@ const Index = () => {
             Ready to Win More Contracts?
           </h2>
           <p className="mt-4 text-primary-foreground/70 max-w-lg mx-auto">
-            Join hundreds of West African companies already growing through MiddlBrand's opportunity matching platform.
+            Join hundreds of West African companies already growing through MiddleBrand's opportunity matching platform.
           </p>
           <div className="mt-8 flex justify-center gap-4 flex-wrap">
             <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-gold-dark font-semibold px-8">
