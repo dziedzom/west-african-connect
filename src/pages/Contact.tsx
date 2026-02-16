@@ -22,7 +22,7 @@ const Contact = () => {
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
           Get in <span className="text-accent">Touch</span>
         </h1>
-        <p className="text-muted-foreground mb-10">Have questions about MiddlBrand? We'd love to hear from you.</p>
+        <p className="text-muted-foreground mb-10">Have questions about MiddleBrand? We'd love to hear from you.</p>
 
         <div className="grid md:grid-cols-5 gap-8">
           {/* Info */}
@@ -31,7 +31,7 @@ const Contact = () => {
               <Mail className="h-5 w-5 text-accent mt-0.5" />
               <div>
                 <p className="font-semibold text-foreground text-sm">Email</p>
-                <p className="text-sm text-muted-foreground">info@middlbrand.com</p>
+                <p className="text-sm text-muted-foreground">info@middlebrand.com</p>
               </div>
             </div>
             <div className="flex items-start gap-3">

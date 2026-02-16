@@ -21,8 +21,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl font-display font-bold text-accent">Middl</span>
-          <span className="text-2xl font-display font-bold text-foreground">Brand</span>
+          <span className="text-xl font-semibold tracking-tight text-foreground">MiddleBrand</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -75,11 +74,9 @@ const Footer = () => (
   <footer className="border-t border-border bg-primary text-primary-foreground">
     <div className="container py-12 grid gap-8 md:grid-cols-3">
       <div>
-        <h3 className="text-xl font-display font-bold mb-3">
-          <span className="text-accent">Middl</span>Brand
-        </h3>
+        <h3 className="text-xl font-semibold tracking-tight mb-3">MiddleBrand</h3>
         <p className="text-sm opacity-80 max-w-xs">
-          Connecting vetted West African companies to real business opportunities through ethical lead generation.
+          Connecting vetted West African companies to real business opportunities.
         </p>
       </div>
       <div>
@@ -103,7 +100,7 @@ const Footer = () => (
       </div>
     </div>
     <div className="border-t border-primary-foreground/10 py-4">
-      <p className="text-center text-xs opacity-50">© 2026 MiddlBrand. All rights reserved.</p>
+      <p className="text-center text-xs opacity-50">© 2026 MiddleBrand. All rights reserved.</p>
     </div>
   </footer>
 );
