@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
-import { Menu, X, LogIn, LayoutDashboard } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, LogIn, LayoutDashboard, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +15,18 @@ const navLinks = [
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [dark]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
@@ -36,6 +47,13 @@ const Navbar = () => {
               {l.label}
             </Link>
           ))}
+          <button
+            onClick={() => setDark(!dark)}
+            className="p-2 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Toggle dark mode"
+          >
+            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
           {user ? (
             <Button asChild variant="outline" size="sm">
               <Link to="/dashboard"><LayoutDashboard className="h-4 w-4 mr-1" /> Dashboard</Link>
