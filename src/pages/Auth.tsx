@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,12 +48,12 @@ const Auth = () => {
           <h1 className="text-3xl font-display font-bold text-foreground">
             {isLogin ? "Welcome Back" : "Create Account"}
           </h1>
-          <p className="mt-2 text-muted-foreground">
-            {isLogin ? "Sign in to your MiddleBrand account" : "Join MiddleBrand to access opportunities"}
+          <p className="mt-2 text-muted-foreground font-body text-sm">
+            {isLogin ? "Sign in to your MiddlBrand account" : "Join MiddlBrand to access opportunities"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-8 space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" />
@@ -62,12 +62,12 @@ const Auth = () => {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" minLength={6} />
           </div>
-          <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground hover:bg-gold-dark font-semibold">
+          <Button type="submit" disabled={loading} className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold transition-all duration-300">
             {loading ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-4">
+        <p className="text-center text-xs text-muted-foreground font-body mt-4">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <button onClick={() => setIsLogin(!isLogin)} className="text-accent hover:underline font-medium">
             {isLogin ? "Sign up" : "Sign in"}

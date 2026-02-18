@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { to: "/", label: "Home" },
-  { to: "/rfps", label: "RFP Listings" },
+  { to: "/rfps", label: "RFPs" },
   { to: "/pricing", label: "Pricing" },
-  { to: "/join", label: "Join Us" },
+  { to: "/join", label: "Join" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
@@ -30,96 +30,133 @@ const Navbar = () => {
   }, [dark]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
-      <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-xl font-semibold tracking-tight text-foreground">MiddleBrand</span>
-        </Link>
+    <>
+      <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl">
+        <nav className="flex items-center justify-between gap-2 rounded-full border border-border/50 bg-background/60 backdrop-blur-xl px-4 py-2.5 shadow-lg shadow-foreground/5">
+          <Link to="/" className="font-display text-lg font-bold tracking-tight text-foreground pl-2">
+            MiddlBrand
+          </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className={`relative px-3 py-1.5 text-xs font-medium transition-colors rounded-full ${
+                  location.pathname === l.to
+                    ? "text-accent"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l.label}
+                {location.pathname === l.to && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-accent rounded-full" />
+                )}
+              </Link>
+            ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-1">
+            <button
+              onClick={() => setDark(!dark)}
+              className="p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+            </button>
+            {user ? (
+              <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
+                <Link to="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> Dashboard</Link>
+              </Button>
+            ) : (
+              <Button asChild size="sm" className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 text-xs h-8 px-4">
+                <Link to="/auth"><LogIn className="h-3.5 w-3.5 mr-1" /> Sign In</Link>
+              </Button>
+            )}
+          </div>
+
+          <button className="md:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </nav>
+      </header>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6">
           {navLinks.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className={`text-sm font-medium transition-colors hover:text-accent ${
-                location.pathname === l.to ? "text-accent" : "text-muted-foreground"
+              onClick={() => setMobileOpen(false)}
+              className={`text-2xl font-display font-bold transition-colors ${
+                location.pathname === l.to ? "text-accent" : "text-foreground hover:text-accent"
               }`}
             >
               {l.label}
             </Link>
           ))}
-          <button
-            onClick={() => setDark(!dark)}
-            className="p-2 rounded-md text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
-          {user ? (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/dashboard"><LayoutDashboard className="h-4 w-4 mr-1" /> Dashboard</Link>
-            </Button>
-          ) : (
-            <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-gold-dark">
-              <Link to="/auth"><LogIn className="h-4 w-4 mr-1" /> Sign In</Link>
-            </Button>
-          )}
-        </nav>
-
-        <button className="md:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {mobileOpen && (
-        <nav className="md:hidden border-t border-border bg-card px-6 pb-4">
-          {navLinks.map((l) => (
-            <Link key={l.to} to={l.to} onClick={() => setMobileOpen(false)} className={`block py-3 text-sm font-medium transition-colors hover:text-accent ${location.pathname === l.to ? "text-accent" : "text-muted-foreground"}`}>
-              {l.label}
-            </Link>
-          ))}
-          {user ? (
-            <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block py-3 text-sm font-medium text-accent">Dashboard</Link>
-          ) : (
-            <Link to="/auth" onClick={() => setMobileOpen(false)} className="block py-3 text-sm font-medium text-accent">Sign In</Link>
-          )}
-        </nav>
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={() => setDark(!dark)}
+              className="p-3 rounded-full border border-border text-muted-foreground"
+              aria-label="Toggle dark mode"
+            >
+              {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+            {user ? (
+              <Button asChild size="lg" className="rounded-full">
+                <Link to="/dashboard" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="rounded-full bg-accent text-accent-foreground">
+                <Link to="/auth" onClick={() => setMobileOpen(false)}>Sign In</Link>
+              </Button>
+            )}
+          </div>
+        </div>
       )}
-    </header>
+    </>
   );
 };
 
 const Footer = () => (
   <footer className="border-t border-border bg-primary text-primary-foreground">
-    <div className="container py-12 grid gap-8 md:grid-cols-3">
-      <div>
-        <h3 className="text-xl font-semibold tracking-tight mb-3">MiddleBrand</h3>
-        <p className="text-sm opacity-80 max-w-xs">
-          Connecting vetted West African companies to real business opportunities.
+    <div className="container py-16">
+      <div className="grid gap-8 md:grid-cols-3 mb-12">
+        <div>
+          <p className="text-sm font-body opacity-60 max-w-xs">
+            Connecting vetted West African companies to real business opportunities. No upfront fees.
+          </p>
+        </div>
+        <div>
+          <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Links</h4>
+          <div className="flex flex-col gap-2">
+            {navLinks.map((l) => (
+              <Link key={l.to} to={l.to} className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Connect</h4>
+          <div className="flex flex-col gap-2">
+            <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">LinkedIn</a>
+            <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">Twitter</a>
+            <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">Facebook</a>
+          </div>
+          <p className="text-sm font-body opacity-40 mt-4">info@middlbrand.com</p>
+        </div>
+      </div>
+
+      {/* Massive logo */}
+      <div className="border-t border-primary-foreground/10 pt-8">
+        <p className="font-display font-black text-[12vw] md:text-[8vw] leading-none tracking-tighter opacity-10 select-none">
+          MiddlBrand
         </p>
+        <p className="text-xs font-body opacity-30 mt-4">© 2026 MiddlBrand. All rights reserved.</p>
       </div>
-      <div>
-        <h4 className="font-semibold mb-3 text-sm uppercase tracking-wider opacity-70">Quick Links</h4>
-        <div className="flex flex-col gap-2">
-          {navLinks.map((l) => (
-            <Link key={l.to} to={l.to} className="text-sm opacity-80 hover:text-accent transition-colors">
-              {l.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-      <div>
-        <h4 className="font-semibold mb-3 text-sm uppercase tracking-wider opacity-70">Connect</h4>
-        <div className="flex gap-4">
-          <a href="#" className="text-sm opacity-80 hover:text-accent transition-colors">LinkedIn</a>
-          <a href="#" className="text-sm opacity-80 hover:text-accent transition-colors">Twitter</a>
-          <a href="#" className="text-sm opacity-80 hover:text-accent transition-colors">Facebook</a>
-        </div>
-        <p className="text-sm opacity-60 mt-4">info@middlbrand.com</p>
-      </div>
-    </div>
-    <div className="border-t border-primary-foreground/10 py-4">
-      <p className="text-center text-xs opacity-50">© 2026 MiddleBrand. All rights reserved.</p>
     </div>
   </footer>
 );
@@ -131,7 +168,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => (
   <div className="flex min-h-screen flex-col">
     <Navbar />
-    <main className="flex-1">{children}</main>
+    <main className="flex-1 pt-24">{children}</main>
     <Footer />
   </div>
 );

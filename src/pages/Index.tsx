@@ -1,61 +1,44 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Target, Shield, TrendingUp, Users } from "lucide-react";
+import { ArrowRight, Target, Shield, TrendingUp, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import heroBg from "@/assets/hero-bg.jpg";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 const stats = [
   { value: "500+", label: "Vetted Companies" },
-  { value: "$12M+", label: "Opportunities Matched" },
-  { value: "3%", label: "Success Commission" },
-  { value: "8", label: "West African Countries" },
-];
-
-const features = [
-  {
-    icon: Target,
-    title: "Lead Generation",
-    description: "We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity.",
-  },
-  {
-    icon: Shield,
-    title: "Vetted Companies",
-    description: "Every company in our directory is verified for capability, track record, and compliance standards.",
-  },
-  {
-    icon: TrendingUp,
-    title: "3% Commission Model",
-    description: "We only earn when you win. Our success-based model means our incentives are perfectly aligned with yours.",
-  },
-  {
-    icon: Users,
-    title: "Ethical Matching",
-    description: "Transparent pairing of companies to opportunities based on expertise, location, and capacity.",
-  },
+  { value: "$12M+", label: "Matched" },
+  { value: "3%", label: "Commission" },
+  { value: "8", label: "Countries" },
 ];
 
 const Index = () => {
+  const statsRef = useScrollReveal(80);
+  const bentoRef = useScrollReveal(120);
+  const ctaRef = useScrollReveal();
+
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-primary">
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/60" />
-        <div className="container relative z-10 py-24 md:py-36 lg:py-44">
-          <div className="max-w-2xl animate-fade-in">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-primary-foreground leading-tight">
-              Connecting West African Businesses to Real Opportunities.
+      {/* Hero — typography-led with grain mesh */}
+      <section className="relative min-h-screen flex items-center justify-center grain-mesh">
+        <div className="container relative z-10 text-center py-20">
+          <div className="max-w-4xl mx-auto">
+            <h1
+              className="text-7xl sm:text-8xl md:text-9xl font-display font-black text-foreground leading-[0.9] animate-fade-in"
+            >
+              MiddlBrand
             </h1>
-            <p className="mt-6 text-lg text-primary-foreground/80 max-w-xl">
-              We connect vetted companies to missed opportunities and earn 3% commission on wins. No upfront fees. No risk.
+            <p className="mt-8 text-base md:text-lg text-muted-foreground font-body max-w-xl mx-auto animate-fade-in"
+               style={{ animationDelay: "200ms" }}>
+              Connecting vetted West African businesses to real opportunities.
+              No upfront fees. No risk. We earn 3% when you win.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-gold-dark font-semibold px-8">
-                <Link to="/rfps">Browse Opportunities <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <div className="mt-10 flex flex-wrap justify-center gap-4 animate-fade-in" style={{ animationDelay: "400ms" }}>
+              <Button asChild size="lg" className="group rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-8 transition-all duration-300">
+                <Link to="/rfps">
+                  Browse Opportunities
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+              <Button asChild variant="outline" size="lg" className="rounded-full border-foreground/20 text-foreground hover:border-accent hover:text-accent transition-all duration-300">
                 <Link to="/join">Register Your Company</Link>
               </Button>
             </div>
@@ -64,60 +47,107 @@ const Index = () => {
       </section>
 
       {/* Stats */}
-      <section className="border-b border-border bg-card">
+      <section ref={statsRef} className="border-y border-border bg-card">
         <div className="container grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
           {stats.map((s) => (
-            <div key={s.label} className="py-8 text-center">
-              <p className="text-3xl font-display font-bold text-accent">{s.value}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
+            <div key={s.label} className="reveal py-10 text-center group cursor-default">
+              <p className="text-3xl md:text-4xl font-display font-bold text-foreground transition-colors duration-300 group-hover:text-accent">
+                {s.value}
+              </p>
+              <p className="mt-1 text-xs font-body text-muted-foreground uppercase tracking-wider">{s.label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 bg-background">
+      {/* Bento Grid Services */}
+      <section className="py-24 bg-background">
         <div className="container">
-          <div className="text-center max-w-xl mx-auto mb-14">
+          <div className="text-center max-w-xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-              How MiddleBrand Works
+              How It Works
             </h2>
-            <p className="mt-4 text-muted-foreground">
+            <p className="mt-4 text-muted-foreground font-body text-sm">
               We bridge the gap between qualified West African businesses and the contracts they deserve.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((f, i) => (
-              <div
-                key={f.title}
-                className="rounded-lg border border-border bg-card p-6 hover:shadow-lg hover:border-accent/40 transition-all"
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
-                  <f.icon className="h-6 w-6 text-accent" />
+
+          <div ref={bentoRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            {/* Large card — Lead Generation */}
+            <div className="reveal md:col-span-2 md:row-span-2 rounded-2xl border border-border bg-card p-8 md:p-10 flex flex-col justify-between min-h-[320px] group hover:border-accent/30 transition-colors duration-300">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
+                  <Target className="h-6 w-6 text-accent" />
                 </div>
-                <h3 className="text-lg font-display font-semibold text-foreground mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground">{f.description}</p>
+                <h3 className="text-2xl font-display font-bold text-foreground mb-3">Lead Generation</h3>
+                <p className="text-sm text-muted-foreground font-body leading-relaxed max-w-md">
+                  We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity across West Africa.
+                </p>
               </div>
-            ))}
+              {/* Abstract decorative element */}
+              <div className="mt-8 h-20 rounded-xl bg-gradient-to-r from-accent/5 to-accent/10" />
+            </div>
+
+            {/* Small card — Vetted */}
+            <div className="reveal rounded-2xl border border-border bg-card p-6 group hover:border-accent/30 transition-colors duration-300">
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+                <Shield className="h-5 w-5 text-accent" />
+              </div>
+              <h3 className="text-lg font-display font-semibold text-foreground mb-2">Vetted Companies</h3>
+              <p className="text-xs text-muted-foreground font-body">
+                Every company is verified for capability, track record, and compliance.
+              </p>
+            </div>
+
+            {/* Small card — Commission */}
+            <div className="reveal rounded-2xl border border-border bg-card p-6 group hover:border-accent/30 transition-colors duration-300">
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+                <TrendingUp className="h-5 w-5 text-accent" />
+              </div>
+              <h3 className="text-lg font-display font-semibold text-foreground mb-2">3% Commission</h3>
+              <p className="text-xs text-muted-foreground font-body">
+                We only earn when you win. Incentives perfectly aligned.
+              </p>
+            </div>
+
+            {/* Wide card — Ethical Matching */}
+            <div className="reveal md:col-span-2 rounded-2xl border border-border bg-card p-6 flex items-center gap-6 group hover:border-accent/30 transition-colors duration-300">
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                <Users className="h-5 w-5 text-accent" />
+              </div>
+              <div>
+                <h3 className="text-lg font-display font-semibold text-foreground mb-1">Ethical Matching</h3>
+                <p className="text-xs text-muted-foreground font-body">
+                  Transparent pairing based on expertise, location, and capacity. No hidden agendas.
+                </p>
+              </div>
+            </div>
+
+            {/* Small card — decorative / abstract */}
+            <div className="reveal rounded-2xl border border-border bg-gradient-to-br from-accent/5 via-transparent to-accent/10 p-6 flex items-center justify-center">
+              <Zap className="h-8 w-8 text-accent/30" />
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-primary">
-        <div className="container text-center">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-primary-foreground">
+      <section ref={ctaRef} className="py-24 bg-primary grain-mesh">
+        <div className="container text-center reveal">
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-primary-foreground">
             Ready to Win More Contracts?
           </h2>
-          <p className="mt-4 text-primary-foreground/70 max-w-lg mx-auto">
-            Join hundreds of West African companies already growing through MiddleBrand's opportunity matching platform.
+          <p className="mt-4 text-primary-foreground/60 font-body text-sm max-w-lg mx-auto">
+            Join hundreds of West African companies growing through MiddlBrand's opportunity matching platform.
           </p>
-          <div className="mt-8 flex justify-center gap-4 flex-wrap">
-            <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-gold-dark font-semibold px-8">
-              <Link to="/join">Get Started Free</Link>
+          <div className="mt-10 flex justify-center gap-4 flex-wrap">
+            <Button asChild size="lg" className="group rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-8 transition-all duration-300">
+              <Link to="/join">
+                Get Started Free
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+            <Button asChild variant="outline" size="lg" className="rounded-full border-primary-foreground/20 text-primary-foreground hover:border-accent hover:text-accent transition-all duration-300">
               <Link to="/about">Learn More</Link>
             </Button>
           </div>
