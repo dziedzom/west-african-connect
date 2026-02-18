@@ -22,40 +22,38 @@ const Contact = () => {
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
           Get in <span className="text-accent">Touch</span>
         </h1>
-        <p className="text-muted-foreground mb-10">Have questions about MiddleBrand? We'd love to hear from you.</p>
+        <p className="text-muted-foreground font-body text-sm mb-10">Have questions about MiddlBrand? We'd love to hear from you.</p>
 
         <div className="grid md:grid-cols-5 gap-8">
-          {/* Info */}
           <div className="md:col-span-2 space-y-6">
             <div className="flex items-start gap-3">
               <Mail className="h-5 w-5 text-accent mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground text-sm">Email</p>
-                <p className="text-sm text-muted-foreground">info@middlebrand.com</p>
+                <p className="font-display font-semibold text-foreground text-sm">Email</p>
+                <p className="text-xs text-muted-foreground font-body">info@middlbrand.com</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Phone className="h-5 w-5 text-accent mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground text-sm">Phone</p>
-                <p className="text-sm text-muted-foreground">+233 30 123 4567</p>
+                <p className="font-display font-semibold text-foreground text-sm">Phone</p>
+                <p className="text-xs text-muted-foreground font-body">+233 30 123 4567</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <MapPin className="h-5 w-5 text-accent mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground text-sm">Office</p>
-                <p className="text-sm text-muted-foreground">Airport City, Accra, Ghana</p>
+                <p className="font-display font-semibold text-foreground text-sm">Office</p>
+                <p className="text-xs text-muted-foreground font-body">Airport City, Accra, Ghana</p>
               </div>
             </div>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="md:col-span-3 rounded-lg border border-border bg-card p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="md:col-span-3 rounded-2xl border border-border bg-card p-6 space-y-4">
             {sent ? (
               <div className="py-12 text-center animate-fade-in">
                 <p className="text-lg font-display font-semibold text-foreground">Thank you!</p>
-                <p className="text-sm text-muted-foreground mt-1">We'll get back to you shortly.</p>
+                <p className="text-xs text-muted-foreground font-body mt-1">We'll get back to you shortly.</p>
               </div>
             ) : (
               <>
@@ -77,7 +75,7 @@ const Contact = () => {
                   <Label htmlFor="message">Message *</Label>
                   <Textarea id="message" required rows={5} placeholder="Tell us more..." />
                 </div>
-                <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-gold-dark font-semibold">
+                <Button type="submit" className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold transition-all duration-300">
                   Send Message
                 </Button>
               </>

@@ -28,7 +28,7 @@ const CompanySignUp = () => {
             <CheckCircle className="h-8 w-8 text-accent" />
           </div>
           <h1 className="text-3xl font-display font-bold text-foreground">Application Submitted!</h1>
-          <p className="mt-4 text-muted-foreground">Thank you for registering. Our team will review your company profile and reach out within 48 hours.</p>
+          <p className="mt-4 text-muted-foreground font-body text-sm">Thank you for registering. Our team will review your company profile and reach out within 48 hours.</p>
         </div>
       </section>
     );
@@ -39,12 +39,12 @@ const CompanySignUp = () => {
       <div className="container max-w-2xl">
         <div className="mb-10">
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-            Join the MiddleBrand Directory
+            Join the MiddlBrand Directory
           </h1>
-          <p className="mt-2 text-muted-foreground">Register your company to receive matched opportunities. It's free — we only earn when you win.</p>
+          <p className="mt-2 text-muted-foreground font-body text-sm">Register your company to receive matched opportunities. It's free — we only earn when you win.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border border-border bg-card p-8">
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-border bg-card p-8">
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="company">Company Name *</Label>
@@ -80,10 +80,10 @@ const CompanySignUp = () => {
             <Textarea id="about" rows={4} placeholder="Brief description of your company, key projects, and capabilities..." />
           </div>
 
-          <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-gold-dark font-semibold">
+          <Button type="submit" size="lg" className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold transition-all duration-300">
             Submit Application
           </Button>
-          <p className="text-xs text-center text-muted-foreground">By submitting, you agree to our terms of service. No fees until you win a contract.</p>
+          <p className="text-[10px] text-center text-muted-foreground font-body">By submitting, you agree to our terms of service. No fees until you win a contract.</p>
         </form>
       </div>
     </section>
