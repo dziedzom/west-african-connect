@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, MapPin, Tag, DollarSign } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import RFPDetailModal from "@/components/RFPDetailModal";
 
 const categories = ["All", "Pharma", "Transport", "Construction", "IT", "Agriculture", "Energy"];
@@ -32,12 +33,35 @@ const mockRFPs: RFP[] = [
   { id: 8, title: "Public Transit Bus Fleet", org: "Abuja Transport Authority", category: "Transport", location: "Nigeria", value: "$200k–$500k", deadline: "2026-05-01", description: "Purchase of 50 CNG-powered buses for the new BRT corridor. Includes after-sales service, spare parts supply, and driver training." },
 ];
 
+const RFPSkeleton = () => (
+  <div className="container py-12">
+    <Skeleton className="h-10 w-72 mb-2" />
+    <Skeleton className="h-5 w-96 mb-10" />
+    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {[1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-10 rounded-md" />
+      ))}
+    </div>
+    <div className="space-y-4">
+      {[1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-36 rounded-lg" />
+      ))}
+    </div>
+  </div>
+);
+
 const RFPListings = () => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [location, setLocation] = useState("All");
   const [valueRange, setValueRange] = useState("All");
   const [selectedRFP, setSelectedRFP] = useState<RFP | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(t);
+  }, []);
 
   const filtered = useMemo(() => {
     return mockRFPs.filter((r) => {
@@ -48,6 +72,8 @@ const RFPListings = () => {
       return matchSearch && matchCat && matchLoc && matchVal;
     });
   }, [search, category, location, valueRange]);
+
+  if (loading) return <RFPSkeleton />;
 
   return (
     <section className="py-12 bg-background min-h-screen">
@@ -102,7 +128,7 @@ const RFPListings = () => {
                 <div className="text-right shrink-0">
                   <p className="text-xs text-muted-foreground">Deadline</p>
                   <p className="font-semibold text-foreground">{rfp.deadline}</p>
-                  <Button size="sm" className="mt-3 bg-accent text-accent-foreground hover:bg-gold-dark" onClick={(e) => { e.stopPropagation(); setSelectedRFP(rfp); }}>
+                  <Button size="sm" className="mt-3 bg-accent text-accent-foreground hover:bg-accent/90" onClick={(e) => { e.stopPropagation(); setSelectedRFP(rfp); }}>
                     View Details
                   </Button>
                 </div>

@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const tiers = [
   {
@@ -64,6 +65,21 @@ const scenarios = [
     tier: "Enterprise (15%)",
     fee: "$150,000",
     description: "An IT company lands a 3-year digital transformation contract with full bid support.",
+  },
+];
+
+const faqs = [
+  {
+    question: "How does MiddlBrand's matching algorithm work?",
+    answer: "Our matching system analyzes your company profile — including expertise, location, capacity, and track record — against live RFPs and tenders across West Africa. We use a weighted scoring model to surface the opportunities where you have the highest probability of winning.",
+  },
+  {
+    question: "When and how do I pay the commission?",
+    answer: "Commission is only charged after you've been awarded a contract through MiddlBrand. Payment is due within 30 days of contract signing. We never charge upfront fees, retainers, or subscription costs. If you don't win, you don't pay.",
+  },
+  {
+    question: "What are the typical win rates for matched companies?",
+    answer: "Companies matched through MiddlBrand see an average win rate of 22% — roughly 3x the industry average for open tenders. Premium and Enterprise tier members benefit from bid preparation support, which pushes win rates even higher.",
   },
 ];
 
@@ -160,6 +176,28 @@ const Pricing = () => {
           <p className="text-center text-xs text-muted-foreground font-body mt-8">
             Commission is only charged on successful contract awards facilitated through MiddlBrand.
           </p>
+        </div>
+
+        <div className="max-w-3xl mx-auto mt-24">
+          <h2 className="text-2xl font-display font-bold text-foreground text-center mb-2">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-center text-xs text-muted-foreground font-body mb-10">
+            Everything you need to know about working with MiddlBrand.
+          </p>
+
+          <Accordion type="single" collapsible className="space-y-2">
+            {faqs.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="rounded-2xl border border-border bg-card px-6 data-[state=open]:border-accent/30 transition-colors duration-300">
+                <AccordionTrigger className="text-sm font-display font-semibold text-foreground hover:no-underline py-5">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground font-body leading-relaxed pb-5">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
     </section>

@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Menu, X, LogIn, LayoutDashboard, Moon, Sun } from "lucide-react";
+import { Menu, X, LogIn, LayoutDashboard, Moon, Sun, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -120,46 +121,80 @@ const Navbar = () => {
   );
 };
 
-const Footer = () => (
-  <footer className="border-t border-border bg-primary text-primary-foreground">
-    <div className="container py-16">
-      <div className="grid gap-8 md:grid-cols-3 mb-12">
-        <div>
-          <p className="text-sm font-body opacity-60 max-w-xs">
-            Connecting vetted West African companies to real business opportunities. No upfront fees.
-          </p>
-        </div>
-        <div>
-          <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Links</h4>
-          <div className="flex flex-col gap-2">
-            {navLinks.map((l) => (
-              <Link key={l.to} to={l.to} className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">
-                {l.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div>
-          <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Connect</h4>
-          <div className="flex flex-col gap-2">
-            <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">LinkedIn</a>
-            <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">Twitter</a>
-            <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">Facebook</a>
-          </div>
-          <p className="text-sm font-body opacity-40 mt-4">info@middlbrand.com</p>
-        </div>
-      </div>
+const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
 
-      {/* Massive logo */}
-      <div className="border-t border-primary-foreground/10 pt-8">
-        <p className="font-display font-black text-[12vw] md:text-[8vw] leading-none tracking-tighter opacity-10 select-none">
-          MiddlBrand
-        </p>
-        <p className="text-xs font-body opacity-30 mt-4">© 2026 MiddlBrand. All rights reserved.</p>
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      setSubscribed(true);
+      setEmail("");
+      setTimeout(() => setSubscribed(false), 3000);
+    }
+  };
+
+  return (
+    <footer className="border-t border-border bg-primary text-primary-foreground">
+      <div className="container py-16">
+        <div className="grid gap-8 md:grid-cols-4 mb-12">
+          <div>
+            <p className="text-sm font-body opacity-60 max-w-xs">
+              Connecting vetted West African companies to real business opportunities. No upfront fees.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Links</h4>
+            <div className="flex flex-col gap-2">
+              {navLinks.map((l) => (
+                <Link key={l.to} to={l.to} className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Connect</h4>
+            <div className="flex flex-col gap-2">
+              <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">LinkedIn</a>
+              <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">Twitter</a>
+              <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">Facebook</a>
+            </div>
+            <p className="text-sm font-body opacity-40 mt-4">info@middlbrand.com</p>
+          </div>
+          <div>
+            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Newsletter</h4>
+            <p className="text-xs font-body opacity-50 mb-4">Get the latest opportunities delivered to your inbox.</p>
+            <form onSubmit={handleSubscribe} className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 text-xs h-9"
+                required
+              />
+              <Button type="submit" size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full h-9 px-4 shrink-0">
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </form>
+            {subscribed && (
+              <p className="text-xs font-body text-accent mt-2">Subscribed!</p>
+            )}
+          </div>
+        </div>
+
+        {/* Massive logo */}
+        <div className="border-t border-primary-foreground/10 pt-8">
+          <p className="font-display font-black text-[12vw] md:text-[8vw] leading-none tracking-tighter opacity-10 select-none">
+            MiddlBrand
+          </p>
+          <p className="text-xs font-body opacity-30 mt-4">© 2026 MiddlBrand. All rights reserved.</p>
+        </div>
       </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
 
 interface LayoutProps {
   children: React.ReactNode;

@@ -157,3 +157,16 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Magnetic button micro-interaction */
+button[class*="bg-accent"],
+button[class*="variant"] {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+button[class*="bg-accent"]:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 20px hsl(224 100% 57% / 0.25);
+}
+button[class*="bg-accent"]:active {
+  transform: scale(0.98);
+}

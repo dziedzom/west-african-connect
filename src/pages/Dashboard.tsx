@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { LayoutDashboard, FileText, ArrowRight } from "lucide-react";
 
 const matchedRFPs = [
@@ -10,8 +12,39 @@ const matchedRFPs = [
   { id: 3, title: "Solar Panel Installation", org: "ECOWAS Energy Fund", category: "Energy", location: "Senegal", value: "$500k+", deadline: "2026-03-28", status: "New" },
 ];
 
+const DashboardSkeleton = () => (
+  <div className="container max-w-4xl py-12">
+    <div className="flex items-center justify-between mb-10">
+      <div>
+        <Skeleton className="h-8 w-48 mb-2" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+      <Skeleton className="h-10 w-24 rounded-full" />
+    </div>
+    <div className="grid grid-cols-3 gap-4 mb-10">
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-24 rounded-lg" />
+      ))}
+    </div>
+    <Skeleton className="h-6 w-56 mb-6" />
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-28 rounded-lg" />
+      ))}
+    </div>
+  </div>
+);
+
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <section className="py-12 bg-background min-h-screen">

@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Target, Shield, TrendingUp, Users, Zap } from "lucide-react";
+import { ArrowRight, Target, Shield, TrendingUp, Users, Zap, Building2, Briefcase, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import AnimatedCounter from "@/components/AnimatedCounter";
 
 const stats = [
   { value: "500+", label: "Vetted Companies" },
@@ -10,10 +11,32 @@ const stats = [
   { value: "8", label: "Countries" },
 ];
 
+const testimonials = [
+  {
+    quote: "MiddlBrand connected us to a $250K infrastructure contract we never would have found on our own. Their matching is incredibly precise.",
+    name: "Kwame Asante",
+    title: "CEO, Asante Construction",
+    icon: Building2,
+  },
+  {
+    quote: "The commission model means zero risk for us. We only pay when we win — and we've won three contracts in six months.",
+    name: "Amina Diallo",
+    title: "Director, Sahel Logistics",
+    icon: Briefcase,
+  },
+  {
+    quote: "Their vetting process gave us credibility with buyers we couldn't reach before. It's opened doors across West Africa.",
+    name: "Emeka Okafor",
+    title: "Founder, TechBridge Solutions",
+    icon: Globe,
+  },
+];
+
 const Index = () => {
   const statsRef = useScrollReveal(80);
   const bentoRef = useScrollReveal(120);
   const ctaRef = useScrollReveal();
+  const testimonialsRef = useScrollReveal(100);
 
   return (
     <>
@@ -21,9 +44,7 @@ const Index = () => {
       <section className="relative min-h-screen flex items-center justify-center grain-mesh">
         <div className="container relative z-10 text-center py-20">
           <div className="max-w-4xl mx-auto">
-            <h1
-              className="text-7xl sm:text-8xl md:text-9xl font-display font-black text-foreground leading-[0.9] animate-fade-in"
-            >
+            <h1 className="text-7xl sm:text-8xl md:text-9xl font-display font-black text-foreground leading-[0.9] animate-fade-in">
               MiddlBrand
             </h1>
             <p className="mt-8 text-base md:text-lg text-muted-foreground font-body max-w-xl mx-auto animate-fade-in"
@@ -46,14 +67,15 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Stats */}
+      {/* Stats with animated counters */}
       <section ref={statsRef} className="border-y border-border bg-card">
         <div className="container grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
           {stats.map((s) => (
             <div key={s.label} className="reveal py-10 text-center group cursor-default">
-              <p className="text-3xl md:text-4xl font-display font-bold text-foreground transition-colors duration-300 group-hover:text-accent">
-                {s.value}
-              </p>
+              <AnimatedCounter
+                value={s.value}
+                className="text-3xl md:text-4xl font-display font-bold text-foreground transition-colors duration-300 group-hover:text-accent"
+              />
               <p className="mt-1 text-xs font-body text-muted-foreground uppercase tracking-wider">{s.label}</p>
             </div>
           ))}
@@ -84,7 +106,6 @@ const Index = () => {
                   We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity across West Africa.
                 </p>
               </div>
-              {/* Abstract decorative element */}
               <div className="mt-8 h-20 rounded-xl bg-gradient-to-r from-accent/5 to-accent/10" />
             </div>
 
@@ -123,10 +144,43 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Small card — decorative / abstract */}
+            {/* Small card — decorative */}
             <div className="reveal rounded-2xl border border-border bg-gradient-to-br from-accent/5 via-transparent to-accent/10 p-6 flex items-center justify-center">
               <Zap className="h-8 w-8 text-accent/30" />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials / Social Proof */}
+      <section className="py-24 bg-card border-y border-border">
+        <div className="container">
+          <div className="text-center max-w-xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
+              Trusted by Leading Companies
+            </h2>
+            <p className="mt-4 text-muted-foreground font-body text-sm">
+              Real results from businesses growing through MiddlBrand.
+            </p>
+          </div>
+
+          <div ref={testimonialsRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            {testimonials.map((t) => (
+              <div key={t.name} className="reveal rounded-2xl border border-border bg-background p-8 flex flex-col justify-between hover:border-accent/30 transition-colors duration-300">
+                <p className="text-sm text-muted-foreground font-body leading-relaxed mb-8">
+                  "{t.quote}"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                    <t.icon className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-display font-semibold text-foreground">{t.name}</p>
+                    <p className="text-xs text-muted-foreground font-body">{t.title}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
