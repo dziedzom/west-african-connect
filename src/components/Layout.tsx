@@ -137,7 +137,7 @@ const Footer = () => {
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
       <div className="container py-16">
-        <div className="grid gap-8 md:grid-cols-4 mb-12">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 mb-12">
           <div>
             <p className="text-sm font-body opacity-60 max-w-xs">
               Connecting vetted West African companies to real business opportunities. No upfront fees.

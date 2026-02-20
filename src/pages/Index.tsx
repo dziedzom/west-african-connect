@@ -44,7 +44,7 @@ const Index = () => {
       <section className="relative min-h-screen flex items-center justify-center grain-mesh">
         <div className="container relative z-10 text-center py-20">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-7xl sm:text-8xl md:text-9xl font-display font-black text-foreground leading-[0.9] animate-fade-in">
+            <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-display font-black text-foreground leading-[0.9] animate-fade-in">
               MiddlBrand
             </h1>
             <p className="mt-8 text-base md:text-lg text-muted-foreground font-body max-w-xl mx-auto animate-fade-in"
@@ -69,7 +69,7 @@ const Index = () => {
 
       {/* Stats with animated counters */}
       <section ref={statsRef} className="border-y border-border bg-card">
-        <div className="container grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
+        <div className="container grid grid-cols-2 md:grid-cols-4 divide-x divide-border [&>div:nth-child(n+3)]:border-t [&>div:nth-child(n+3)]:md:border-t-0">
           {stats.map((s) => (
             <div key={s.label} className="reveal py-10 text-center group cursor-default">
               <AnimatedCounter
@@ -94,9 +94,9 @@ const Index = () => {
             </p>
           </div>
 
-          <div ref={bentoRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+          <div ref={bentoRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
             {/* Large card — Lead Generation */}
-            <div className="reveal md:col-span-2 md:row-span-2 rounded-2xl border border-border bg-card p-8 md:p-10 flex flex-col justify-between min-h-[320px] group hover:border-accent/30 transition-colors duration-300">
+            <div className="reveal sm:col-span-2 md:col-span-2 md:row-span-2 rounded-2xl border border-border bg-card p-6 sm:p-8 md:p-10 flex flex-col justify-between min-h-[280px] md:min-h-[320px] group hover:border-accent/30 transition-colors duration-300">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
                   <Target className="h-6 w-6 text-accent" />
@@ -132,7 +132,7 @@ const Index = () => {
             </div>
 
             {/* Wide card — Ethical Matching */}
-            <div className="reveal md:col-span-2 rounded-2xl border border-border bg-card p-6 flex items-center gap-6 group hover:border-accent/30 transition-colors duration-300">
+            <div className="reveal sm:col-span-2 md:col-span-2 rounded-2xl border border-border bg-card p-6 flex items-center gap-4 sm:gap-6 group hover:border-accent/30 transition-colors duration-300">
               <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                 <Users className="h-5 w-5 text-accent" />
               </div>
@@ -164,7 +164,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div ref={testimonialsRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+          <div ref={testimonialsRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
             {testimonials.map((t) => (
               <div key={t.name} className="reveal rounded-2xl border border-border bg-background p-8 flex flex-col justify-between hover:border-accent/30 transition-colors duration-300">
                 <p className="text-sm text-muted-foreground font-body leading-relaxed mb-8">

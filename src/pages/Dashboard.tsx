@@ -21,7 +21,7 @@ const DashboardSkeleton = () => (
       </div>
       <Skeleton className="h-10 w-24 rounded-full" />
     </div>
-    <div className="grid grid-cols-3 gap-4 mb-10">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
       {[1, 2, 3].map((i) => (
         <Skeleton key={i} className="h-24 rounded-lg" />
       ))}
@@ -61,7 +61,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           <div className="rounded-lg border border-border bg-card p-5 text-center">
             <p className="text-2xl font-display font-bold text-accent">3</p>
             <p className="text-xs text-muted-foreground mt-1">Matched RFPs</p>
