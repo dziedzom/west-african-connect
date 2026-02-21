@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      partnership_applications: {
+        Row: {
+          capabilities: string
+          company_name: string
+          contact_email: string
+          created_at: string
+          id: string
+          portfolio_url: string | null
+          proposal: string
+          rfp_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capabilities: string
+          company_name: string
+          contact_email: string
+          created_at?: string
+          id?: string
+          portfolio_url?: string | null
+          proposal: string
+          rfp_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capabilities?: string
+          company_name?: string
+          contact_email?: string
+          created_at?: string
+          id?: string
+          portfolio_url?: string | null
+          proposal?: string
+          rfp_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partnership_applications_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "partnership_rfps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partnership_rfps: {
+        Row: {
+          budget_range: string | null
+          category: Database["public"]["Enums"]["partnership_category"]
+          created_at: string
+          deadline: string | null
+          description: string
+          id: string
+          location: string | null
+          requirements: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget_range?: string | null
+          category: Database["public"]["Enums"]["partnership_category"]
+          created_at?: string
+          deadline?: string | null
+          description: string
+          id?: string
+          location?: string | null
+          requirements?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget_range?: string | null
+          category?: Database["public"]["Enums"]["partnership_category"]
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          id?: string
+          location?: string | null
+          requirements?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           about: string | null
@@ -61,7 +153,11 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      partnership_category:
+        | "marketing_advertising"
+        | "communication"
+        | "production"
+        | "web_digital"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -188,6 +284,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      partnership_category: [
+        "marketing_advertising",
+        "communication",
+        "production",
+        "web_digital",
+      ],
+    },
   },
 } as const
