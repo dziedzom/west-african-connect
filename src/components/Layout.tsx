@@ -10,6 +10,7 @@ const navLinks = [
   { to: "/rfps", label: "RFPs" },
   { to: "/pricing", label: "Pricing" },
   { to: "/join", label: "Join" },
+  { to: "/partnerships", label: "Partners" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
