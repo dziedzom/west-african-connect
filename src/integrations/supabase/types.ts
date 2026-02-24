@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       partnership_applications: {
         Row: {
           capabilities: string
@@ -142,6 +187,51 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      rfps: {
+        Row: {
+          budget: string | null
+          category: string
+          created_at: string
+          deadline: string | null
+          description: string
+          id: string
+          location: string | null
+          org: string | null
+          status: string
+          title: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          budget?: string | null
+          category: string
+          created_at?: string
+          deadline?: string | null
+          description: string
+          id?: string
+          location?: string | null
+          org?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          budget?: string | null
+          category?: string
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          id?: string
+          location?: string | null
+          org?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          value?: string | null
         }
         Relationships: []
       }
