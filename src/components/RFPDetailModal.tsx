@@ -2,17 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, DollarSign, Building } from "lucide-react";
-
-interface RFP {
-  id: number;
-  title: string;
-  org: string;
-  category: string;
-  location: string;
-  value: string;
-  deadline: string;
-  description: string;
-}
+import type { RFP } from "@/types/rfp";
 
 interface RFPDetailModalProps {
   rfp: RFP | null;
@@ -46,14 +36,14 @@ const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-accent" />
-              <span>Due: {rfp.deadline}</span>
+              <span>Due: {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "N/A"}</span>
             </div>
           </div>
           <div className="flex gap-2">
             <Badge variant="secondary">{rfp.category}</Badge>
-            <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
+            {rfp.location && <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>}
           </div>
-          <Button className="w-full bg-accent text-accent-foreground hover:bg-gold-dark font-semibold mt-2">
+          <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold mt-2">
             Express Interest
           </Button>
         </div>

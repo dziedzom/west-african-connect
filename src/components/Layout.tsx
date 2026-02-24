@@ -4,6 +4,8 @@ import { Menu, X, LogIn, LayoutDashboard, Moon, Sun, ArrowRight } from "lucide-r
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -125,10 +127,22 @@ const Navbar = () => {
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [subLoading, setSubLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email) return;
+    setSubLoading(true);
+    const { error } = await supabase.from("newsletter_subscribers").insert({ email });
+    setSubLoading(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast({ title: "Already subscribed", description: "This email is already on our list." });
+      } else {
+        toast({ title: "Error", description: "Could not subscribe. Try again.", variant: "destructive" });
+      }
+    } else {
       setSubscribed(true);
       setEmail("");
       setTimeout(() => setSubscribed(false), 3000);

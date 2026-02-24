@@ -4,13 +4,9 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight } from "lucide-react";
-
-const matchedRFPs = [
-  { id: 1, title: "Supply of Pharmaceutical Products", org: "Ghana Health Service", category: "Pharma", location: "Ghana", value: "$100k–$200k", deadline: "2026-03-15", status: "New" },
-  { id: 5, title: "IT Infrastructure Upgrade", org: "Accra Digital Centre", category: "IT", location: "Ghana", value: "$100k–$200k", deadline: "2026-03-20", status: "Reviewed" },
-  { id: 3, title: "Solar Panel Installation", org: "ECOWAS Energy Fund", category: "Energy", location: "Senegal", value: "$500k+", deadline: "2026-03-28", status: "New" },
-];
+import { LayoutDashboard, FileText, ArrowRight, Settings } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import type { RFP } from "@/types/rfp";
 
 const DashboardSkeleton = () => (
   <div className="container max-w-4xl py-12">
@@ -38,11 +34,59 @@ const DashboardSkeleton = () => (
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [rfps, setRfps] = useState<RFP[]>([]);
+  const [totalRfps, setTotalRfps] = useState(0);
+  const [matchedRfps, setMatchedRfps] = useState<RFP[]>([]);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(t);
-  }, []);
+    if (!user) return;
+
+    const fetchData = async () => {
+      // Fetch all open RFPs count
+      const { count } = await supabase
+        .from("rfps")
+        .select("*", { count: "exact", head: true });
+      setTotalRfps(count || 0);
+
+      // Fetch user profile for expertise matching
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("expertise")
+        .eq("user_id", user.id)
+        .single();
+
+      // Fetch all RFPs
+      const { data: allRfps } = await supabase
+        .from("rfps")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      const rfpList = (allRfps || []) as RFP[];
+      setRfps(rfpList);
+
+      // Filter matched RFPs based on user expertise
+      if (profile?.expertise) {
+        const expertiseMap: Record<string, string[]> = {
+          "Pharmaceuticals": ["Pharma"],
+          "Transport & Logistics": ["Transport"],
+          "Construction": ["Construction"],
+          "IT & Tech": ["IT"],
+          "Agriculture": ["Agriculture"],
+          "Energy": ["Energy"],
+          "Consulting": ["IT", "Pharma", "Energy"],
+          "Manufacturing": ["Agriculture", "Construction"],
+        };
+        const matchCategories = expertiseMap[profile.expertise] || [];
+        setMatchedRfps(rfpList.filter((r) => matchCategories.includes(r.category)));
+      } else {
+        setMatchedRfps(rfpList.slice(0, 5));
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [user]);
 
   if (loading) return <DashboardSkeleton />;
 
@@ -57,22 +101,27 @@ const Dashboard = () => {
             </div>
             <p className="text-sm text-muted-foreground">{user?.email}</p>
           </div>
-          <Button variant="outline" onClick={signOut}>Sign Out</Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/profile"><Settings className="h-4 w-4 mr-1" /> Profile</Link>
+            </Button>
+            <Button variant="outline" onClick={signOut}>Sign Out</Button>
+          </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           <div className="rounded-lg border border-border bg-card p-5 text-center">
-            <p className="text-2xl font-display font-bold text-accent">3</p>
-            <p className="text-xs text-muted-foreground mt-1">Matched RFPs</p>
+            <p className="text-2xl font-display font-bold text-accent">{totalRfps}</p>
+            <p className="text-xs text-muted-foreground mt-1">Active RFPs</p>
           </div>
           <div className="rounded-lg border border-border bg-card p-5 text-center">
-            <p className="text-2xl font-display font-bold text-foreground">1</p>
-            <p className="text-xs text-muted-foreground mt-1">Bids Submitted</p>
+            <p className="text-2xl font-display font-bold text-foreground">{matchedRfps.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Matched to Your Expertise</p>
           </div>
           <div className="rounded-lg border border-border bg-card p-5 text-center">
             <p className="text-2xl font-display font-bold text-foreground">0</p>
-            <p className="text-xs text-muted-foreground mt-1">Contracts Won</p>
+            <p className="text-xs text-muted-foreground mt-1">Bids Submitted</p>
           </div>
         </div>
 
@@ -87,26 +136,29 @@ const Dashboard = () => {
         </div>
 
         <div className="grid gap-4">
-          {matchedRFPs.map((rfp) => (
+          {matchedRfps.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No matched opportunities yet.</p>
+              <p className="text-sm mt-1">
+                <Link to="/profile" className="text-accent hover:underline">Set your expertise</Link> to see relevant RFPs.
+              </p>
+            </div>
+          )}
+          {matchedRfps.map((rfp) => (
             <div key={rfp.id} className="rounded-lg border border-border bg-card p-5 hover:border-accent/40 transition-all">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-display font-semibold text-foreground">{rfp.title}</h3>
-                    <Badge variant={rfp.status === "New" ? "default" : "secondary"} className={rfp.status === "New" ? "bg-accent text-accent-foreground" : ""}>
-                      {rfp.status}
-                    </Badge>
-                  </div>
+                  <h3 className="font-display font-semibold text-foreground">{rfp.title}</h3>
                   <p className="text-sm text-muted-foreground">{rfp.org}</p>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <Badge variant="outline">{rfp.category}</Badge>
-                    <Badge variant="outline">{rfp.location}</Badge>
-                    <Badge variant="outline">{rfp.value}</Badge>
+                    <Badge variant="secondary">{rfp.category}</Badge>
+                    {rfp.location && <Badge variant="outline">{rfp.location}</Badge>}
+                    {rfp.value && <Badge variant="outline">{rfp.value}</Badge>}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-xs text-muted-foreground">Deadline</p>
-                  <p className="text-sm font-semibold text-foreground">{rfp.deadline}</p>
+                  <p className="text-sm font-semibold text-foreground">{rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}</p>
                 </div>
               </div>
             </div>

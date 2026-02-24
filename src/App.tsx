@@ -12,6 +12,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import ProfileSettings from "./pages/ProfileSettings";
 import Pricing from "./pages/Pricing";
 import Partnerships from "./pages/Partnerships";
 import NotFound from "./pages/NotFound";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/partnerships" element={<Partnerships />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

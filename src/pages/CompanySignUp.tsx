@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -6,18 +7,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const expertiseOptions = ["Pharmaceuticals", "Transport & Logistics", "Construction", "IT & Tech", "Agriculture", "Energy", "Consulting", "Manufacturing"];
 const locationOptions = ["Ghana", "Nigeria", "Senegal", "Côte d'Ivoire", "Cameroon", "Togo", "Benin", "Other"];
 
 const CompanySignUp = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [expertise, setExpertise] = useState("");
+  const [locationVal, setLocationVal] = useState("");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
-    toast({ title: "Application Received!", description: "We'll review your details and get back to you within 48 hours." });
+    if (!user) {
+      toast({ title: "Sign in required", description: "Please sign in or create an account first.", variant: "destructive" });
+      navigate("/auth");
+      return;
+    }
+
+    setLoading(true);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const { error } = await supabase.from("profiles").upsert({
+      user_id: user.id,
+      company_name: formData.get("company") as string,
+      email: formData.get("email") as string,
+      expertise,
+      location: locationVal,
+      website: (formData.get("website") as string) || null,
+      about: (formData.get("about") as string) || null,
+    }, { onConflict: "user_id" });
+
+    setLoading(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setSubmitted(true);
+      toast({ title: "Application Received!", description: "We'll review your details and get back to you within 48 hours." });
+    }
   };
 
   if (submitted) {
@@ -42,30 +75,35 @@ const CompanySignUp = () => {
             Join the MiddlBrand Directory
           </h1>
           <p className="mt-2 text-muted-foreground font-body text-sm">Register your company to receive matched opportunities. It's free — we only earn when you win.</p>
+          {!user && (
+            <p className="mt-2 text-sm text-accent font-body">
+              You'll need to <a href="/auth" className="underline font-semibold">sign in</a> before submitting.
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-border bg-card p-8">
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="company">Company Name *</Label>
-              <Input id="company" required placeholder="e.g. Kofi & Sons Ltd." />
+              <Input id="company" name="company" required placeholder="e.g. Kofi & Sons Ltd." />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Business Email *</Label>
-              <Input id="email" type="email" required placeholder="info@company.com" />
+              <Input id="email" name="email" type="email" required placeholder="info@company.com" defaultValue={user?.email || ""} />
             </div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="expertise">Primary Expertise *</Label>
-              <Select required>
+              <Select required value={expertise} onValueChange={setExpertise}>
                 <SelectTrigger id="expertise"><SelectValue placeholder="Select expertise" /></SelectTrigger>
                 <SelectContent>{expertiseOptions.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">Location *</Label>
-              <Select required>
+              <Select required value={locationVal} onValueChange={setLocationVal}>
                 <SelectTrigger id="location"><SelectValue placeholder="Select country" /></SelectTrigger>
                 <SelectContent>{locationOptions.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
               </Select>
@@ -73,15 +111,15 @@ const CompanySignUp = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="website">Website (optional)</Label>
-            <Input id="website" type="url" placeholder="https://yourcompany.com" />
+            <Input id="website" name="website" type="url" placeholder="https://yourcompany.com" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="about">Tell us about your company</Label>
-            <Textarea id="about" rows={4} placeholder="Brief description of your company, key projects, and capabilities..." />
+            <Textarea id="about" name="about" rows={4} placeholder="Brief description of your company, key projects, and capabilities..." />
           </div>
 
-          <Button type="submit" size="lg" className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold transition-all duration-300">
-            Submit Application
+          <Button type="submit" size="lg" disabled={loading} className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold transition-all duration-300">
+            {loading ? "Submitting..." : "Submit Application"}
           </Button>
           <p className="text-[10px] text-center text-muted-foreground font-body">By submitting, you agree to our terms of service. No fees until you win a contract.</p>
         </form>
