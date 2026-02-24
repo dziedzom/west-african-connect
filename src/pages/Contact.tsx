@@ -5,15 +5,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const { toast } = useToast();
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSent(true);
-    toast({ title: "Message Sent", description: "We'll respond within 24 hours." });
+    setLoading(true);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const { error } = await supabase.from("contact_messages").insert({
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      subject: (formData.get("subject") as string) || null,
+      message: formData.get("message") as string,
+    });
+
+    setLoading(false);
+    if (error) {
+      toast({ title: "Error", description: "Failed to send message. Please try again.", variant: "destructive" });
+    } else {
+      setSent(true);
+      toast({ title: "Message Sent", description: "We'll respond within 24 hours." });
+    }
   };
 
   return (
@@ -60,23 +78,23 @@ const Contact = () => {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name *</Label>
-                    <Input id="name" required placeholder="Your name" />
+                    <Input id="name" name="name" required placeholder="Your name" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email *</Label>
-                    <Input id="email" type="email" required placeholder="you@company.com" />
+                    <Input id="email" name="email" type="email" required placeholder="you@company.com" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="How can we help?" />
+                  <Input id="subject" name="subject" placeholder="How can we help?" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="message">Message *</Label>
-                  <Textarea id="message" required rows={5} placeholder="Tell us more..." />
+                  <Textarea id="message" name="message" required rows={5} placeholder="Tell us more..." />
                 </div>
-                <Button type="submit" className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold transition-all duration-300">
-                  Send Message
+                <Button type="submit" disabled={loading} className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold transition-all duration-300">
+                  {loading ? "Sending..." : "Send Message"}
                 </Button>
               </>
             )}
