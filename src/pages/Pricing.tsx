@@ -7,7 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 const tiers = [
   {
     name: "Standard",
-    commission: "10%",
+    commission: "5%",
     description: "For companies getting started with MiddlBrand.",
     features: [
       "Access to all RFP listings",
@@ -18,7 +18,7 @@ const tiers = [
   },
   {
     name: "Premium",
-    commission: "12%",
+    commission: "7%",
     description: "Enhanced support for growing businesses.",
     featured: true,
     features: [
@@ -31,7 +31,7 @@ const tiers = [
   },
   {
     name: "Enterprise",
-    commission: "15%",
+    commission: "10%",
     description: "Full-service support for complex contracts.",
     features: [
       "Everything in Premium",
@@ -48,22 +48,22 @@ const scenarios = [
   {
     title: "Small Supply Contract",
     value: "$50,000",
-    tier: "Standard (10%)",
-    fee: "$5,000",
+    tier: "Standard (5%)",
+    fee: "$2,500",
     description: "A vetted supplier wins a government procurement contract for office equipment.",
   },
   {
     title: "Infrastructure Project",
     value: "$250,000",
-    tier: "Premium (12%)",
-    fee: "$30,000",
+    tier: "Premium (7%)",
+    fee: "$17,500",
     description: "A construction firm secures a road rehabilitation project through priority matching.",
   },
   {
     title: "Multi-Year Service Agreement",
     value: "$1,000,000",
-    tier: "Enterprise (15%)",
-    fee: "$150,000",
+    tier: "Enterprise (10%)",
+    fee: "$100,000",
     description: "An IT company lands a 3-year digital transformation contract with full bid support.",
   },
 ];
