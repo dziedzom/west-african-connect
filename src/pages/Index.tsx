@@ -7,7 +7,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 const stats = [
   { value: "500+", label: "Vetted Companies" },
   { value: "$12M+", label: "Matched" },
-  { value: "3%", label: "Commission" },
+  { value: "5%", label: "Commission" },
   { value: "8", label: "Countries" },
 ];
 
@@ -50,7 +50,7 @@ const Index = () => {
             <p className="mt-8 text-base md:text-lg text-muted-foreground font-body max-w-xl mx-auto animate-fade-in"
                style={{ animationDelay: "200ms" }}>
               Connecting vetted West African businesses to real opportunities.
-              No upfront fees. No risk. We earn 3% when you win.
+              No upfront fees. No risk. We earn 5% when you win.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4 animate-fade-in" style={{ animationDelay: "400ms" }}>
               <Button asChild size="lg" className="group rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-8 transition-all duration-300">
@@ -125,9 +125,9 @@ const Index = () => {
               <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
                 <TrendingUp className="h-5 w-5 text-accent" />
               </div>
-              <h3 className="text-lg font-display font-semibold text-foreground mb-2">3% Commission</h3>
+              <h3 className="text-lg font-display font-semibold text-foreground mb-2">5–10% Commission</h3>
               <p className="text-xs text-muted-foreground font-body">
-                We only earn when you win. Incentives perfectly aligned.
+                We only earn when you win. Tiered from 5% to 10% based on service level.
               </p>
             </div>
 
