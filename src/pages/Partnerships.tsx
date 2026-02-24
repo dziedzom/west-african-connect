@@ -37,7 +37,7 @@ const productionBTL = [
 ];
 
 const Partnerships = () => {
-  useScrollReveal();
+  const revealRef = useScrollReveal();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -103,7 +103,7 @@ const Partnerships = () => {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div ref={revealRef} className="relative min-h-screen">
       {/* Hero */}
       <section className="grain-mesh py-32 md:py-44">
         <div className="container max-w-4xl reveal">
