@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { useEffect } from "react";
 
 interface SEOProps {
   title?: string;
@@ -39,36 +39,62 @@ const SEO = ({
     },
   };
 
-  return (
-    <Helmet>
-      <title>{fullTitle}</title>
-      <meta name="description" content={description} />
-      <link rel="canonical" href={canonicalUrl} />
+  useEffect(() => {
+    // Title
+    document.title = fullTitle;
 
-      {/* Open Graph */}
-      <meta property="og:type" content={type} />
-      <meta property="og:site_name" content={SITE_NAME} />
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={OG_IMAGE} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:url" content={canonicalUrl} />
-      <meta property="og:locale" content="en_US" />
+    // Helper to set/create meta tags
+    const setMeta = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
 
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@MiddlBrand" />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={OG_IMAGE} />
+    // Description
+    setMeta("name", "description", description);
 
-      {/* JSON-LD */}
-      <script type="application/ld+json">
-        {JSON.stringify(jsonLd || defaultJsonLd)}
-      </script>
-    </Helmet>
-  );
+    // Canonical
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", canonicalUrl);
+
+    // Open Graph
+    setMeta("property", "og:type", type);
+    setMeta("property", "og:site_name", SITE_NAME);
+    setMeta("property", "og:title", fullTitle);
+    setMeta("property", "og:description", description);
+    setMeta("property", "og:image", OG_IMAGE);
+    setMeta("property", "og:url", canonicalUrl);
+    setMeta("property", "og:locale", "en_US");
+
+    // Twitter
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:site", "@MiddlBrand");
+    setMeta("name", "twitter:title", fullTitle);
+    setMeta("name", "twitter:description", description);
+    setMeta("name", "twitter:image", OG_IMAGE);
+
+    // JSON-LD
+    const ldData = jsonLd || defaultJsonLd;
+    let script = document.querySelector('script[data-seo-jsonld]') as HTMLScriptElement | null;
+    if (!script) {
+      script = document.createElement("script");
+      script.setAttribute("type", "application/ld+json");
+      script.setAttribute("data-seo-jsonld", "true");
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(ldData);
+  }, [fullTitle, description, canonicalUrl, type, jsonLd]);
+
+  return null;
 };
 
 export default SEO;
