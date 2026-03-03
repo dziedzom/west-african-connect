@@ -69,6 +69,7 @@ const Navbar = () => {
             >
               {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </button>
+            <NotificationCenter />
             {user ? (
               <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
                 <Link to="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> Dashboard</Link>
