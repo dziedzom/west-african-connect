@@ -13,6 +13,8 @@ const About = () => {
   const valuesRef = useScrollReveal(120);
 
   return (
+    <>
+    <SEO title="About" path="/about" description="Learn about MiddlBrand's mission to connect vetted West African businesses with real contract opportunities through ethical lead generation." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-3xl">
         <div className="mb-12">

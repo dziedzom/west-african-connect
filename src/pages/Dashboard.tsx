@@ -92,6 +92,8 @@ const Dashboard = () => {
   if (loading) return <DashboardSkeleton />;
 
   return (
+    <>
+    <SEO title="Dashboard" path="/dashboard" description="Your MiddlBrand dashboard — view matched RFPs, track opportunities, and manage your company profile." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-4xl">
         <div className="flex items-center justify-between mb-10 flex-wrap gap-4">

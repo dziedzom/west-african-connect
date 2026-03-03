@@ -82,6 +82,8 @@ const ProfileSettings = () => {
   }
 
   return (
+    <>
+    <SEO title="Profile Settings" path="/profile" description="Edit your MiddlBrand company profile, expertise, and contact information." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-2xl">
         <div className="flex items-center gap-2 mb-8">

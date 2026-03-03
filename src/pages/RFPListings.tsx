@@ -65,6 +65,8 @@ const RFPListings = () => {
   if (loading) return <RFPSkeleton />;
 
   return (
+    <>
+    <SEO title="RFP Opportunities" path="/rfps" description="Browse open RFP listings and contract opportunities across West Africa. Filter by category, location, and value." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container">
         <div className="mb-10">

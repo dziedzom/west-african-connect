@@ -43,6 +43,8 @@ const Auth = () => {
   };
 
   return (
+    <>
+    <SEO title="Sign In" path="/auth" description="Sign in or create a MiddlBrand account to access RFP opportunities and your company dashboard." />
     <section className="py-16 bg-background min-h-screen flex items-center">
       <div className="container max-w-md">
         <div className="text-center mb-8">

@@ -104,6 +104,8 @@ const Partnerships = () => {
   };
 
   return (
+    <>
+    <SEO title="Partnerships" path="/partnerships" description="Apply for partnership opportunities with MiddlBrand. Submit your company profile and credentials to access premium contracts." />
     <div ref={revealRef} className="relative min-h-screen">
       {/* Hero */}
       <section className="grain-mesh py-32 md:py-44">

@@ -13,6 +13,8 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
+    <>
+    <SEO title="Page Not Found" path={location.pathname} description="The page you're looking for doesn't exist on MiddlBrand." />
     <section className="min-h-[80vh] flex items-center justify-center bg-background">
       <div className="container max-w-2xl text-center px-6">
         {/* Large 404 number */}

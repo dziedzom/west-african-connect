@@ -89,6 +89,8 @@ const Pricing = () => {
   const scenariosRef = useScrollReveal(100);
 
   return (
+    <>
+    <SEO title="Pricing" path="/pricing" description="MiddlBrand's commission-based pricing: 5% Standard, 7% Premium, 10% Enterprise. No upfront fees — we only earn when you win." />
     <section className="py-16 bg-background min-h-screen">
       <div className="container max-w-5xl">
         <div className="text-center mb-16 max-w-2xl mx-auto">
