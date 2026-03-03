@@ -137,6 +137,7 @@ const RFPListings = () => {
 
       <RFPDetailModal rfp={selectedRFP} open={!!selectedRFP} onOpenChange={(open) => !open && setSelectedRFP(null)} />
     </section>
+    </>
   );
 };
 

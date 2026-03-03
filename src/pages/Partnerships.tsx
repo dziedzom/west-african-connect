@@ -377,6 +377,7 @@ const Partnerships = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

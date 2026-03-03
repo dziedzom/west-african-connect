@@ -128,6 +128,7 @@ const CompanySignUp = () => {
         </form>
       </div>
     </section>
+    </>
   );
 };
 

@@ -57,6 +57,7 @@ const NotFound = () => {
         <div className="mt-16 mx-auto w-16 h-0.5 bg-accent/30 rounded-full" />
       </div>
     </section>
+    </>
   );
 };
 

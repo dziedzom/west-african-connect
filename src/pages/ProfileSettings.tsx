@@ -133,6 +133,7 @@ const ProfileSettings = () => {
         </form>
       </div>
     </section>
+    </>
   );
 };
 
