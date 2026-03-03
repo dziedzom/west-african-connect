@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Menu, X, LogIn, LayoutDashboard, Moon, Sun, ArrowRight } from "lucide-react";
+import NotificationCenter from "@/components/NotificationCenter";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
