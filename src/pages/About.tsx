@@ -1,5 +1,6 @@
 import { Handshake, Eye, Heart, Scale } from "lucide-react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import SEO from "@/components/SEO";
 
 const values = [
   { icon: Eye, title: "Transparency", text: "Every step of our matching process is visible. Companies know exactly how and why they're paired with opportunities." },

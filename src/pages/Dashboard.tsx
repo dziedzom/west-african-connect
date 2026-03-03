@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LayoutDashboard, FileText, ArrowRight, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
+import SEO from "@/components/SEO";
 
 const DashboardSkeleton = () => (
   <div className="container max-w-4xl py-12">

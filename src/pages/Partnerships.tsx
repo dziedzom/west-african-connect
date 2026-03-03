@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, ArrowLeft, Upload, CheckCircle2, X } from "lucide-react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import SEO from "@/components/SEO";
 
 // ── Formspree Configuration ──────────────────────────────────────────
 // Paste your Formspree form ID below (e.g. "xyzabcde")

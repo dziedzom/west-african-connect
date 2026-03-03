@@ -40,6 +40,21 @@ const Index = () => {
 
   return (
     <>
+      <SEO
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "MiddlBrand",
+          url: "https://middlbrand.com",
+          description: "Connecting vetted West African businesses to real opportunities through ethical lead generation.",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://middlbrand.com/rfps?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        }}
+      />
       {/* Hero — typography-led with grain mesh */}
       <section className="relative min-h-screen flex items-center justify-center grain-mesh">
         <div className="container relative z-10 text-center py-20">

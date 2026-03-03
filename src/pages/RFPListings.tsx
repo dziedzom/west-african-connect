@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RFPDetailModal from "@/components/RFPDetailModal";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
+import SEO from "@/components/SEO";
 
 const categories = ["All", "Pharma", "Transport", "Construction", "IT", "Agriculture", "Energy"];
 const locations = ["All", "Ghana", "Nigeria", "Senegal", "Côte d'Ivoire"];
