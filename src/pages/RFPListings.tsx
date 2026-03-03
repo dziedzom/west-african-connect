@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RFPDetailModal from "@/components/RFPDetailModal";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
+import SEO from "@/components/SEO";
 
 const categories = ["All", "Pharma", "Transport", "Construction", "IT", "Agriculture", "Energy"];
 const locations = ["All", "Ghana", "Nigeria", "Senegal", "Côte d'Ivoire"];
@@ -64,6 +65,8 @@ const RFPListings = () => {
   if (loading) return <RFPSkeleton />;
 
   return (
+    <>
+    <SEO title="RFP Opportunities" path="/rfps" description="Browse open RFP listings and contract opportunities across West Africa. Filter by category, location, and value." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container">
         <div className="mb-10">
@@ -134,6 +137,7 @@ const RFPListings = () => {
 
       <RFPDetailModal rfp={selectedRFP} open={!!selectedRFP} onOpenChange={(open) => !open && setSelectedRFP(null)} />
     </section>
+    </>
   );
 };
 

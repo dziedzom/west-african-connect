@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, ArrowLeft, Upload, CheckCircle2, X } from "lucide-react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import SEO from "@/components/SEO";
 
 // ── Formspree Configuration ──────────────────────────────────────────
 // Paste your Formspree form ID below (e.g. "xyzabcde")
@@ -103,6 +104,8 @@ const Partnerships = () => {
   };
 
   return (
+    <>
+    <SEO title="Partnerships" path="/partnerships" description="Apply for partnership opportunities with MiddlBrand. Submit your company profile and credentials to access premium contracts." />
     <div ref={revealRef} className="relative min-h-screen">
       {/* Hero */}
       <section className="grain-mesh py-32 md:py-44">
@@ -374,6 +377,7 @@ const Partnerships = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

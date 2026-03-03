@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import SEO from "@/components/SEO";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -35,6 +36,8 @@ const Contact = () => {
   };
 
   return (
+    <>
+    <SEO title="Contact" path="/contact" description="Get in touch with MiddlBrand. Questions about RFP matching, partnerships, or pricing? We'd love to hear from you." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-4xl">
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
@@ -102,6 +105,7 @@ const Contact = () => {
         </div>
       </div>
     </section>
+    </>
   );
 };
 

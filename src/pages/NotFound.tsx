@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SEO from "@/components/SEO";
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,6 +13,8 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
+    <>
+    <SEO title="Page Not Found" path={location.pathname} description="The page you're looking for doesn't exist on MiddlBrand." />
     <section className="min-h-[80vh] flex items-center justify-center bg-background">
       <div className="container max-w-2xl text-center px-6">
         {/* Large 404 number */}
@@ -54,6 +57,7 @@ const NotFound = () => {
         <div className="mt-16 mx-auto w-16 h-0.5 bg-accent/30 rounded-full" />
       </div>
     </section>
+    </>
   );
 };
 

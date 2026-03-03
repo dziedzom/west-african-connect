@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LayoutDashboard, FileText, ArrowRight, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
+import SEO from "@/components/SEO";
 
 const DashboardSkeleton = () => (
   <div className="container max-w-4xl py-12">
@@ -91,6 +92,8 @@ const Dashboard = () => {
   if (loading) return <DashboardSkeleton />;
 
   return (
+    <>
+    <SEO title="Dashboard" path="/dashboard" description="Your MiddlBrand dashboard — view matched RFPs, track opportunities, and manage your company profile." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-4xl">
         <div className="flex items-center justify-between mb-10 flex-wrap gap-4">
@@ -166,6 +169,7 @@ const Dashboard = () => {
         </div>
       </div>
     </section>
+    </>
   );
 };
 

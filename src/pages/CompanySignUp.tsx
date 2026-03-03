@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import SEO from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 
 const expertiseOptions = ["Pharmaceuticals", "Transport & Logistics", "Construction", "IT & Tech", "Agriculture", "Energy", "Consulting", "Manufacturing"];
@@ -68,6 +69,8 @@ const CompanySignUp = () => {
   }
 
   return (
+    <>
+    <SEO title="Join" path="/join" description="Register your company with MiddlBrand and get matched to RFP opportunities across West Africa. No upfront fees." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-2xl">
         <div className="mb-10">
@@ -125,6 +128,7 @@ const CompanySignUp = () => {
         </form>
       </div>
     </section>
+    </>
   );
 };
 

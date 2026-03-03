@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 import { Settings } from "lucide-react";
 
 const expertiseOptions = ["Pharmaceuticals", "Transport & Logistics", "Construction", "IT & Tech", "Agriculture", "Energy", "Consulting", "Manufacturing"];
@@ -81,6 +82,8 @@ const ProfileSettings = () => {
   }
 
   return (
+    <>
+    <SEO title="Profile Settings" path="/profile" description="Edit your MiddlBrand company profile, expertise, and contact information." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-2xl">
         <div className="flex items-center gap-2 mb-8">
@@ -130,6 +133,7 @@ const ProfileSettings = () => {
         </form>
       </div>
     </section>
+    </>
   );
 };
 

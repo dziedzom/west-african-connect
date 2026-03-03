@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -42,6 +43,8 @@ const Auth = () => {
   };
 
   return (
+    <>
+    <SEO title="Sign In" path="/auth" description="Sign in or create a MiddlBrand account to access RFP opportunities and your company dashboard." />
     <section className="py-16 bg-background min-h-screen flex items-center">
       <div className="container max-w-md">
         <div className="text-center mb-8">
@@ -75,6 +78,7 @@ const Auth = () => {
         </p>
       </div>
     </section>
+    </>
   );
 };
 

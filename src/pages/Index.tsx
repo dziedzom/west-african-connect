@@ -3,6 +3,7 @@ import { ArrowRight, Target, Shield, TrendingUp, Users, Zap, Building2, Briefcas
 import { Button } from "@/components/ui/button";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import AnimatedCounter from "@/components/AnimatedCounter";
+import SEO from "@/components/SEO";
 
 const stats = [
   { value: "500+", label: "Vetted Companies" },
@@ -40,6 +41,21 @@ const Index = () => {
 
   return (
     <>
+      <SEO
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "MiddlBrand",
+          url: "https://middlbrand.com",
+          description: "Connecting vetted West African businesses to real opportunities through ethical lead generation.",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://middlbrand.com/rfps?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        }}
+      />
       {/* Hero — typography-led with grain mesh */}
       <section className="relative min-h-screen flex items-center justify-center grain-mesh">
         <div className="container relative z-10 text-center py-20">
