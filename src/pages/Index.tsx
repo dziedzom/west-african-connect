@@ -3,6 +3,7 @@ import { ArrowRight, Target, Shield, TrendingUp, Users, Zap, Building2, Briefcas
 import { Button } from "@/components/ui/button";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import AnimatedCounter from "@/components/AnimatedCounter";
+import SEO from "@/components/SEO";
 
 const stats = [
   { value: "500+", label: "Vetted Companies" },
