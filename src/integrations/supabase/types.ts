@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          result_payload: Json | null
+          status: string
+          target_url: string
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          result_payload?: Json | null
+          status?: string
+          target_url: string
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          result_payload?: Json | null
+          status?: string
+          target_url?: string
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_insights: {
+        Row: {
+          created_at: string
+          gap_analysis: string | null
+          id: string
+          match_score: number
+          rfp_id: string
+          updated_at: string
+          user_id: string
+          winning_strategy_summary: string | null
+        }
+        Insert: {
+          created_at?: string
+          gap_analysis?: string | null
+          id?: string
+          match_score?: number
+          rfp_id: string
+          updated_at?: string
+          user_id: string
+          winning_strategy_summary?: string | null
+        }
+        Update: {
+          created_at?: string
+          gap_analysis?: string | null
+          id?: string
+          match_score?: number
+          rfp_id?: string
+          updated_at?: string
+          user_id?: string
+          winning_strategy_summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_insights_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "rfps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -232,6 +309,39 @@ export type Database = {
           title?: string
           updated_at?: string
           value?: string | null
+        }
+        Relationships: []
+      }
+      user_knowledge_base: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          id?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
