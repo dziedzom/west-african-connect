@@ -113,6 +113,9 @@ const Dashboard = () => {
             </div>
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm" className="rounded-full">
+                <Link to="/knowledge-base"><BookOpen className="h-4 w-4 mr-1" /> Knowledge</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link to="/profile"><Settings className="h-4 w-4 mr-1" /> Profile</Link>
               </Button>
               <Button variant="outline" size="sm" className="rounded-full" onClick={signOut}>Sign Out</Button>
