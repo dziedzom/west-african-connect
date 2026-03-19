@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
@@ -112,6 +112,9 @@ const Dashboard = () => {
               <p className="text-sm text-muted-foreground font-body">{user?.email}</p>
             </div>
             <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm" className="rounded-full">
+                <Link to="/knowledge-base"><BookOpen className="h-4 w-4 mr-1" /> Knowledge</Link>
+              </Button>
               <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link to="/profile"><Settings className="h-4 w-4 mr-1" /> Profile</Link>
               </Button>
