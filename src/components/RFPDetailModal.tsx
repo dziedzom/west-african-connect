@@ -1,8 +1,17 @@
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, DollarSign, Building } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
+
+interface AIInsight {
+  match_score: number;
+  winning_strategy_summary: string | null;
+  gap_analysis: string | null;
+}
 
 interface RFPDetailModalProps {
   rfp: RFP | null;
@@ -10,12 +19,114 @@ interface RFPDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const ScoreGauge = ({ score }: { score: number }) => {
+  const percentage = Math.min(Math.max(score, 0), 100);
+  const circumference = 2 * Math.PI * 40;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const color =
+    percentage >= 75 ? "hsl(var(--accent))" :
+    percentage >= 50 ? "hsl(45 93% 47%)" :
+    "hsl(0 72% 51%)";
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <svg width="96" height="96" viewBox="0 0 96 96" className="rotate-[-90deg]">
+        <circle cx="48" cy="48" r="40" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
+        <circle
+          cx="48" cy="48" r="40" fill="none"
+          stroke={color} strokeWidth="8" strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          className="transition-all duration-700 ease-out"
+        />
+      </svg>
+      <span className="absolute mt-7 text-2xl font-display font-bold text-foreground">{percentage}%</span>
+      <span className="text-xs text-muted-foreground font-body">Match Score</span>
+    </div>
+  );
+};
+
+const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
+  const [insight, setInsight] = useState<AIInsight | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInsight = async () => {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+
+      const { data } = await supabase
+        .from("ai_insights")
+        .select("match_score, winning_strategy_summary, gap_analysis")
+        .eq("rfp_id", rfpId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      setInsight(data);
+      setLoading(false);
+    };
+    fetchInsight();
+  }, [rfpId]);
+
+  if (loading) {
+    return (
+      <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-20 w-full" />
+      </div>
+    );
+  }
+
+  if (!insight) {
+    return (
+      <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4 text-center">
+        <Brain className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
+        <p className="text-xs text-muted-foreground">No AI insights available yet for this RFP.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-accent/20 bg-accent/5 p-4 space-y-4">
+      <div className="flex items-center gap-2">
+        <Brain className="h-4 w-4 text-accent" />
+        <span className="text-sm font-display font-semibold text-foreground">AI Insights</span>
+      </div>
+
+      <div className="flex justify-center relative">
+        <ScoreGauge score={insight.match_score} />
+      </div>
+
+      {insight.winning_strategy_summary && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+            <TrendingUp className="h-3.5 w-3.5 text-accent" />
+            Winning Strategy
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">{insight.winning_strategy_summary}</p>
+        </div>
+      )}
+
+      {insight.gap_analysis && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+            <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />
+            Gap Analysis
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">{insight.gap_analysis}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
   if (!rfp) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">{rfp.title}</DialogTitle>
         </DialogHeader>
@@ -43,6 +154,9 @@ const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
             <Badge variant="secondary">{rfp.category}</Badge>
             {rfp.location && <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>}
           </div>
+
+          <AIInsightsPanel rfpId={rfp.id} />
+
           <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold mt-2">
             Express Interest
           </Button>
