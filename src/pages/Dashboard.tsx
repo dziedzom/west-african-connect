@@ -56,7 +56,7 @@ const Dashboard = () => {
 
       setTotalRfps(rfpCount || 0);
       setAppCount(applicationCount || 0);
-      setOpportunities((opps as RFPOpportunity[]) || []);
+      setOpportunities(rfpList);
 
       const rfpList = (allRfps || []) as RFP[];
       setRfps(rfpList);
