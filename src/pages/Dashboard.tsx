@@ -88,9 +88,9 @@ const Dashboard = () => {
 
       // Fetch external RFP opportunities (no auth needed)
       try {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "tjuunlzlspznabgldvjr";
         const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-        const res = await fetch(`${supabaseUrl}/functions/v1/fetch-external-rfps`, {
+        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/fetch-external-rfps`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
