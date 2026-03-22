@@ -11,12 +11,6 @@ import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
 
-interface RFPOpportunity {
-  id: string;
-  title: string;
-  source_url: string;
-  created_at: string;
-}
 
 const DashboardSkeleton = () => (
   <div className="container max-w-6xl py-12">
