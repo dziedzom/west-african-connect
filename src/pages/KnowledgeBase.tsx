@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
-import { Plus, Trash2, Upload, BookOpen, Award, FileText, Layers } from "lucide-react";
+import { Plus, Trash2, Upload, BookOpen, Award, FileText, Layers, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type KBItem = {
