@@ -54,12 +54,11 @@ const Dashboard = () => {
         supabase.from("partnership_applications").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
 
+      const rfpList = (allRfps || []) as RFP[];
       setTotalRfps(rfpCount || 0);
       setAppCount(applicationCount || 0);
-      setOpportunities(rfpList);
-
-      const rfpList = (allRfps || []) as RFP[];
       setRfps(rfpList);
+      setOpportunities(rfpList);
 
       if (profile?.expertise) {
         const expertiseMap: Record<string, string[]> = {
