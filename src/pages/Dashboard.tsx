@@ -11,12 +11,6 @@ import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
 
-interface RFPOpportunity {
-  id: string;
-  title: string;
-  source_url: string;
-  created_at: string;
-}
 
 const DashboardSkeleton = () => (
   <div className="container max-w-6xl py-12">
@@ -47,26 +41,24 @@ const Dashboard = () => {
   const [totalRfps, setTotalRfps] = useState(0);
   const [matchedRfps, setMatchedRfps] = useState<RFP[]>([]);
   const [appCount, setAppCount] = useState(0);
-  const [opportunities, setOpportunities] = useState<RFPOpportunity[]>([]);
+  const [opportunities, setOpportunities] = useState<RFP[]>([]);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [{ count: rfpCount }, { data: profile }, { data: allRfps }, { count: applicationCount }, { data: opps }] = await Promise.all([
+      const [{ count: rfpCount }, { data: profile }, { data: allRfps }, { count: applicationCount }] = await Promise.all([
         supabase.from("rfps").select("*", { count: "exact", head: true }),
         supabase.from("profiles").select("expertise").eq("user_id", user.id).single(),
         supabase.from("rfps").select("*").order("created_at", { ascending: false }),
         supabase.from("partnership_applications").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("rfp_opportunities").select("*").order("created_at", { ascending: false }),
       ]);
 
+      const rfpList = (allRfps || []) as RFP[];
       setTotalRfps(rfpCount || 0);
       setAppCount(applicationCount || 0);
-      setOpportunities((opps as RFPOpportunity[]) || []);
-
-      const rfpList = (allRfps || []) as RFP[];
       setRfps(rfpList);
+      setOpportunities(rfpList);
 
       if (profile?.expertise) {
         const expertiseMap: Record<string, string[]> = {
@@ -172,9 +164,9 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <Button asChild size="sm" className="w-full rounded-full mt-auto">
-                      <a href={opp.source_url} target="_blank" rel="noopener noreferrer">
+                      <Link to="/rfps">
                         View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                      </a>
+                      </Link>
                     </Button>
                   </div>
                 ))}
