@@ -88,15 +88,28 @@ const Dashboard = () => {
 
       // Fetch external RFP opportunities (no auth needed)
       try {
-        const { data: fnData, error: fnError } = await supabase.functions.invoke("fetch-external-rfps");
-        if (fnError) {
-          setExternalError(fnError.message || "Failed to call edge function");
-        } else if (fnData?.error) {
-          setExternalError(fnData.error);
-        } else if (Array.isArray(fnData)) {
-          setExternalRfps(fnData);
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const res = await fetch(`${supabaseUrl}/functions/v1/fetch-external-rfps`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+        });
+        if (!res.ok) {
+          const errBody = await res.text();
+          setExternalError(`Edge function error (${res.status}): ${errBody}`);
         } else {
-          setExternalError("Unexpected response format from edge function");
+          const fnData = await res.json();
+          if (fnData?.error) {
+            setExternalError(fnData.error);
+          } else if (Array.isArray(fnData)) {
+            setExternalRfps(fnData);
+          } else {
+            setExternalError("Unexpected response format from edge function");
+          }
         }
       } catch (err: unknown) {
         setExternalError(err instanceof Error ? err.message : "Unknown error fetching external RFPs");
