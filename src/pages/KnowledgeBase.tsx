@@ -279,13 +279,22 @@ const KnowledgeBase = () => {
                             <Icon className="h-3 w-3" />
                             {meta.label}
                           </Badge>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                            aria-label="Delete"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => openEdit(item)}
+                              className="text-muted-foreground hover:text-foreground"
+                              aria-label="Edit"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="text-muted-foreground hover:text-destructive"
+                              aria-label="Delete"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                         <h3 className="text-sm font-display font-semibold text-foreground mb-1.5 line-clamp-2">
                           {item.title}
