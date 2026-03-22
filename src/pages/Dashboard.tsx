@@ -51,40 +51,42 @@ const Dashboard = () => {
   const [externalError, setExternalError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-
     const fetchData = async () => {
-      // Fetch local data
-      const [{ count: rfpCount }, { data: profile }, { data: allRfps }, { count: applicationCount }] = await Promise.all([
+      // Fetch local data (public tables don't need auth)
+      const [{ count: rfpCount }, { data: allRfps }] = await Promise.all([
         supabase.from("rfps").select("*", { count: "exact", head: true }),
-        supabase.from("profiles").select("expertise").eq("user_id", user.id).single(),
         supabase.from("rfps").select("*").order("created_at", { ascending: false }),
-        supabase.from("partnership_applications").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
 
       const rfpList = (allRfps || []) as RFP[];
       setTotalRfps(rfpCount || 0);
-      setAppCount(applicationCount || 0);
       setRfps(rfpList);
+      setMatchedRfps(rfpList.slice(0, 5));
 
-      if (profile?.expertise) {
-        const expertiseMap: Record<string, string[]> = {
-          "Pharmaceuticals": ["Pharma"],
-          "Transport & Logistics": ["Transport"],
-          "Construction": ["Construction"],
-          "IT & Tech": ["IT"],
-          "Agriculture": ["Agriculture"],
-          "Energy": ["Energy"],
-          "Consulting": ["IT", "Pharma", "Energy"],
-          "Manufacturing": ["Agriculture", "Construction"],
-        };
-        const matchCategories = expertiseMap[profile.expertise] || [];
-        setMatchedRfps(rfpList.filter((r) => matchCategories.includes(r.category)));
-      } else {
-        setMatchedRfps(rfpList.slice(0, 5));
+      // Fetch profile & applications only if logged in
+      if (user) {
+        const [{ data: profile }, { count: applicationCount }] = await Promise.all([
+          supabase.from("profiles").select("expertise").eq("user_id", user.id).single(),
+          supabase.from("partnership_applications").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        ]);
+        setAppCount(applicationCount || 0);
+        if (profile?.expertise) {
+          const expertiseMap: Record<string, string[]> = {
+            "Pharmaceuticals": ["Pharma"],
+            "Transport & Logistics": ["Transport"],
+            "Construction": ["Construction"],
+            "IT & Tech": ["IT"],
+            "Agriculture": ["Agriculture"],
+            "Energy": ["Energy"],
+            "Consulting": ["IT", "Pharma", "Energy"],
+            "Manufacturing": ["Agriculture", "Construction"],
+          };
+          const matchCategories = expertiseMap[profile.expertise] || [];
+          setMatchedRfps(rfpList.filter((r) => matchCategories.includes(r.category)));
+        }
       }
 
-      // Fetch external RFP opportunities
+      // Fetch external RFP opportunities (no auth needed)
       try {
         const { data: fnData, error: fnError } = await supabase.functions.invoke("fetch-external-rfps");
         if (fnError) {
