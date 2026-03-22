@@ -15,6 +15,7 @@ const navLinks = [
   { to: "/join", label: "Join" },
   { to: "/partnerships", label: "Partners" },
   { to: "/knowledge-base", label: "Knowledge" },
+  { to: "/learn", label: "Learn" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];

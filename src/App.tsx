@@ -43,6 +43,7 @@ const App = () => (
               <Route path="/rfps" element={<RFPListings />} />
               <Route path="/join" element={<CompanySignUp />} />
               <Route path="/about" element={<About />} />
+              <Route path="/learn" element={<Learn />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/partnerships" element={<Partnerships />} />
