@@ -1,4 +1,5 @@
-import { Play, Users, UserPlus, Briefcase, Handshake } from "lucide-react";
+import { Play, Users, UserPlus, Briefcase, Handshake, Volume2, VolumeX } from "lucide-react";
+import { useRef, useState } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import SEO from "@/components/SEO";
 
@@ -39,6 +40,25 @@ const sections = [
 
 const Learn = () => {
   const gridRef = useScrollReveal(100);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
 
   return (
     <>
@@ -72,23 +92,66 @@ const Learn = () => {
                     isWide ? "md:col-span-2" : ""
                   }`}
                 >
-                  {/* Video placeholder */}
+                  {/* Video / Placeholder */}
                   <div
-                    className={`relative bg-muted/40 flex items-center justify-center ${
+                    className={`relative bg-muted/40 flex items-center justify-center overflow-hidden ${
                       isWide ? "h-64 md:h-80" : "h-48 md:h-56"
                     }`}
                   >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
-                        <Play className="h-6 w-6 text-accent ml-0.5" />
+                    {i === 0 ? (
+                      <>
+                        <video
+                          ref={videoRef}
+                          src="/videos/who-we-are.mp4"
+                          muted
+                          playsInline
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onEnded={() => setIsPlaying(false)}
+                        />
+                        {!isPlaying && (
+                          <button
+                            onClick={togglePlay}
+                            className="absolute inset-0 flex items-center justify-center bg-black/30 z-10 cursor-pointer"
+                          >
+                            <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center shadow-lg">
+                              <Play className="h-7 w-7 text-accent-foreground ml-1" />
+                            </div>
+                          </button>
+                        )}
+                        {isPlaying && (
+                          <div className="absolute bottom-3 right-3 flex gap-2 z-10">
+                            <button
+                              onClick={togglePlay}
+                              className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center"
+                            >
+                              <div className="w-2 h-3 border-l-2 border-r-2 border-foreground" />
+                            </button>
+                            <button
+                              onClick={toggleMute}
+                              className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center"
+                            >
+                              {isMuted ? (
+                                <VolumeX className="h-3.5 w-3.5 text-foreground" />
+                              ) : (
+                                <Volume2 className="h-3.5 w-3.5 text-foreground" />
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                          <Play className="h-6 w-6 text-accent ml-0.5" />
+                        </div>
+                        <span className="text-[11px] text-muted-foreground font-body tracking-wide uppercase">
+                          {s.placeholder}
+                        </span>
                       </div>
-                      <span className="text-[11px] text-muted-foreground font-body tracking-wide uppercase">
-                        {s.placeholder}
-                      </span>
-                    </div>
+                    )}
 
                     {/* Corner badge */}
-                    <div className="absolute top-4 left-4 flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 px-3 py-1">
+                    <div className="absolute top-4 left-4 flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 px-3 py-1 z-20">
                       <Icon className="h-3 w-3 text-accent" />
                       <span className="text-[10px] font-display font-semibold text-foreground uppercase tracking-wider">
                         {s.title}
