@@ -226,7 +226,7 @@ const KnowledgeBase = () => {
                     disabled={submitting}
                     className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-body text-sm"
                   >
-                    {submitting ? "Saving..." : "Save Asset"}
+                    {submitting ? "Saving..." : editingItem ? "Update Asset" : "Save Asset"}
                   </Button>
                 </div>
               </DialogContent>
