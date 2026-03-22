@@ -177,7 +177,7 @@ const KnowledgeBase = () => {
                 Manage your certifications, case studies, and company expertise to power AI matching.
               </p>
             </div>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={handleOpenChange}>
               <DialogTrigger asChild>
                 <Button className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 self-start sm:self-auto">
                   <Plus className="h-4 w-4" /> Upload Asset
@@ -185,7 +185,7 @@ const KnowledgeBase = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg bg-card border-border">
                 <DialogHeader>
-                  <DialogTitle className="font-display text-lg">New Asset</DialogTitle>
+                  <DialogTitle className="font-display text-lg">{editingItem ? "Edit Asset" : "New Asset"}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-2">
                   <Input
