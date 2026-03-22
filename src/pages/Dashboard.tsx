@@ -164,9 +164,9 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <Button asChild size="sm" className="w-full rounded-full mt-auto">
-                      <a href={opp.source_url} target="_blank" rel="noopener noreferrer">
+                      <Link to="/rfps">
                         View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                      </a>
+                      </Link>
                     </Button>
                   </div>
                 ))}
