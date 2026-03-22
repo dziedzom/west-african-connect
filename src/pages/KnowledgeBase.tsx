@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
-import { Plus, Trash2, Upload, BookOpen, Award, FileText, Layers } from "lucide-react";
+import { Plus, Trash2, Upload, BookOpen, Award, FileText, Layers, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type KBItem = {
@@ -35,6 +35,7 @@ const KnowledgeBase = () => {
   const [items, setItems] = useState<KBItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<KBItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
@@ -59,28 +60,51 @@ const KnowledgeBase = () => {
     fetchItems();
   }, [fetchItems]);
 
+  const resetForm = () => {
+    setTitle("");
+    setContent("");
+    setTags("");
+    setCategory("case_study");
+    setEditingItem(null);
+  };
+
+  const openEdit = (item: KBItem) => {
+    setEditingItem(item);
+    setTitle(item.title);
+    setCategory(item.category);
+    setContent(item.content);
+    setTags(item.tags ? item.tags.join(", ") : "");
+    setOpen(true);
+  };
+
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) resetForm();
+  };
+
   const handleSubmit = async () => {
     if (!user || !title.trim() || !content.trim()) {
       toast({ title: "Missing fields", description: "Title and content are required.", variant: "destructive" });
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("user_knowledge_base").insert({
-      user_id: user.id,
+    const payload = {
       title: title.trim(),
       category,
       content: content.trim(),
       tags: tags.trim() ? tags.split(",").map((t) => t.trim()) : null,
-    });
+    };
+
+    const { error } = editingItem
+      ? await supabase.from("user_knowledge_base").update(payload).eq("id", editingItem.id)
+      : await supabase.from("user_knowledge_base").insert({ ...payload, user_id: user.id });
+
     setSubmitting(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Asset added" });
-      setTitle("");
-      setContent("");
-      setTags("");
-      setCategory("case_study");
+      toast({ title: editingItem ? "Asset updated" : "Asset added" });
+      resetForm();
       setOpen(false);
       fetchItems();
     }
@@ -153,7 +177,7 @@ const KnowledgeBase = () => {
                 Manage your certifications, case studies, and company expertise to power AI matching.
               </p>
             </div>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={handleOpenChange}>
               <DialogTrigger asChild>
                 <Button className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 self-start sm:self-auto">
                   <Plus className="h-4 w-4" /> Upload Asset
@@ -161,7 +185,7 @@ const KnowledgeBase = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg bg-card border-border">
                 <DialogHeader>
-                  <DialogTitle className="font-display text-lg">New Asset</DialogTitle>
+                  <DialogTitle className="font-display text-lg">{editingItem ? "Edit Asset" : "New Asset"}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-2">
                   <Input
@@ -202,7 +226,7 @@ const KnowledgeBase = () => {
                     disabled={submitting}
                     className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-body text-sm"
                   >
-                    {submitting ? "Saving..." : "Save Asset"}
+                    {submitting ? "Saving..." : editingItem ? "Update Asset" : "Save Asset"}
                   </Button>
                 </div>
               </DialogContent>
@@ -255,13 +279,22 @@ const KnowledgeBase = () => {
                             <Icon className="h-3 w-3" />
                             {meta.label}
                           </Badge>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                            aria-label="Delete"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => openEdit(item)}
+                              className="text-muted-foreground hover:text-foreground"
+                              aria-label="Edit"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="text-muted-foreground hover:text-destructive"
+                              aria-label="Delete"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                         <h3 className="text-sm font-display font-semibold text-foreground mb-1.5 line-clamp-2">
                           {item.title}
