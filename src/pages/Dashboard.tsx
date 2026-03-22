@@ -41,7 +41,7 @@ const Dashboard = () => {
   const [totalRfps, setTotalRfps] = useState(0);
   const [matchedRfps, setMatchedRfps] = useState<RFP[]>([]);
   const [appCount, setAppCount] = useState(0);
-  const [opportunities, setOpportunities] = useState<RFPOpportunity[]>([]);
+  const [opportunities, setOpportunities] = useState<RFP[]>([]);
 
   useEffect(() => {
     if (!user) return;
