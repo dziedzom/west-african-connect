@@ -47,12 +47,11 @@ const Dashboard = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [{ count: rfpCount }, { data: profile }, { data: allRfps }, { count: applicationCount }, { data: opps }] = await Promise.all([
+      const [{ count: rfpCount }, { data: profile }, { data: allRfps }, { count: applicationCount }] = await Promise.all([
         supabase.from("rfps").select("*", { count: "exact", head: true }),
         supabase.from("profiles").select("expertise").eq("user_id", user.id).single(),
         supabase.from("rfps").select("*").order("created_at", { ascending: false }),
         supabase.from("partnership_applications").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("rfp_opportunities").select("*").order("created_at", { ascending: false }),
       ]);
 
       setTotalRfps(rfpCount || 0);
