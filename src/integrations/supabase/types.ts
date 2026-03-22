@@ -267,6 +267,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rfp_opportunities: {
+        Row: {
+          created_at: string
+          id: string
+          source_url: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          source_url: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          source_url?: string
+          title?: string
+        }
+        Relationships: []
+      }
       rfps: {
         Row: {
           budget: string | null
