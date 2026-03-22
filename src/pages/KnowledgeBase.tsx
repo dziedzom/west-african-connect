@@ -60,28 +60,51 @@ const KnowledgeBase = () => {
     fetchItems();
   }, [fetchItems]);
 
+  const resetForm = () => {
+    setTitle("");
+    setContent("");
+    setTags("");
+    setCategory("case_study");
+    setEditingItem(null);
+  };
+
+  const openEdit = (item: KBItem) => {
+    setEditingItem(item);
+    setTitle(item.title);
+    setCategory(item.category);
+    setContent(item.content);
+    setTags(item.tags ? item.tags.join(", ") : "");
+    setOpen(true);
+  };
+
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) resetForm();
+  };
+
   const handleSubmit = async () => {
     if (!user || !title.trim() || !content.trim()) {
       toast({ title: "Missing fields", description: "Title and content are required.", variant: "destructive" });
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("user_knowledge_base").insert({
-      user_id: user.id,
+    const payload = {
       title: title.trim(),
       category,
       content: content.trim(),
       tags: tags.trim() ? tags.split(",").map((t) => t.trim()) : null,
-    });
+    };
+
+    const { error } = editingItem
+      ? await supabase.from("user_knowledge_base").update(payload).eq("id", editingItem.id)
+      : await supabase.from("user_knowledge_base").insert({ ...payload, user_id: user.id });
+
     setSubmitting(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Asset added" });
-      setTitle("");
-      setContent("");
-      setTags("");
-      setCategory("case_study");
+      toast({ title: editingItem ? "Asset updated" : "Asset added" });
+      resetForm();
       setOpen(false);
       fetchItems();
     }
