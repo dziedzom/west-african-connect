@@ -4,12 +4,19 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
+
+interface RFPOpportunity {
+  id: string;
+  title: string;
+  source_url: string;
+  created_at: string;
+}
 
 const DashboardSkeleton = () => (
   <div className="container max-w-6xl py-12">
@@ -40,20 +47,23 @@ const Dashboard = () => {
   const [totalRfps, setTotalRfps] = useState(0);
   const [matchedRfps, setMatchedRfps] = useState<RFP[]>([]);
   const [appCount, setAppCount] = useState(0);
+  const [opportunities, setOpportunities] = useState<RFPOpportunity[]>([]);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [{ count: rfpCount }, { data: profile }, { data: allRfps }, { count: applicationCount }] = await Promise.all([
+      const [{ count: rfpCount }, { data: profile }, { data: allRfps }, { count: applicationCount }, { data: opps }] = await Promise.all([
         supabase.from("rfps").select("*", { count: "exact", head: true }),
         supabase.from("profiles").select("expertise").eq("user_id", user.id).single(),
         supabase.from("rfps").select("*").order("created_at", { ascending: false }),
         supabase.from("partnership_applications").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("rfp_opportunities").select("*").order("created_at", { ascending: false }),
       ]);
 
       setTotalRfps(rfpCount || 0);
       setAppCount(applicationCount || 0);
+      setOpportunities((opps as RFPOpportunity[]) || []);
 
       const rfpList = (allRfps || []) as RFP[];
       setRfps(rfpList);
@@ -136,9 +146,45 @@ const Dashboard = () => {
             ))}
           </div>
 
+          {/* RFP Opportunities Cards */}
+          {opportunities.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4 text-accent" /> RFP Opportunities
+                </h2>
+                <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">
+                  {opportunities.length} {opportunities.length === 1 ? "opportunity" : "opportunities"}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {opportunities.map((opp) => (
+                  <div
+                    key={opp.id}
+                    className="group rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 flex flex-col justify-between transition-all hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5"
+                  >
+                    <div className="mb-4">
+                      <h3 className="text-sm font-display font-semibold text-foreground leading-snug line-clamp-3">
+                        {opp.title}
+                      </h3>
+                      <p className="text-[10px] text-muted-foreground mt-2 font-body">
+                        Added {new Date(opp.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                    </div>
+                    <Button asChild size="sm" className="w-full rounded-full mt-auto">
+                      <a href={opp.source_url} target="_blank" rel="noopener noreferrer">
+                        View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                      </a>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Matched Opportunities - spans full on mobile */}
+            {/* Matched Opportunities */}
             <div className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 md:col-span-1">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
