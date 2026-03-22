@@ -35,6 +35,7 @@ const KnowledgeBase = () => {
   const [items, setItems] = useState<KBItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<KBItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
