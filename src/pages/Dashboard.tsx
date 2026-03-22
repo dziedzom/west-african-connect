@@ -11,6 +11,12 @@ import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
 
+interface ExternalRFP {
+  id: string;
+  title: string;
+  source_url: string;
+  created_at: string;
+}
 
 const DashboardSkeleton = () => (
   <div className="container max-w-6xl py-12">
@@ -41,12 +47,14 @@ const Dashboard = () => {
   const [totalRfps, setTotalRfps] = useState(0);
   const [matchedRfps, setMatchedRfps] = useState<RFP[]>([]);
   const [appCount, setAppCount] = useState(0);
-  const [opportunities, setOpportunities] = useState<RFP[]>([]);
+  const [externalRfps, setExternalRfps] = useState<ExternalRFP[]>([]);
+  const [externalError, setExternalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchData = async () => {
+      // Fetch local data
       const [{ count: rfpCount }, { data: profile }, { data: allRfps }, { count: applicationCount }] = await Promise.all([
         supabase.from("rfps").select("*", { count: "exact", head: true }),
         supabase.from("profiles").select("expertise").eq("user_id", user.id).single(),
@@ -58,7 +66,6 @@ const Dashboard = () => {
       setTotalRfps(rfpCount || 0);
       setAppCount(applicationCount || 0);
       setRfps(rfpList);
-      setOpportunities(rfpList);
 
       if (profile?.expertise) {
         const expertiseMap: Record<string, string[]> = {
@@ -75,6 +82,22 @@ const Dashboard = () => {
         setMatchedRfps(rfpList.filter((r) => matchCategories.includes(r.category)));
       } else {
         setMatchedRfps(rfpList.slice(0, 5));
+      }
+
+      // Fetch external RFP opportunities
+      try {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke("fetch-external-rfps");
+        if (fnError) {
+          setExternalError(fnError.message || "Failed to call edge function");
+        } else if (fnData?.error) {
+          setExternalError(fnData.error);
+        } else if (Array.isArray(fnData)) {
+          setExternalRfps(fnData);
+        } else {
+          setExternalError("Unexpected response format from edge function");
+        }
+      } catch (err: unknown) {
+        setExternalError(err instanceof Error ? err.message : "Unknown error fetching external RFPs");
       }
 
       setLoading(false);
@@ -138,19 +161,32 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {/* RFP Opportunities Cards */}
-          {opportunities.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <ExternalLink className="h-4 w-4 text-accent" /> RFP Opportunities
-                </h2>
+          {/* External RFP Opportunities */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                <ExternalLink className="h-4 w-4 text-accent" /> RFP Opportunities
+              </h2>
+              {externalRfps.length > 0 && (
                 <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">
-                  {opportunities.length} {opportunities.length === 1 ? "opportunity" : "opportunities"}
+                  {externalRfps.length} {externalRfps.length === 1 ? "opportunity" : "opportunities"}
                 </span>
+              )}
+            </div>
+
+            {externalError && (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3 mb-4">
+                <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-display font-semibold text-destructive">Failed to load external RFPs</p>
+                  <p className="text-xs text-muted-foreground mt-1 font-body break-all">{externalError}</p>
+                </div>
               </div>
+            )}
+
+            {externalRfps.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {opportunities.map((opp) => (
+                {externalRfps.map((opp) => (
                   <div
                     key={opp.id}
                     className="group rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 flex flex-col justify-between transition-all hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5"
@@ -163,16 +199,20 @@ const Dashboard = () => {
                         Added {new Date(opp.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       </p>
                     </div>
-                    <Button asChild size="sm" className="w-full rounded-full mt-auto">
-                      <Link to="/rfps">
+                    <Button asChild size="sm" className="w-full rounded-full mt-auto bg-accent text-accent-foreground hover:bg-accent/90">
+                      <a href={opp.source_url} target="_blank" rel="noopener noreferrer">
                         View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                      </Link>
+                      </a>
                     </Button>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+
+            {!externalError && externalRfps.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-6">No external RFP opportunities found.</p>
+            )}
+          </div>
 
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
