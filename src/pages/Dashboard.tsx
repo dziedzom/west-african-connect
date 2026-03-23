@@ -250,6 +250,35 @@ const Dashboard = () => {
             ))}
           </div>
 
+          {/* Proposal Pipeline */}
+          {user && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                  <FileEdit className="h-4 w-4 text-accent" /> Proposal Pipeline
+                </h2>
+                <Link to="/proposals" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
+                  View all <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {([
+                  { key: "draft", label: "Draft", icon: FileEdit, color: "text-muted-foreground" },
+                  { key: "submitted", label: "Submitted", icon: Send, color: "text-accent" },
+                  { key: "under_review", label: "Review", icon: Eye, color: "text-amber-600" },
+                  { key: "won", label: "Won", icon: Trophy, color: "text-emerald-500" },
+                  { key: "lost", label: "Lost", icon: XCircle, color: "text-destructive" },
+                ] as const).map((stage) => (
+                  <div key={stage.key} className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-4 text-center hover:border-accent/30 transition-all">
+                    <stage.icon className={`h-4 w-4 mx-auto mb-1.5 ${stage.color}`} />
+                    <p className="text-xl font-display font-bold text-foreground">{proposalCounts[stage.key] || 0}</p>
+                    <p className="text-[9px] text-muted-foreground font-body uppercase tracking-wider mt-0.5">{stage.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* External RFP Opportunities */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
