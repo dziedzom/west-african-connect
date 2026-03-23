@@ -106,7 +106,7 @@ const Index = () => {
               How It Works
             </h2>
             <p className="mt-4 text-muted-foreground font-body text-sm">
-              We bridge the gap between qualified West African businesses and the contracts they deserve.
+              We bridge the gap between qualified African businesses and the contracts they deserve.
             </p>
           </div>
 
