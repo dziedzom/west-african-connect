@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -12,17 +12,12 @@ import SEO from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 
 const expertiseOptions = ["Pharmaceuticals", "Transport & Logistics", "Construction", "IT & Tech", "Agriculture", "Energy", "Consulting", "Manufacturing"];
-const locationOptions = [
-  "Algeria", "Angola", "Benin", "Botswana", "Burkina Faso", "Burundi",
-  "Cabo Verde", "Cameroon", "Central African Republic", "Chad", "Comoros",
-  "Congo (Brazzaville)", "Congo (DRC)", "Côte d'Ivoire", "Djibouti", "Egypt",
-  "Equatorial Guinea", "Eritrea", "Eswatini", "Ethiopia", "Gabon", "Gambia",
-  "Ghana", "Guinea", "Guinea-Bissau", "Kenya", "Lesotho", "Liberia", "Libya",
-  "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco",
-  "Mozambique", "Namibia", "Niger", "Nigeria", "Rwanda",
-  "São Tomé and Príncipe", "Senegal", "Seychelles", "Sierra Leone", "Somalia",
-  "South Africa", "South Sudan", "Sudan", "Tanzania", "Togo", "Tunisia",
-  "Uganda", "Zambia", "Zimbabwe",
+const locationGroups = [
+  { region: "North Africa", countries: ["Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia"] },
+  { region: "West Africa", countries: ["Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo"] },
+  { region: "Central Africa", countries: ["Cameroon", "Central African Republic", "Chad", "Congo (Brazzaville)", "Congo (DRC)", "Equatorial Guinea", "Gabon", "São Tomé and Príncipe"] },
+  { region: "East Africa", countries: ["Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Tanzania", "Uganda"] },
+  { region: "Southern Africa", countries: ["Angola", "Botswana", "Eswatini", "Lesotho", "Namibia", "South Africa", "Zambia", "Zimbabwe"] },
 ];
 
 const CompanySignUp = () => {
@@ -119,7 +114,14 @@ const CompanySignUp = () => {
               <Label htmlFor="location">Location *</Label>
               <Select required value={locationVal} onValueChange={setLocationVal}>
                 <SelectTrigger id="location"><SelectValue placeholder="Select country" /></SelectTrigger>
-                <SelectContent>{locationOptions.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {locationGroups.map((group) => (
+                    <SelectGroup key={group.region}>
+                      <SelectLabel className="text-xs font-display font-bold text-muted-foreground uppercase tracking-wider">{group.region}</SelectLabel>
+                      {group.countries.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           </div>
