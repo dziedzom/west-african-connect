@@ -18,6 +18,18 @@ interface ExternalRFP {
   created_at: string;
 }
 
+const parseExternalRFP = (title: string) => {
+  const deadlineMatch = title.match(/Deadline\s+(.+?)$/i);
+  const deadline = deadlineMatch ? deadlineMatch[1].trim() : null;
+
+  // Format: "WD-XXXXX - Location - Services - Deadline ..."
+  const parts = title.split(" - ");
+  const category = parts.length >= 3 ? parts.slice(2, -1).join(" - ").replace(/\s*-?\s*Deadline.*$/i, "").trim() : null;
+  const location = parts.length >= 2 ? parts[1].trim() : null;
+
+  return { deadline, category, location };
+};
+
 const DashboardSkeleton = () => (
   <div className="container max-w-6xl py-12">
     <div className="flex items-center justify-between mb-10">
