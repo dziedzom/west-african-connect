@@ -80,69 +80,80 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch local data (public tables don't need auth)
-      const [{ count: rfpCount }, { data: allRfps }, { count: scrapedRfpCount }] = await Promise.all([
-        supabase.from("rfps").select("*", { count: "exact", head: true }),
-        supabase.from("rfps").select("*").order("created_at", { ascending: false }),
-        supabase.from("scraped_rfps").select("*", { count: "exact", head: true }),
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "tjuunlzlspznabgldvjr";
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const restBase = `https://${projectId}.supabase.co/rest/v1`;
+      const headers = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` };
+
+      // Fetch local RFPs, scraped RFPs, and external RFPs in parallel
+      const [rfpRes, scrapedRes, externalRes] = await Promise.all([
+        fetch(`${restBase}/rfps?select=*&order=created_at.desc`, { headers }),
+        fetch(`${restBase}/scraped_rfps?select=*&order=scraped_at.desc&limit=20`, { headers }),
+        fetch(`https://${projectId}.supabase.co/functions/v1/fetch-external-rfps`, {
+          method: "POST",
+          headers: { ...headers, "Content-Type": "application/json" },
+        }).catch(() => null),
       ]);
 
-      const rfpList = (allRfps || []) as RFP[];
-      setTotalRfps(rfpCount || 0);
-      setScrapedCount(scrapedRfpCount || 0);
+      // Process local RFPs
+      const rfpList: RFP[] = rfpRes.ok ? await rfpRes.json() : [];
+      setTotalRfps(rfpList.length);
       setRfps(rfpList);
       setMatchedRfps(rfpList.slice(0, 5));
 
+      // Process scraped RFPs
+      if (scrapedRes.ok) {
+        const scrapedData = await scrapedRes.json();
+        setScrapedRfps(scrapedData);
+        setScrapedCount(scrapedData.length);
+      }
+
       // Fetch profile & applications only if logged in
       if (user) {
-        const [{ data: profile }, { count: applicationCount }] = await Promise.all([
-          supabase.from("profiles").select("expertise").eq("user_id", user.id).single(),
-          supabase.from("partnership_applications").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        const [profileRes, appRes] = await Promise.all([
+          fetch(`${restBase}/profiles?select=expertise&user_id=eq.${user.id}&limit=1`, {
+            headers: { ...headers, Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || supabaseKey}` },
+          }),
+          fetch(`${restBase}/partnership_applications?select=*&user_id=eq.${user.id}`, {
+            headers: { ...headers, Prefer: "count=exact", Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || supabaseKey}` },
+          }),
         ]);
-        setAppCount(applicationCount || 0);
-        if (profile?.expertise) {
-          const expertiseMap: Record<string, string[]> = {
-            "Pharmaceuticals": ["Pharma"],
-            "Transport & Logistics": ["Transport"],
-            "Construction": ["Construction"],
-            "IT & Tech": ["IT"],
-            "Agriculture": ["Agriculture"],
-            "Energy": ["Energy"],
-            "Consulting": ["IT", "Pharma", "Energy"],
-            "Manufacturing": ["Agriculture", "Construction"],
-          };
-          const matchCategories = expertiseMap[profile.expertise] || [];
-          setMatchedRfps(rfpList.filter((r) => matchCategories.includes(r.category)));
+        if (profileRes.ok) {
+          const profiles = await profileRes.json();
+          const profile = profiles[0];
+          if (profile?.expertise) {
+            const expertiseMap: Record<string, string[]> = {
+              "Pharmaceuticals": ["Pharma"],
+              "Transport & Logistics": ["Transport"],
+              "Construction": ["Construction"],
+              "IT & Tech": ["IT"],
+              "Agriculture": ["Agriculture"],
+              "Energy": ["Energy"],
+              "Consulting": ["IT", "Pharma", "Energy"],
+              "Manufacturing": ["Agriculture", "Construction"],
+            };
+            const matchCategories = expertiseMap[profile.expertise] || [];
+            setMatchedRfps(rfpList.filter((r) => matchCategories.includes(r.category)));
+          }
+        }
+        if (appRes.ok) {
+          const countHeader = appRes.headers.get("content-range");
+          const apps = await appRes.json();
+          setAppCount(countHeader ? parseInt(countHeader.split("/")[1] || "0") : apps.length);
         }
       }
 
-      // Fetch external RFP opportunities (no auth needed)
-      try {
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "tjuunlzlspznabgldvjr";
-        const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/fetch-external-rfps`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": supabaseKey,
-            "Authorization": `Bearer ${supabaseKey}`,
-          },
-        });
-        if (!res.ok) {
-          const errBody = await res.text();
-          setExternalError(`Edge function error (${res.status}): ${errBody}`);
-        } else {
-          const fnData = await res.json();
-          if (fnData?.error) {
-            setExternalError(fnData.error);
-          } else if (Array.isArray(fnData)) {
-            setExternalRfps(fnData);
-          } else {
-            setExternalError("Unexpected response format from edge function");
-          }
+      // Process external RFPs
+      if (externalRes && externalRes.ok) {
+        try {
+          const fnData = await externalRes.json();
+          if (Array.isArray(fnData)) setExternalRfps(fnData);
+          else if (fnData?.error) setExternalError(fnData.error);
+        } catch {
+          setExternalError("Failed to parse external RFPs");
         }
-      } catch (err: unknown) {
-        setExternalError(err instanceof Error ? err.message : "Unknown error fetching external RFPs");
+      } else if (externalRes) {
+        setExternalError(`Error ${externalRes.status}`);
       }
 
       setLoading(false);
