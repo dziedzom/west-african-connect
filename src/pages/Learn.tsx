@@ -9,7 +9,7 @@ const sections = [
     icon: Users,
     title: "Who We Are",
     description:
-      "Learn about MiddlBrand's mission to connect vetted West African businesses with real contract opportunities. Discover our team, our values, and the impact we're making across the region.",
+      "Learn about MiddlBrand's mission to connect vetted African businesses with real contract opportunities. Discover our team, our values, and the impact we're making across the continent.",
     placeholder: "Explainer video — Who We Are",
   },
   {

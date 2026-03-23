@@ -30,7 +30,7 @@ MiddlBrand was born from a simple observation: qualified African companies consi
         <div className="space-y-6 mb-16">
           <h2 className="text-2xl font-display font-bold text-foreground">How We Match & Facilitate</h2>
           <div className="rounded-2xl border border-border bg-card p-6 space-y-4 text-muted-foreground font-body text-sm">
-            <p><strong className="text-foreground font-display">1. Source</strong> — Our team monitors government portals, development agencies, and private sector procurement across West Africa to identify tenders, RFPs and contracts.</p>
+            <p><strong className="text-foreground font-display">1. Source</strong> — Our team monitors government portals, development agencies, and private sector procurement across Africa to identify tenders, RFPs and contracts.</p>
             <p><strong className="text-foreground font-display">2. Match</strong> — We analyze each opportunity against our directory of vetted companies, considering expertise, location, capacity, and track record.</p>
             <p><strong className="text-foreground font-display">3. Notify</strong> — Matched companies receive curated alerts with full tender details, requirements, and our guidance on submission best practices.</p>
             <p><strong className="text-foreground font-display">4. Facilitate</strong> — We support bid preparation, provide market intelligence, and make direct introductions where appropriate.</p>

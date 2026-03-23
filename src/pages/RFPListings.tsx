@@ -65,7 +65,7 @@ const RFPListings = () => {
             <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
               Open <span className="text-accent">Opportunities</span>
             </h1>
-            <p className="mt-2 text-muted-foreground">Browse active RFPs, tenders and contracts across West Africa.</p>
+            <p className="mt-2 text-muted-foreground">Browse active RFPs, tenders and contracts across Africa.</p>
           </div>
 
           {/* Search + Filters */}

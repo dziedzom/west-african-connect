@@ -70,7 +70,7 @@ const CompanySignUp = () => {
 
   return (
     <>
-    <SEO title="Join" path="/join" description="Register your company with MiddlBrand and get matched to RFP opportunities across West Africa. No upfront fees." />
+    <SEO title="Join" path="/join" description="Register your company with MiddlBrand and get matched to RFP opportunities across Africa. No upfront fees." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-2xl">
         <div className="mb-10">

@@ -72,7 +72,7 @@ const scenarios = [
 const faqs = [
   {
     question: "How does MiddlBrand's matching algorithm work?",
-    answer: "Our matching system analyzes your company profile — including expertise, location, capacity, and track record — against live RFPs and tenders across West Africa. We use a weighted scoring model to surface the opportunities where you have the highest probability of winning.",
+    answer: "Our matching system analyzes your company profile — including expertise, location, capacity, and track record — against live RFPs and tenders across Africa. We use a weighted scoring model to surface the opportunities where you have the highest probability of winning.",
   },
   {
     question: "When and how do I pay the commission?",

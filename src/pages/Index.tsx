@@ -208,7 +208,7 @@ const Index = () => {
             Ready to Win More Contracts?
           </h2>
           <p className="mt-4 text-primary-foreground/60 font-body text-sm max-w-lg mx-auto">
-            Join hundreds of West African companies growing through MiddlBrand's opportunity matching platform.
+            Join hundreds of African companies growing through MiddlBrand's opportunity matching platform.
           </p>
           <div className="mt-10 flex justify-center gap-4 flex-wrap">
             <Button asChild size="lg" className="group rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-8 transition-all duration-300">
