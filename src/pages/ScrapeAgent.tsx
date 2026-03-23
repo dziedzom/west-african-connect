@@ -220,7 +220,7 @@ const ScrapeAgent = () => {
                       {r.error ? (
                         <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
                       ) : (
-                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-accent shrink-0" />
                       )}
                       <div>
                         <p className="text-sm font-display font-semibold text-foreground">{r.portal}</p>
