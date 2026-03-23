@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot, MapPin, Building2, Calendar, Tag, Clock } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
@@ -89,6 +89,7 @@ const Dashboard = () => {
   const [scrapedCount, setScrapedCount] = useState(0);
   const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
   const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
+  const [proposalCounts, setProposalCounts] = useState<Record<string, number>>({ draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,14 +124,19 @@ const Dashboard = () => {
         }
       }
 
-      // Fetch profile & applications only if logged in
+      // Fetch profile, applications & proposals only if logged in
       if (user) {
-        const [profileRes, appRes] = await Promise.all([
+        const session = (await supabase.auth.getSession()).data.session;
+        const authHeader = `Bearer ${session?.access_token || supabaseKey}`;
+        const [profileRes, appRes, proposalRes] = await Promise.all([
           fetch(`${restBase}/profiles?select=expertise&user_id=eq.${user.id}&limit=1`, {
-            headers: { ...headers, Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || supabaseKey}` },
+            headers: { ...headers, Authorization: authHeader },
           }),
           fetch(`${restBase}/partnership_applications?select=*&user_id=eq.${user.id}`, {
-            headers: { ...headers, Prefer: "count=exact", Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || supabaseKey}` },
+            headers: { ...headers, Prefer: "count=exact", Authorization: authHeader },
+          }),
+          fetch(`${restBase}/proposals?select=status&user_id=eq.${user.id}`, {
+            headers: { ...headers, Authorization: authHeader },
           }),
         ]);
         if (profileRes.ok) {
@@ -155,6 +161,12 @@ const Dashboard = () => {
           const countHeader = appRes.headers.get("content-range");
           const apps = await appRes.json();
           setAppCount(countHeader ? parseInt(countHeader.split("/")[1] || "0") : apps.length);
+        }
+        if (proposalRes.ok) {
+          const proposalData: { status: string }[] = await proposalRes.json();
+          const counts: Record<string, number> = { draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 };
+          proposalData.forEach((p) => { counts[p.status] = (counts[p.status] || 0) + 1; });
+          setProposalCounts(counts);
         }
       }
 
@@ -207,7 +219,10 @@ const Dashboard = () => {
               </div>
               <p className="text-sm text-muted-foreground font-body">{user?.email}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button asChild variant="outline" size="sm" className="rounded-full">
+                <Link to="/proposals"><FileEdit className="h-4 w-4 mr-1" /> Proposals</Link>
+              </Button>
               <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link to="/scrape"><Bot className="h-4 w-4 mr-1" /> Scraper</Link>
               </Button>
@@ -234,6 +249,35 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
+
+          {/* Proposal Pipeline */}
+          {user && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                  <FileEdit className="h-4 w-4 text-accent" /> Proposal Pipeline
+                </h2>
+                <Link to="/proposals" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
+                  View all <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {([
+                  { key: "draft", label: "Draft", icon: FileEdit, color: "text-muted-foreground" },
+                  { key: "submitted", label: "Submitted", icon: Send, color: "text-accent" },
+                  { key: "under_review", label: "Review", icon: Eye, color: "text-amber-600" },
+                  { key: "won", label: "Won", icon: Trophy, color: "text-emerald-500" },
+                  { key: "lost", label: "Lost", icon: XCircle, color: "text-destructive" },
+                ] as const).map((stage) => (
+                  <div key={stage.key} className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-4 text-center hover:border-accent/30 transition-all">
+                    <stage.icon className={`h-4 w-4 mx-auto mb-1.5 ${stage.color}`} />
+                    <p className="text-xl font-display font-bold text-foreground">{proposalCounts[stage.key] || 0}</p>
+                    <p className="text-[9px] text-muted-foreground font-body uppercase tracking-wider mt-0.5">{stage.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* External RFP Opportunities */}
           <div className="mb-8">
