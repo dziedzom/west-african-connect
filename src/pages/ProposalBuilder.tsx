@@ -13,7 +13,7 @@ import SEO from "@/components/SEO";
 import type { RFP } from "@/types/rfp";
 import {
   FileEdit, Plus, Trash2, Send, ArrowLeft, Save,
-  Clock, CheckCircle2, Eye, Trophy, XCircle
+  Clock, CheckCircle2, Eye, Trophy, XCircle, Brain, Sparkles
 } from "lucide-react";
 
 type ProposalStatus = "draft" | "submitted" | "under_review" | "won" | "lost";
@@ -48,6 +48,7 @@ const ProposalBuilder = () => {
   const [content, setContent] = useState("");
   const [rfpId, setRfpId] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [aiDrafting, setAiDrafting] = useState(false);
 
   const fetchProposals = async () => {
     if (!user) return;
@@ -127,6 +128,28 @@ const ProposalBuilder = () => {
 
   const isFormOpen = editing !== null || title || content;
 
+  const handleAIDraft = async () => {
+    if (!rfpId) {
+      toast({ title: "Select an RFP first", description: "Link an RFP to generate an AI draft.", variant: "destructive" });
+      return;
+    }
+    setAiDrafting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("draft-proposal", {
+        body: { rfp_id: rfpId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.title) setTitle(data.title);
+      if (data?.content) setContent(data.content);
+      toast({ title: "AI draft generated!", description: "Review and edit before submitting." });
+    } catch (e: any) {
+      toast({ title: "AI drafting failed", description: e.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setAiDrafting(false);
+    }
+  };
+
   return (
     <>
       <SEO title="Proposal Builder" path="/proposals" description="Draft, edit, and submit proposals against RFPs." />
@@ -171,11 +194,30 @@ const ProposalBuilder = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs font-display text-muted-foreground mb-1 block">Proposal Content</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-display text-muted-foreground">Proposal Content</label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full gap-1.5 text-xs border-accent/30 text-accent hover:bg-accent/10"
+                      onClick={handleAIDraft}
+                      disabled={aiDrafting || !rfpId}
+                    >
+                      {aiDrafting ? (
+                        <>
+                          <Brain className="h-3.5 w-3.5 animate-pulse" /> Generating…
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" /> AI Draft
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <Textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    placeholder="Write your proposal here..."
+                    placeholder="Write your proposal here or use AI Draft to auto-generate..."
                     className="min-h-[200px]"
                   />
                 </div>
