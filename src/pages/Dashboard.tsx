@@ -313,9 +313,16 @@ const Dashboard = () => {
                 <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
                   <Bot className="h-4 w-4 text-accent" /> AI-Scraped Opportunities
                 </h2>
-                <Link to="/scrape" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                  Run scraper <ArrowRight className="h-3 w-3" />
-                </Link>
+                <div className="flex items-center gap-3">
+                  {lastScrapedAt && (
+                    <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Last scraped {formatRelativeTime(lastScrapedAt)}
+                    </span>
+                  )}
+                  <Link to="/scrape" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
+                    Run scraper <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {scrapedRfps.slice(0, 6).map((rfp) => (
