@@ -18,6 +18,20 @@ interface ExternalRFP {
   created_at: string;
 }
 
+interface ScrapedRFP {
+  id: string;
+  title: string;
+  description: string | null;
+  deadline: string | null;
+  category: string | null;
+  budget: string | null;
+  location: string | null;
+  organization: string | null;
+  source_url: string;
+  portal: string;
+  scraped_at: string;
+}
+
 const parseExternalRFP = (title: string) => {
   const deadlineMatch = title.match(/Deadline\s+(.+?)$/i);
   const deadline = deadlineMatch ? deadlineMatch[1].trim() : null;
