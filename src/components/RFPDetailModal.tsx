@@ -49,9 +49,10 @@ const ScoreGauge = ({ score }: { score: number }) => {
 const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
   const [insight, setInsight] = useState<AIInsight | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    const fetchInsight = async () => {
+    const fetchOrGenerate = async () => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
@@ -63,10 +64,34 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      setInsight(data);
+      if (data) {
+        setInsight(data);
+        setLoading(false);
+        return;
+      }
+
+      // Auto-generate insights
       setLoading(false);
+      setGenerating(true);
+      try {
+        const { data: result, error } = await supabase.functions.invoke("generate-ai-insights", {
+          body: { rfp_id: rfpId },
+        });
+        if (error) throw error;
+        if (result?.status === "created") {
+          setInsight({
+            match_score: result.match_score,
+            winning_strategy_summary: result.winning_strategy_summary,
+            gap_analysis: result.gap_analysis,
+          });
+        }
+      } catch (e) {
+        console.error("Failed to generate AI insights:", e);
+      } finally {
+        setGenerating(false);
+      }
     };
-    fetchInsight();
+    fetchOrGenerate();
   }, [rfpId]);
 
   if (loading) {
