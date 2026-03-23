@@ -219,7 +219,10 @@ const Dashboard = () => {
               </div>
               <p className="text-sm text-muted-foreground font-body">{user?.email}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button asChild variant="outline" size="sm" className="rounded-full">
+                <Link to="/proposals"><FileEdit className="h-4 w-4 mr-1" /> Proposals</Link>
+              </Button>
               <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link to="/scrape"><Bot className="h-4 w-4 mr-1" /> Scraper</Link>
               </Button>
