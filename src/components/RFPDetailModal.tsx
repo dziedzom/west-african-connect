@@ -94,9 +94,15 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
     fetchOrGenerate();
   }, [rfpId]);
 
-  if (loading) {
+  if (loading || generating) {
     return (
       <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+        <div className="flex items-center gap-2">
+          <Brain className="h-4 w-4 text-accent animate-pulse" />
+          <span className="text-sm font-display font-semibold text-foreground">
+            {generating ? "Generating AI Insights…" : "Loading…"}
+          </span>
+        </div>
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-20 w-full" />
       </div>
