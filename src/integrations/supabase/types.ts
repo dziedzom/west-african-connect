@@ -333,6 +333,57 @@ export type Database = {
         }
         Relationships: []
       }
+      scraped_rfps: {
+        Row: {
+          budget: string | null
+          category: string | null
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          location: string | null
+          organization: string | null
+          portal: string
+          scraped_at: string
+          source_url: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget?: string | null
+          category?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          organization?: string | null
+          portal: string
+          scraped_at?: string
+          source_url: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget?: string | null
+          category?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          organization?: string | null
+          portal?: string
+          scraped_at?: string
+          source_url?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_knowledge_base: {
         Row: {
           category: string
