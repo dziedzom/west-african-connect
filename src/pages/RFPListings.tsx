@@ -179,43 +179,65 @@ const RFPListings = () => {
             {filtered.length} opportunit{filtered.length === 1 ? "y" : "ies"} found
           </p>
 
-          {/* Results */}
           <div className="grid gap-4">
-            {filtered.map((rfp) => (
-              <div
-                key={rfp.id}
-                onClick={() => setSelectedRFP(rfp)}
-                className="rounded-lg border border-border bg-card p-6 hover:border-accent/40 hover:shadow-md transition-all cursor-pointer"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-display font-semibold text-foreground">{rfp.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <Badge variant="secondary">{rfp.category}</Badge>
-                      {rfp.location && (
-                        <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
-                      )}
-                      {rfp.value && <Badge variant="outline">{rfp.value}</Badge>}
+            {filtered.map((rfp) => {
+              const srcBadge = sourceBadge[rfp.source];
+              const SrcIcon = srcBadge.icon;
+              return (
+                <div
+                  key={`${rfp.source}-${rfp.id}`}
+                  onClick={() => setSelectedRFP(rfp)}
+                  className="rounded-lg border border-border bg-card p-6 hover:border-accent/40 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-display font-semibold text-foreground">{rfp.title}</h3>
+                      {rfp.org && <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>}
+                      {rfp.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>}
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        <Badge variant="outline" className={`text-[10px] gap-1 ${srcBadge.className}`}>
+                          <SrcIcon className="h-3 w-3" />
+                          {srcBadge.label}
+                          {rfp.portal && <span className="opacity-70">· {rfp.portal}</span>}
+                        </Badge>
+                        <Badge variant="secondary">{rfp.category}</Badge>
+                        {rfp.location && (
+                          <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
+                        )}
+                        {rfp.value && <Badge variant="outline">{rfp.value}</Badge>}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Deadline</p>
+                        <p className="font-semibold text-foreground">
+                          {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {rfp.source_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-full"
+                            onClick={(e) => { e.stopPropagation(); window.open(rfp.source_url!, "_blank"); }}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 mr-1" /> Source
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          className="bg-accent text-accent-foreground hover:bg-accent/90"
+                          onClick={(e) => { e.stopPropagation(); setSelectedRFP(rfp); }}
+                        >
+                          View Details
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-xs text-muted-foreground">Deadline</p>
-                    <p className="font-semibold text-foreground">
-                      {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}
-                    </p>
-                    <Button
-                      size="sm"
-                      className="mt-3 bg-accent text-accent-foreground hover:bg-accent/90"
-                      onClick={(e) => { e.stopPropagation(); setSelectedRFP(rfp); }}
-                    >
-                      View Details
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {filtered.length === 0 && (
               <div className="text-center py-16 text-muted-foreground">
                 <p className="text-lg">No opportunities match your filters.</p>
