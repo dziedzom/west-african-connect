@@ -107,6 +107,9 @@ const Dashboard = () => {
         const scrapedData = await scrapedRes.json();
         setScrapedRfps(scrapedData);
         setScrapedCount(scrapedData.length);
+        if (scrapedData.length > 0) {
+          setLastScrapedAt(scrapedData[0].scraped_at);
+        }
       }
 
       // Fetch profile & applications only if logged in
