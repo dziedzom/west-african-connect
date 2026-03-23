@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal } from "lucide-react";
+import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal, ExternalLink, Bot, Database } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import RFPDetailModal from "@/components/RFPDetailModal";
 import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
-import type { RFP } from "@/types/rfp";
+import type { RFP, RFPSource } from "@/types/rfp";
 import SEO from "@/components/SEO";
 
 const formatBudget = (v: number) => {
