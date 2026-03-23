@@ -316,6 +316,43 @@ const Dashboard = () => {
             </div>
           )}
 
+          {/* Top AI Matches */}
+          {user && topMatches.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-accent" /> Top AI Matches
+                </h2>
+                <Link to="/rfps" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
+                  View all RFPs <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {topMatches.map((m) => {
+                  const scoreColor = m.match_score >= 75 ? "text-accent" : m.match_score >= 50 ? "text-amber-500" : "text-destructive";
+                  return (
+                    <div key={m.rfp_id} className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-5 hover:border-accent/40 transition-all hover:shadow-lg hover:shadow-accent/5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-display font-semibold text-foreground truncate">{m.rfp_title}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <Badge variant="secondary" className="text-[10px]">{m.rfp_category}</Badge>
+                            {m.rfp_org && <span className="text-[10px] text-muted-foreground truncate">{m.rfp_org}</span>}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-center shrink-0">
+                          <Zap className={`h-4 w-4 ${scoreColor}`} />
+                          <span className={`text-lg font-display font-bold ${scoreColor}`}>{m.match_score}%</span>
+                          <span className="text-[9px] text-muted-foreground uppercase tracking-wider">match</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* External RFP Opportunities */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
