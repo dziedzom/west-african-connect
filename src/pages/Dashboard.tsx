@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle, Brain, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
@@ -30,6 +30,14 @@ interface ScrapedRFP {
   source_url: string;
   portal: string;
   scraped_at: string;
+}
+
+interface TopMatch {
+  rfp_id: string;
+  match_score: number;
+  rfp_title: string;
+  rfp_category: string;
+  rfp_org: string | null;
 }
 
 const formatRelativeTime = (dateStr: string) => {
@@ -90,6 +98,7 @@ const Dashboard = () => {
   const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
   const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
   const [proposalCounts, setProposalCounts] = useState<Record<string, number>>({ draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 });
+  const [topMatches, setTopMatches] = useState<TopMatch[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,6 +176,34 @@ const Dashboard = () => {
           const counts: Record<string, number> = { draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 };
           proposalData.forEach((p) => { counts[p.status] = (counts[p.status] || 0) + 1; });
           setProposalCounts(counts);
+        }
+
+        // Fetch top AI matches
+        const { data: insights } = await supabase
+          .from("ai_insights")
+          .select("rfp_id, match_score")
+          .eq("user_id", user.id)
+          .order("match_score", { ascending: false })
+          .limit(5);
+
+        if (insights && insights.length > 0) {
+          const rfpIds = insights.map((i) => i.rfp_id);
+          const { data: matchedRfpData } = await supabase
+            .from("rfps")
+            .select("id, title, category, org")
+            .in("id", rfpIds);
+
+          if (matchedRfpData) {
+            const rfpMap = new Map(matchedRfpData.map((r) => [r.id, r]));
+            setTopMatches(
+              insights
+                .map((i) => {
+                  const r = rfpMap.get(i.rfp_id);
+                  return r ? { rfp_id: i.rfp_id, match_score: i.match_score, rfp_title: r.title, rfp_category: r.category, rfp_org: r.org } : null;
+                })
+                .filter(Boolean) as TopMatch[]
+            );
+          }
         }
       }
 
@@ -275,6 +312,43 @@ const Dashboard = () => {
                     <p className="text-[9px] text-muted-foreground font-body uppercase tracking-wider mt-0.5">{stage.label}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top AI Matches */}
+          {user && topMatches.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-accent" /> Top AI Matches
+                </h2>
+                <Link to="/rfps" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
+                  View all RFPs <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {topMatches.map((m) => {
+                  const scoreColor = m.match_score >= 75 ? "text-accent" : m.match_score >= 50 ? "text-amber-500" : "text-destructive";
+                  return (
+                    <div key={m.rfp_id} className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-5 hover:border-accent/40 transition-all hover:shadow-lg hover:shadow-accent/5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-display font-semibold text-foreground truncate">{m.rfp_title}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <Badge variant="secondary" className="text-[10px]">{m.rfp_category}</Badge>
+                            {m.rfp_org && <span className="text-[10px] text-muted-foreground truncate">{m.rfp_org}</span>}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-center shrink-0">
+                          <Zap className={`h-4 w-4 ${scoreColor}`} />
+                          <span className={`text-lg font-display font-bold ${scoreColor}`}>{m.match_score}%</span>
+                          <span className="text-[9px] text-muted-foreground uppercase tracking-wider">match</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

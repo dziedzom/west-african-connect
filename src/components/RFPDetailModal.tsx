@@ -49,9 +49,10 @@ const ScoreGauge = ({ score }: { score: number }) => {
 const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
   const [insight, setInsight] = useState<AIInsight | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    const fetchInsight = async () => {
+    const fetchOrGenerate = async () => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
@@ -63,15 +64,45 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      setInsight(data);
+      if (data) {
+        setInsight(data);
+        setLoading(false);
+        return;
+      }
+
+      // Auto-generate insights
       setLoading(false);
+      setGenerating(true);
+      try {
+        const { data: result, error } = await supabase.functions.invoke("generate-ai-insights", {
+          body: { rfp_id: rfpId },
+        });
+        if (error) throw error;
+        if (result?.status === "created") {
+          setInsight({
+            match_score: result.match_score,
+            winning_strategy_summary: result.winning_strategy_summary,
+            gap_analysis: result.gap_analysis,
+          });
+        }
+      } catch (e) {
+        console.error("Failed to generate AI insights:", e);
+      } finally {
+        setGenerating(false);
+      }
     };
-    fetchInsight();
+    fetchOrGenerate();
   }, [rfpId]);
 
-  if (loading) {
+  if (loading || generating) {
     return (
       <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+        <div className="flex items-center gap-2">
+          <Brain className="h-4 w-4 text-accent animate-pulse" />
+          <span className="text-sm font-display font-semibold text-foreground">
+            {generating ? "Generating AI Insights…" : "Loading…"}
+          </span>
+        </div>
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-20 w-full" />
       </div>
