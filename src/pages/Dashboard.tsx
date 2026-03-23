@@ -177,6 +177,34 @@ const Dashboard = () => {
           proposalData.forEach((p) => { counts[p.status] = (counts[p.status] || 0) + 1; });
           setProposalCounts(counts);
         }
+
+        // Fetch top AI matches
+        const { data: insights } = await supabase
+          .from("ai_insights")
+          .select("rfp_id, match_score")
+          .eq("user_id", user.id)
+          .order("match_score", { ascending: false })
+          .limit(5);
+
+        if (insights && insights.length > 0) {
+          const rfpIds = insights.map((i) => i.rfp_id);
+          const { data: matchedRfpData } = await supabase
+            .from("rfps")
+            .select("id, title, category, org")
+            .in("id", rfpIds);
+
+          if (matchedRfpData) {
+            const rfpMap = new Map(matchedRfpData.map((r) => [r.id, r]));
+            setTopMatches(
+              insights
+                .map((i) => {
+                  const r = rfpMap.get(i.rfp_id);
+                  return r ? { rfp_id: i.rfp_id, match_score: i.match_score, rfp_title: r.title, rfp_category: r.category, rfp_org: r.org } : null;
+                })
+                .filter(Boolean) as TopMatch[]
+            );
+          }
+        }
       }
 
       // Process external RFPs
