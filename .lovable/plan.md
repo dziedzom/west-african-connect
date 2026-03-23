@@ -1,32 +1,42 @@
 
 
-## Test Results: RFP Scraping Agent
+## Auto-Scheduled Scraping with pg_cron
 
-### What worked
-- The `/scrape` page renders correctly with portal selection checkboxes, custom URL input, and Run Scraper button
-- Deselecting portals works properly
-- The scraper ran successfully against UNGM, taking ~40 seconds
-- **17 RFPs were extracted and stored** in the `scraped_rfps` database table (confirmed via direct DB query)
-- The "Scrape Results" section correctly displays "UNGM: 17 RFPs" with a green checkmark
+### What we're building
+1. Enable `pg_cron` and `pg_net` extensions
+2. Create a cron job that calls the `scrape-rfps` edge function daily at 6 AM UTC
+3. Add a "Last scraped" timestamp display on the Dashboard
 
-### Bug found: Scraped RFPs list shows 0
-The "Scraped RFPs" list always shows 0 items despite 17 rows in the database. The root cause is that the **Supabase REST API requests are being routed to the wrong URL**.
+### Steps
 
-The frontend query to `scraped_rfps` is hitting:
-```text
-https://supabase.com/dashboard/project/dvizkdszskstgnkloqce/settings/api-keys/rest/v1/scraped_rfps
-```
-Instead of:
-```text
-https://tjuunlzlspznabgldvjr.supabase.co/rest/v1/scraped_rfps
+**Step 1: Database migration — enable extensions**
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
+CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
 ```
 
-This is an **environment variable issue** — `VITE_SUPABASE_URL` appears to resolve to an incorrect dashboard URL in the preview runtime. This affects ALL Supabase client queries, not just the scraper page.
+**Step 2: Insert cron job (via insert tool, not migration)**
+Schedule a daily 6 AM UTC job that POSTs to the `scrape-rfps` edge function with all default portals:
+```sql
+SELECT cron.schedule(
+  'daily-rfp-scrape',
+  '0 6 * * *',
+  $$
+  SELECT net.http_post(
+    url:='https://tjuunlzlspznabgldvjr.supabase.co/functions/v1/scrape-rfps',
+    headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGci..."}'::jsonb,
+    body:='{"portals": ["UNGM", "AfDB", "SA eTenders"]}'::jsonb
+  ) as request_id;
+  $$
+);
+```
 
-### Fix plan
-1. **Investigate `VITE_SUPABASE_URL` value** — The `.env` file shows the correct value, but the runtime is using a different one. This may be a preview environment configuration issue.
-2. **Auto-refresh after scrape** — The code already calls `fetchScrapedRfps()` after a successful scrape, which is correct. Once the URL issue is fixed, the list will populate automatically.
+**Step 3: Update Dashboard UI**
+- Query `scraped_rfps` for `MAX(scraped_at)` to get last scrape timestamp
+- Display a small "Last scraped: X hours ago" indicator near the AI-Scraped Opportunities section header
+- Use relative time formatting (e.g., "2 hours ago", "Yesterday at 6:00 AM")
 
-### No code changes needed
-The scraper edge function, AI extraction logic, database schema, and frontend UI are all working correctly. The only issue is the Supabase URL misconfiguration in the preview environment.
+### Files affected
+- `src/pages/Dashboard.tsx` — add last-scraped timestamp display
+- Database: 1 migration (extensions) + 1 insert (cron schedule)
 
