@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot, MapPin, Building2, Calendar, Tag } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot, MapPin, Building2, Calendar, Tag, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
@@ -31,6 +31,17 @@ interface ScrapedRFP {
   portal: string;
   scraped_at: string;
 }
+
+const formatRelativeTime = (dateStr: string) => {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+};
 
 const parseExternalRFP = (title: string) => {
   const deadlineMatch = title.match(/Deadline\s+(.+?)$/i);
@@ -77,6 +88,7 @@ const Dashboard = () => {
   const [externalError, setExternalError] = useState<string | null>(null);
   const [scrapedCount, setScrapedCount] = useState(0);
   const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
+  const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -106,6 +118,9 @@ const Dashboard = () => {
         const scrapedData = await scrapedRes.json();
         setScrapedRfps(scrapedData);
         setScrapedCount(scrapedData.length);
+        if (scrapedData.length > 0) {
+          setLastScrapedAt(scrapedData[0].scraped_at);
+        }
       }
 
       // Fetch profile & applications only if logged in
@@ -298,9 +313,16 @@ const Dashboard = () => {
                 <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
                   <Bot className="h-4 w-4 text-accent" /> AI-Scraped Opportunities
                 </h2>
-                <Link to="/scrape" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                  Run scraper <ArrowRight className="h-3 w-3" />
-                </Link>
+                <div className="flex items-center gap-3">
+                  {lastScrapedAt && (
+                    <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Last scraped {formatRelativeTime(lastScrapedAt)}
+                    </span>
+                  )}
+                  <Link to="/scrape" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
+                    Run scraper <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {scrapedRfps.slice(0, 6).map((rfp) => (
