@@ -58,14 +58,14 @@ const RFPListings = () => {
 
   return (
     <>
-      <SEO title="RFP Opportunities" path="/rfps" description="Browse open RFP listings and contract opportunities across West Africa. Filter by category, location, and value." />
+      <SEO title="RFP Opportunities" path="/rfps" description="Browse open RFP listings and contract opportunities across Africa. Filter by category, location, and value." />
       <section className="py-12 bg-background min-h-screen">
         <div className="container">
           <div className="mb-10">
             <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
               Open <span className="text-accent">Opportunities</span>
             </h1>
-            <p className="mt-2 text-muted-foreground">Browse active RFPs, tenders and contracts across West Africa.</p>
+            <p className="mt-2 text-muted-foreground">Browse active RFPs, tenders and contracts across Africa.</p>
           </div>
 
           {/* Search + Filters */}

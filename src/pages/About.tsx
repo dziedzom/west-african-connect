@@ -5,7 +5,7 @@ import SEO from "@/components/SEO";
 const values = [
   { icon: Eye, title: "Transparency", text: "Every step of our matching process is visible. Companies know exactly how and why they're paired with opportunities." },
   { icon: Handshake, title: "Partnership", text: "We're not just a listing service. We actively facilitate introductions, due diligence, and bid preparation." },
-  { icon: Heart, title: "Community Impact", text: "By connecting local companies to contracts, we keep economic value within West African communities." },
+  { icon: Heart, title: "Community Impact", text: "By connecting local companies to contracts, we keep economic value within African communities." },
   { icon: Scale, title: "Ethical Practice", text: "No hidden fees, no conflicts of interest. Our 5–10% tiered commission model ensures aligned incentives." },
 ];
 
@@ -14,7 +14,7 @@ const About = () => {
 
   return (
     <>
-    <SEO title="About" path="/about" description="Learn about MiddlBrand's mission to connect vetted West African businesses with real contract opportunities through ethical lead generation." />
+    <SEO title="About" path="/about" description="Learn about MiddlBrand's mission to connect vetted African businesses with real contract opportunities through ethical lead generation." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-3xl">
         <div className="mb-12">
@@ -22,7 +22,7 @@ const About = () => {
             About MiddlBrand
           </h1>
           <p className="mt-4 text-muted-foreground text-sm font-body leading-relaxed">
-            MiddlBrand was born from a simple observation: qualified West African companies consistently miss
+MiddlBrand was born from a simple observation: qualified African companies consistently miss
             business opportunities — not due to lack of capability, but lack of access. We bridge that gap.
           </p>
         </div>
@@ -30,7 +30,7 @@ const About = () => {
         <div className="space-y-6 mb-16">
           <h2 className="text-2xl font-display font-bold text-foreground">How We Match & Facilitate</h2>
           <div className="rounded-2xl border border-border bg-card p-6 space-y-4 text-muted-foreground font-body text-sm">
-            <p><strong className="text-foreground font-display">1. Source</strong> — Our team monitors government portals, development agencies, and private sector procurement across West Africa to identify tenders, RFPs and contracts.</p>
+            <p><strong className="text-foreground font-display">1. Source</strong> — Our team monitors government portals, development agencies, and private sector procurement across Africa to identify tenders, RFPs and contracts.</p>
             <p><strong className="text-foreground font-display">2. Match</strong> — We analyze each opportunity against our directory of vetted companies, considering expertise, location, capacity, and track record.</p>
             <p><strong className="text-foreground font-display">3. Notify</strong> — Matched companies receive curated alerts with full tender details, requirements, and our guidance on submission best practices.</p>
             <p><strong className="text-foreground font-display">4. Facilitate</strong> — We support bid preparation, provide market intelligence, and make direct introductions where appropriate.</p>

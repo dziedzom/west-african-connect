@@ -11,7 +11,7 @@ interface SEOProps {
 const BASE_URL = "https://middlbrand.com";
 const SITE_NAME = "MiddlBrand";
 const DEFAULT_DESCRIPTION =
-  "The bridge between high-growth companies and winning RFP contracts. Connecting vetted West African businesses to real opportunities.";
+  "The bridge between high-growth companies and winning RFP contracts. Connecting vetted African businesses to real opportunities.";
 const OG_IMAGE = `${BASE_URL}/og-image.png`;
 
 const SEO = ({

@@ -9,7 +9,7 @@ const stats = [
   { value: "500+", label: "Vetted Companies" },
   { value: "$12M+", label: "Matched" },
   { value: "5%", label: "Commission" },
-  { value: "8", label: "Countries" },
+  { value: "54", label: "Countries" },
 ];
 
 const testimonials = [
@@ -26,7 +26,7 @@ const testimonials = [
     icon: Briefcase,
   },
   {
-    quote: "Their vetting process gave us credibility with buyers we couldn't reach before. It's opened doors across West Africa.",
+    quote: "Their vetting process gave us credibility with buyers we couldn't reach before. It's opened doors across Africa.",
     name: "Emeka Okafor",
     title: "Founder, TechBridge Solutions",
     icon: Globe,
@@ -48,7 +48,7 @@ const Index = () => {
           "@type": "WebSite",
           name: "MiddlBrand",
           url: "https://middlbrand.com",
-          description: "Connecting vetted West African businesses to real opportunities through ethical lead generation.",
+          description: "Connecting vetted African businesses to real opportunities through ethical lead generation.",
           potentialAction: {
             "@type": "SearchAction",
             target: "https://middlbrand.com/rfps?q={search_term_string}",
@@ -65,7 +65,7 @@ const Index = () => {
             </h1>
             <p className="mt-8 text-base md:text-lg text-muted-foreground font-body max-w-xl mx-auto animate-fade-in"
                style={{ animationDelay: "200ms" }}>
-              Connecting vetted West African businesses to real opportunities.
+              Connecting vetted African businesses to real opportunities.
               No upfront fees. No risk. We earn 5% when you win.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4 animate-fade-in" style={{ animationDelay: "400ms" }}>
@@ -106,7 +106,7 @@ const Index = () => {
               How It Works
             </h2>
             <p className="mt-4 text-muted-foreground font-body text-sm">
-              We bridge the gap between qualified West African businesses and the contracts they deserve.
+              We bridge the gap between qualified African businesses and the contracts they deserve.
             </p>
           </div>
 
@@ -119,7 +119,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-2xl font-display font-bold text-foreground mb-3">Lead Generation</h3>
                 <p className="text-sm text-muted-foreground font-body leading-relaxed max-w-md">
-                  We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity across West Africa.
+                  We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity across Africa.
                 </p>
               </div>
               <div className="mt-8 h-20 rounded-xl bg-gradient-to-r from-accent/5 to-accent/10" />
@@ -208,7 +208,7 @@ const Index = () => {
             Ready to Win More Contracts?
           </h2>
           <p className="mt-4 text-primary-foreground/60 font-body text-sm max-w-lg mx-auto">
-            Join hundreds of West African companies growing through MiddlBrand's opportunity matching platform.
+            Join hundreds of African companies growing through MiddlBrand's opportunity matching platform.
           </p>
           <div className="mt-10 flex justify-center gap-4 flex-wrap">
             <Button asChild size="lg" className="group rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-8 transition-all duration-300">
