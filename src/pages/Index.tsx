@@ -26,7 +26,7 @@ const testimonials = [
     icon: Briefcase,
   },
   {
-    quote: "Their vetting process gave us credibility with buyers we couldn't reach before. It's opened doors across West Africa.",
+    quote: "Their vetting process gave us credibility with buyers we couldn't reach before. It's opened doors across Africa.",
     name: "Emeka Okafor",
     title: "Founder, TechBridge Solutions",
     icon: Globe,
