@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
@@ -61,17 +61,20 @@ const Dashboard = () => {
   const [appCount, setAppCount] = useState(0);
   const [externalRfps, setExternalRfps] = useState<ExternalRFP[]>([]);
   const [externalError, setExternalError] = useState<string | null>(null);
+  const [scrapedCount, setScrapedCount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       // Fetch local data (public tables don't need auth)
-      const [{ count: rfpCount }, { data: allRfps }] = await Promise.all([
+      const [{ count: rfpCount }, { data: allRfps }, { count: scrapedRfpCount }] = await Promise.all([
         supabase.from("rfps").select("*", { count: "exact", head: true }),
         supabase.from("rfps").select("*").order("created_at", { ascending: false }),
+        supabase.from("scraped_rfps").select("*", { count: "exact", head: true }),
       ]);
 
       const rfpList = (allRfps || []) as RFP[];
       setTotalRfps(rfpCount || 0);
+      setScrapedCount(scrapedRfpCount || 0);
       setRfps(rfpList);
       setMatchedRfps(rfpList.slice(0, 5));
 
@@ -143,7 +146,7 @@ const Dashboard = () => {
   })();
 
   const stats = [
-    { label: "Active RFPs", value: totalRfps + externalRfps.length, icon: FileText, accent: true },
+    { label: "Active RFPs", value: totalRfps + externalRfps.length + scrapedCount, icon: FileText, accent: true },
     { label: "Matched", value: matchedRfps.length, icon: TrendingUp, accent: false },
     { label: "Applications", value: appCount, icon: Briefcase, accent: false },
     { label: "Saved", value: savedCount, icon: Heart, accent: false },
@@ -164,6 +167,9 @@ const Dashboard = () => {
               <p className="text-sm text-muted-foreground font-body">{user?.email}</p>
             </div>
             <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm" className="rounded-full">
+                <Link to="/scrape"><Bot className="h-4 w-4 mr-1" /> Scraper</Link>
+              </Button>
               <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link to="/knowledge-base"><BookOpen className="h-4 w-4 mr-1" /> Knowledge</Link>
               </Button>
