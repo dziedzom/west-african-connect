@@ -52,13 +52,25 @@ const ScrapeAgent = () => {
   }, []);
 
   const fetchScrapedRfps = async () => {
-    const { data, error } = await supabase
-      .from("scraped_rfps")
-      .select("*")
-      .order("scraped_at", { ascending: false })
-      .limit(50);
-
-    if (!error && data) setScrapedRfps(data as ScrapedRFP[]);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "tjuunlzlspznabgldvjr";
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/rest/v1/scraped_rfps?select=*&order=scraped_at.desc&limit=50`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setScrapedRfps(data as ScrapedRFP[]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch scraped RFPs:", err);
+    }
     setLoading(false);
   };
 
