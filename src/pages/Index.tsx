@@ -119,7 +119,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-2xl font-display font-bold text-foreground mb-3">Lead Generation</h3>
                 <p className="text-sm text-muted-foreground font-body leading-relaxed max-w-md">
-                  We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity across West Africa.
+                  We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity across Africa.
                 </p>
               </div>
               <div className="mt-8 h-20 rounded-xl bg-gradient-to-r from-accent/5 to-accent/10" />
