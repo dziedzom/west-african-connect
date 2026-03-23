@@ -267,6 +267,50 @@ export type Database = {
         }
         Relationships: []
       }
+      proposals: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          rfp_id: string | null
+          status: Database["public"]["Enums"]["proposal_status"]
+          submitted_at: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          rfp_id?: string | null
+          status?: Database["public"]["Enums"]["proposal_status"]
+          submitted_at?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          rfp_id?: string | null
+          status?: Database["public"]["Enums"]["proposal_status"]
+          submitted_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "rfps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rfp_opportunities: {
         Row: {
           created_at: string
@@ -430,6 +474,7 @@ export type Database = {
         | "communication"
         | "production"
         | "web_digital"
+      proposal_status: "draft" | "submitted" | "under_review" | "won" | "lost"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -563,6 +608,7 @@ export const Constants = {
         "production",
         "web_digital",
       ],
+      proposal_status: ["draft", "submitted", "under_review", "won", "lost"],
     },
   },
 } as const
