@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot, MapPin, Building2, Calendar, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
@@ -16,6 +16,20 @@ interface ExternalRFP {
   title: string;
   source_url: string;
   created_at: string;
+}
+
+interface ScrapedRFP {
+  id: string;
+  title: string;
+  description: string | null;
+  deadline: string | null;
+  category: string | null;
+  budget: string | null;
+  location: string | null;
+  organization: string | null;
+  source_url: string;
+  portal: string;
+  scraped_at: string;
 }
 
 const parseExternalRFP = (title: string) => {
@@ -62,72 +76,84 @@ const Dashboard = () => {
   const [externalRfps, setExternalRfps] = useState<ExternalRFP[]>([]);
   const [externalError, setExternalError] = useState<string | null>(null);
   const [scrapedCount, setScrapedCount] = useState(0);
+  const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch local data (public tables don't need auth)
-      const [{ count: rfpCount }, { data: allRfps }, { count: scrapedRfpCount }] = await Promise.all([
-        supabase.from("rfps").select("*", { count: "exact", head: true }),
-        supabase.from("rfps").select("*").order("created_at", { ascending: false }),
-        supabase.from("scraped_rfps").select("*", { count: "exact", head: true }),
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "tjuunlzlspznabgldvjr";
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const restBase = `https://${projectId}.supabase.co/rest/v1`;
+      const headers = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` };
+
+      // Fetch local RFPs, scraped RFPs, and external RFPs in parallel
+      const [rfpRes, scrapedRes, externalRes] = await Promise.all([
+        fetch(`${restBase}/rfps?select=*&order=created_at.desc`, { headers }),
+        fetch(`${restBase}/scraped_rfps?select=*&order=scraped_at.desc&limit=20`, { headers }),
+        fetch(`https://${projectId}.supabase.co/functions/v1/fetch-external-rfps`, {
+          method: "POST",
+          headers: { ...headers, "Content-Type": "application/json" },
+        }).catch(() => null),
       ]);
 
-      const rfpList = (allRfps || []) as RFP[];
-      setTotalRfps(rfpCount || 0);
-      setScrapedCount(scrapedRfpCount || 0);
+      // Process local RFPs
+      const rfpList: RFP[] = rfpRes.ok ? await rfpRes.json() : [];
+      setTotalRfps(rfpList.length);
       setRfps(rfpList);
       setMatchedRfps(rfpList.slice(0, 5));
 
+      // Process scraped RFPs
+      if (scrapedRes.ok) {
+        const scrapedData = await scrapedRes.json();
+        setScrapedRfps(scrapedData);
+        setScrapedCount(scrapedData.length);
+      }
+
       // Fetch profile & applications only if logged in
       if (user) {
-        const [{ data: profile }, { count: applicationCount }] = await Promise.all([
-          supabase.from("profiles").select("expertise").eq("user_id", user.id).single(),
-          supabase.from("partnership_applications").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        const [profileRes, appRes] = await Promise.all([
+          fetch(`${restBase}/profiles?select=expertise&user_id=eq.${user.id}&limit=1`, {
+            headers: { ...headers, Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || supabaseKey}` },
+          }),
+          fetch(`${restBase}/partnership_applications?select=*&user_id=eq.${user.id}`, {
+            headers: { ...headers, Prefer: "count=exact", Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || supabaseKey}` },
+          }),
         ]);
-        setAppCount(applicationCount || 0);
-        if (profile?.expertise) {
-          const expertiseMap: Record<string, string[]> = {
-            "Pharmaceuticals": ["Pharma"],
-            "Transport & Logistics": ["Transport"],
-            "Construction": ["Construction"],
-            "IT & Tech": ["IT"],
-            "Agriculture": ["Agriculture"],
-            "Energy": ["Energy"],
-            "Consulting": ["IT", "Pharma", "Energy"],
-            "Manufacturing": ["Agriculture", "Construction"],
-          };
-          const matchCategories = expertiseMap[profile.expertise] || [];
-          setMatchedRfps(rfpList.filter((r) => matchCategories.includes(r.category)));
+        if (profileRes.ok) {
+          const profiles = await profileRes.json();
+          const profile = profiles[0];
+          if (profile?.expertise) {
+            const expertiseMap: Record<string, string[]> = {
+              "Pharmaceuticals": ["Pharma"],
+              "Transport & Logistics": ["Transport"],
+              "Construction": ["Construction"],
+              "IT & Tech": ["IT"],
+              "Agriculture": ["Agriculture"],
+              "Energy": ["Energy"],
+              "Consulting": ["IT", "Pharma", "Energy"],
+              "Manufacturing": ["Agriculture", "Construction"],
+            };
+            const matchCategories = expertiseMap[profile.expertise] || [];
+            setMatchedRfps(rfpList.filter((r) => matchCategories.includes(r.category)));
+          }
+        }
+        if (appRes.ok) {
+          const countHeader = appRes.headers.get("content-range");
+          const apps = await appRes.json();
+          setAppCount(countHeader ? parseInt(countHeader.split("/")[1] || "0") : apps.length);
         }
       }
 
-      // Fetch external RFP opportunities (no auth needed)
-      try {
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "tjuunlzlspznabgldvjr";
-        const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/fetch-external-rfps`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": supabaseKey,
-            "Authorization": `Bearer ${supabaseKey}`,
-          },
-        });
-        if (!res.ok) {
-          const errBody = await res.text();
-          setExternalError(`Edge function error (${res.status}): ${errBody}`);
-        } else {
-          const fnData = await res.json();
-          if (fnData?.error) {
-            setExternalError(fnData.error);
-          } else if (Array.isArray(fnData)) {
-            setExternalRfps(fnData);
-          } else {
-            setExternalError("Unexpected response format from edge function");
-          }
+      // Process external RFPs
+      if (externalRes && externalRes.ok) {
+        try {
+          const fnData = await externalRes.json();
+          if (Array.isArray(fnData)) setExternalRfps(fnData);
+          else if (fnData?.error) setExternalError(fnData.error);
+        } catch {
+          setExternalError("Failed to parse external RFPs");
         }
-      } catch (err: unknown) {
-        setExternalError(err instanceof Error ? err.message : "Unknown error fetching external RFPs");
+      } else if (externalRes) {
+        setExternalError(`Error ${externalRes.status}`);
       }
 
       setLoading(false);
@@ -265,7 +291,78 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Bento Grid */}
+          {/* Scraped RFPs from AI Agent */}
+          {scrapedRfps.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-accent" /> AI-Scraped Opportunities
+                </h2>
+                <Link to="/scrape" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
+                  Run scraper <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {scrapedRfps.slice(0, 6).map((rfp) => (
+                  <div
+                    key={rfp.id}
+                    className="group rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 flex flex-col justify-between transition-all hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5"
+                  >
+                    <div className="mb-4">
+                      <h3 className="text-sm font-display font-semibold text-foreground leading-snug line-clamp-2">
+                        {rfp.title}
+                      </h3>
+                      {rfp.description && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">{rfp.description}</p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        <Badge variant="outline" className="text-[10px]">{rfp.portal}</Badge>
+                        {rfp.category && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            <Tag className="h-2.5 w-2.5 mr-0.5" />{rfp.category}
+                          </Badge>
+                        )}
+                        {rfp.location && (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            <MapPin className="h-2.5 w-2.5" />{rfp.location}
+                          </span>
+                        )}
+                        {rfp.organization && (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            <Building2 className="h-2.5 w-2.5" />{rfp.organization}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-[10px] text-muted-foreground font-body">
+                          Scraped {new Date(rfp.scraped_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                        </p>
+                        {rfp.deadline && (
+                          <p className="text-[10px] font-semibold text-destructive font-body flex items-center gap-0.5">
+                            <Calendar className="h-2.5 w-2.5" />
+                            {new Date(rfp.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Button asChild size="sm" className="w-full rounded-full mt-auto bg-accent text-accent-foreground hover:bg-accent/90">
+                      <a href={rfp.source_url} target="_blank" rel="noopener noreferrer">
+                        View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                      </a>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              {scrapedRfps.length > 6 && (
+                <div className="text-center mt-3">
+                  <Link to="/scrape" className="text-xs text-accent hover:underline font-body">
+                    View all {scrapedCount} scraped RFPs →
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Matched Opportunities */}
             <div className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 md:col-span-1">
