@@ -20,6 +20,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Learn from "./pages/Learn";
+import ScrapeAgent from "./pages/ScrapeAgent";
 
 const queryClient = new QueryClient();
 
