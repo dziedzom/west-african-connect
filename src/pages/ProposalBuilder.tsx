@@ -194,11 +194,30 @@ const ProposalBuilder = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs font-display text-muted-foreground mb-1 block">Proposal Content</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-display text-muted-foreground">Proposal Content</label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full gap-1.5 text-xs border-accent/30 text-accent hover:bg-accent/10"
+                      onClick={handleAIDraft}
+                      disabled={aiDrafting || !rfpId}
+                    >
+                      {aiDrafting ? (
+                        <>
+                          <Brain className="h-3.5 w-3.5 animate-pulse" /> Generating…
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" /> AI Draft
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <Textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    placeholder="Write your proposal here..."
+                    placeholder="Write your proposal here or use AI Draft to auto-generate..."
                     className="min-h-[200px]"
                   />
                 </div>
