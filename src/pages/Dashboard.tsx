@@ -124,14 +124,19 @@ const Dashboard = () => {
         }
       }
 
-      // Fetch profile & applications only if logged in
+      // Fetch profile, applications & proposals only if logged in
       if (user) {
-        const [profileRes, appRes] = await Promise.all([
+        const session = (await supabase.auth.getSession()).data.session;
+        const authHeader = `Bearer ${session?.access_token || supabaseKey}`;
+        const [profileRes, appRes, proposalRes] = await Promise.all([
           fetch(`${restBase}/profiles?select=expertise&user_id=eq.${user.id}&limit=1`, {
-            headers: { ...headers, Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || supabaseKey}` },
+            headers: { ...headers, Authorization: authHeader },
           }),
           fetch(`${restBase}/partnership_applications?select=*&user_id=eq.${user.id}`, {
-            headers: { ...headers, Prefer: "count=exact", Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || supabaseKey}` },
+            headers: { ...headers, Prefer: "count=exact", Authorization: authHeader },
+          }),
+          fetch(`${restBase}/proposals?select=status&user_id=eq.${user.id}`, {
+            headers: { ...headers, Authorization: authHeader },
           }),
         ]);
         if (profileRes.ok) {
@@ -156,6 +161,12 @@ const Dashboard = () => {
           const countHeader = appRes.headers.get("content-range");
           const apps = await appRes.json();
           setAppCount(countHeader ? parseInt(countHeader.split("/")[1] || "0") : apps.length);
+        }
+        if (proposalRes.ok) {
+          const proposalData: { status: string }[] = await proposalRes.json();
+          const counts: Record<string, number> = { draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 };
+          proposalData.forEach((p) => { counts[p.status] = (counts[p.status] || 0) + 1; });
+          setProposalCounts(counts);
         }
       }
 
