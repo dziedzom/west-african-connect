@@ -114,7 +114,15 @@ const CompanySignUp = () => {
               <Label htmlFor="location">Location *</Label>
               <Select required value={locationVal} onValueChange={setLocationVal}>
                 <SelectTrigger id="location"><SelectValue placeholder="Select country" /></SelectTrigger>
-                <SelectContent>{locationOptions.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {locationGroups.map((group) => (
+                    <SelectGroup key={group.region}>
+                      <SelectLabel className="text-xs font-display font-bold text-muted-foreground uppercase tracking-wider">{group.region}</SelectLabel>
+                      {group.countries.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
               </Select>
             </div>
           </div>
