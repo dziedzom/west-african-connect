@@ -74,6 +74,7 @@ const Dashboard = () => {
 
       const rfpList = (allRfps || []) as RFP[];
       setTotalRfps(rfpCount || 0);
+      setScrapedCount(scrapedRfpCount || 0);
       setRfps(rfpList);
       setMatchedRfps(rfpList.slice(0, 5));
 
