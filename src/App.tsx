@@ -54,6 +54,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
               <Route path="/knowledge-base" element={<ProtectedRoute><KnowledgeBase /></ProtectedRoute>} />
+              <Route path="/scrape" element={<ScrapeAgent />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
