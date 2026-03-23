@@ -128,6 +128,28 @@ const ProposalBuilder = () => {
 
   const isFormOpen = editing !== null || title || content;
 
+  const handleAIDraft = async () => {
+    if (!rfpId) {
+      toast({ title: "Select an RFP first", description: "Link an RFP to generate an AI draft.", variant: "destructive" });
+      return;
+    }
+    setAiDrafting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("draft-proposal", {
+        body: { rfp_id: rfpId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.title) setTitle(data.title);
+      if (data?.content) setContent(data.content);
+      toast({ title: "AI draft generated!", description: "Review and edit before submitting." });
+    } catch (e: any) {
+      toast({ title: "AI drafting failed", description: e.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setAiDrafting(false);
+    }
+  };
+
   return (
     <>
       <SEO title="Proposal Builder" path="/proposals" description="Draft, edit, and submit proposals against RFPs." />
