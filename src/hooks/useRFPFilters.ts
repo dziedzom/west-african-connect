@@ -41,17 +41,63 @@ export function useRFPFilters() {
     dateRange: { from: undefined, to: undefined },
   });
 
-  // Fetch once
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("rfps")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setRfps((data as RFP[]) || []);
+    const fetchAll = async () => {
+      const [localRes, scrapedRes, externalRes] = await Promise.all([
+        supabase.from("rfps").select("*").order("created_at", { ascending: false }),
+        supabase.from("scraped_rfps").select("*").order("scraped_at", { ascending: false }),
+        supabase.from("rfp_opportunities").select("*").order("created_at", { ascending: false }),
+      ]);
+
+      const local: RFP[] = (localRes.data || []).map((r) => ({
+        ...r,
+        source: "local" as const,
+      }));
+
+      const scraped: RFP[] = (scrapedRes.data || []).map((r) => ({
+        id: r.id,
+        title: r.title,
+        description: r.description || "",
+        category: r.category || "Uncategorized",
+        org: r.organization,
+        location: r.location,
+        value: r.budget,
+        budget: r.budget,
+        deadline: r.deadline,
+        status: r.status,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        source: "scraped" as const,
+        source_url: r.source_url,
+        portal: r.portal,
+      }));
+
+      const external: RFP[] = (externalRes.data || []).map((r) => {
+        // Parse structured info from title
+        const parts = r.title.split(" - ");
+        const deadlineMatch = r.title.match(/Deadline\s+(.+?)$/i);
+        return {
+          id: r.id,
+          title: r.title,
+          description: "",
+          category: parts.length >= 3 ? parts.slice(2, -1).join(" - ").replace(/\s*-?\s*Deadline.*$/i, "").trim() || "Uncategorized" : "Uncategorized",
+          org: null,
+          location: parts.length >= 2 ? parts[1].trim() : null,
+          value: null,
+          budget: null,
+          deadline: deadlineMatch ? deadlineMatch[1].trim() : null,
+          status: "open",
+          created_at: r.created_at,
+          updated_at: r.created_at,
+          source: "external" as const,
+          source_url: r.source_url,
+        };
+      });
+
+      setRfps([...local, ...scraped, ...external]);
       setLoading(false);
     };
-    fetch();
+    fetchAll();
   }, []);
 
   const setSearch = useCallback((v: string) => setFilters((f) => ({ ...f, search: v })), []);
@@ -99,6 +145,7 @@ export function useRFPFilters() {
       if (filters.dateRange.from || filters.dateRange.to) {
         if (!r.deadline) return false;
         const d = new Date(r.deadline);
+        if (isNaN(d.getTime())) return false;
         if (filters.dateRange.from && d < filters.dateRange.from) return false;
         if (filters.dateRange.to && d > filters.dateRange.to) return false;
       }

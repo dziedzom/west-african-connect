@@ -1,3 +1,5 @@
+export type RFPSource = "local" | "scraped" | "external";
+
 export interface RFP {
   id: string;
   title: string;
@@ -11,4 +13,7 @@ export interface RFP {
   status: string;
   created_at: string;
   updated_at: string;
+  source: RFPSource;
+  source_url?: string | null;
+  portal?: string | null;
 }

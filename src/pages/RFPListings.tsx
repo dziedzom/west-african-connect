@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal } from "lucide-react";
+import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal, ExternalLink, Bot, Database } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +12,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import RFPDetailModal from "@/components/RFPDetailModal";
 import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
-import type { RFP } from "@/types/rfp";
+import type { RFP, RFPSource } from "@/types/rfp";
 import SEO from "@/components/SEO";
+
+const sourceBadge: Record<RFPSource, { label: string; icon: typeof Database; className: string }> = {
+  local: { label: "Local", icon: Database, className: "bg-primary/10 text-primary border-primary/20" },
+  scraped: { label: "AI Scraped", icon: Bot, className: "bg-accent/10 text-accent border-accent/20" },
+  external: { label: "External", icon: ExternalLink, className: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
+};
 
 const formatBudget = (v: number) => {
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
@@ -173,43 +179,65 @@ const RFPListings = () => {
             {filtered.length} opportunit{filtered.length === 1 ? "y" : "ies"} found
           </p>
 
-          {/* Results */}
           <div className="grid gap-4">
-            {filtered.map((rfp) => (
-              <div
-                key={rfp.id}
-                onClick={() => setSelectedRFP(rfp)}
-                className="rounded-lg border border-border bg-card p-6 hover:border-accent/40 hover:shadow-md transition-all cursor-pointer"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-display font-semibold text-foreground">{rfp.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <Badge variant="secondary">{rfp.category}</Badge>
-                      {rfp.location && (
-                        <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
-                      )}
-                      {rfp.value && <Badge variant="outline">{rfp.value}</Badge>}
+            {filtered.map((rfp) => {
+              const srcBadge = sourceBadge[rfp.source];
+              const SrcIcon = srcBadge.icon;
+              return (
+                <div
+                  key={`${rfp.source}-${rfp.id}`}
+                  onClick={() => setSelectedRFP(rfp)}
+                  className="rounded-lg border border-border bg-card p-6 hover:border-accent/40 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-display font-semibold text-foreground">{rfp.title}</h3>
+                      {rfp.org && <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>}
+                      {rfp.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>}
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        <Badge variant="outline" className={`text-[10px] gap-1 ${srcBadge.className}`}>
+                          <SrcIcon className="h-3 w-3" />
+                          {srcBadge.label}
+                          {rfp.portal && <span className="opacity-70">· {rfp.portal}</span>}
+                        </Badge>
+                        <Badge variant="secondary">{rfp.category}</Badge>
+                        {rfp.location && (
+                          <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
+                        )}
+                        {rfp.value && <Badge variant="outline">{rfp.value}</Badge>}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Deadline</p>
+                        <p className="font-semibold text-foreground">
+                          {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {rfp.source_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-full"
+                            onClick={(e) => { e.stopPropagation(); window.open(rfp.source_url!, "_blank"); }}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 mr-1" /> Source
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          className="bg-accent text-accent-foreground hover:bg-accent/90"
+                          onClick={(e) => { e.stopPropagation(); setSelectedRFP(rfp); }}
+                        >
+                          View Details
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-xs text-muted-foreground">Deadline</p>
-                    <p className="font-semibold text-foreground">
-                      {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}
-                    </p>
-                    <Button
-                      size="sm"
-                      className="mt-3 bg-accent text-accent-foreground hover:bg-accent/90"
-                      onClick={(e) => { e.stopPropagation(); setSelectedRFP(rfp); }}
-                    >
-                      View Details
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {filtered.length === 0 && (
               <div className="text-center py-16 text-muted-foreground">
                 <p className="text-lg">No opportunities match your filters.</p>
