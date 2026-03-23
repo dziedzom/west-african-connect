@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const navLinks = [
   { to: "/", label: "Home" },
+  { to: "/dashboard", label: "Dashboard" },
   { to: "/rfps", label: "RFPs" },
   { to: "/pricing", label: "Pricing" },
   { to: "/join", label: "Join" },
