@@ -123,7 +123,6 @@ const CompanySignUp = () => {
                   ))}
                 </SelectContent>
               </Select>
-              </Select>
             </div>
           </div>
           <div className="space-y-2">
