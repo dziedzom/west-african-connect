@@ -76,6 +76,7 @@ const Dashboard = () => {
   const [externalRfps, setExternalRfps] = useState<ExternalRFP[]>([]);
   const [externalError, setExternalError] = useState<string | null>(null);
   const [scrapedCount, setScrapedCount] = useState(0);
+  const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
