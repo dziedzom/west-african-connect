@@ -48,6 +48,7 @@ const ProposalBuilder = () => {
   const [content, setContent] = useState("");
   const [rfpId, setRfpId] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [aiDrafting, setAiDrafting] = useState(false);
 
   const fetchProposals = async () => {
     if (!user) return;
