@@ -65,7 +65,7 @@ const Index = () => {
             </h1>
             <p className="mt-8 text-base md:text-lg text-muted-foreground font-body max-w-xl mx-auto animate-fade-in"
                style={{ animationDelay: "200ms" }}>
-              Connecting vetted West African businesses to real opportunities.
+              Connecting vetted African businesses to real opportunities.
               No upfront fees. No risk. We earn 5% when you win.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4 animate-fade-in" style={{ animationDelay: "400ms" }}>
