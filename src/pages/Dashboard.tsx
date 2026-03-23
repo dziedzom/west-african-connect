@@ -32,6 +32,14 @@ interface ScrapedRFP {
   scraped_at: string;
 }
 
+interface TopMatch {
+  rfp_id: string;
+  match_score: number;
+  rfp_title: string;
+  rfp_category: string;
+  rfp_org: string | null;
+}
+
 const formatRelativeTime = (dateStr: string) => {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
