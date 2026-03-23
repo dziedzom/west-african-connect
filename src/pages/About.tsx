@@ -22,7 +22,7 @@ const About = () => {
             About MiddlBrand
           </h1>
           <p className="mt-4 text-muted-foreground text-sm font-body leading-relaxed">
-            MiddlBrand was born from a simple observation: qualified West African companies consistently miss
+MiddlBrand was born from a simple observation: qualified African companies consistently miss
             business opportunities — not due to lack of capability, but lack of access. We bridge that gap.
           </p>
         </div>
