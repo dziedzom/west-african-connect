@@ -66,9 +66,10 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       // Fetch local data (public tables don't need auth)
-      const [{ count: rfpCount }, { data: allRfps }] = await Promise.all([
+      const [{ count: rfpCount }, { data: allRfps }, { count: scrapedRfpCount }] = await Promise.all([
         supabase.from("rfps").select("*", { count: "exact", head: true }),
         supabase.from("rfps").select("*").order("created_at", { ascending: false }),
+        supabase.from("scraped_rfps").select("*", { count: "exact", head: true }),
       ]);
 
       const rfpList = (allRfps || []) as RFP[];
