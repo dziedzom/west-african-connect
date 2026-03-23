@@ -9,7 +9,7 @@ const stats = [
   { value: "500+", label: "Vetted Companies" },
   { value: "$12M+", label: "Matched" },
   { value: "5%", label: "Commission" },
-  { value: "8", label: "Countries" },
+  { value: "54", label: "Countries" },
 ];
 
 const testimonials = [
