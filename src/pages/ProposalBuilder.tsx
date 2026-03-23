@@ -13,7 +13,7 @@ import SEO from "@/components/SEO";
 import type { RFP } from "@/types/rfp";
 import {
   FileEdit, Plus, Trash2, Send, ArrowLeft, Save,
-  Clock, CheckCircle2, Eye, Trophy, XCircle
+  Clock, CheckCircle2, Eye, Trophy, XCircle, Brain, Sparkles
 } from "lucide-react";
 
 type ProposalStatus = "draft" | "submitted" | "under_review" | "won" | "lost";
