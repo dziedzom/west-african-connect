@@ -48,7 +48,7 @@ const Index = () => {
           "@type": "WebSite",
           name: "MiddlBrand",
           url: "https://middlbrand.com",
-          description: "Connecting vetted West African businesses to real opportunities through ethical lead generation.",
+          description: "Connecting vetted African businesses to real opportunities through ethical lead generation.",
           potentialAction: {
             "@type": "SearchAction",
             target: "https://middlbrand.com/rfps?q={search_term_string}",
