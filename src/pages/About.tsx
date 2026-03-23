@@ -5,7 +5,7 @@ import SEO from "@/components/SEO";
 const values = [
   { icon: Eye, title: "Transparency", text: "Every step of our matching process is visible. Companies know exactly how and why they're paired with opportunities." },
   { icon: Handshake, title: "Partnership", text: "We're not just a listing service. We actively facilitate introductions, due diligence, and bid preparation." },
-  { icon: Heart, title: "Community Impact", text: "By connecting local companies to contracts, we keep economic value within West African communities." },
+  { icon: Heart, title: "Community Impact", text: "By connecting local companies to contracts, we keep economic value within African communities." },
   { icon: Scale, title: "Ethical Practice", text: "No hidden fees, no conflicts of interest. Our 5–10% tiered commission model ensures aligned incentives." },
 ];
 
