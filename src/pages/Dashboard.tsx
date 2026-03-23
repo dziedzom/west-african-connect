@@ -18,6 +18,18 @@ interface ExternalRFP {
   created_at: string;
 }
 
+const parseExternalRFP = (title: string) => {
+  const deadlineMatch = title.match(/Deadline\s+(.+?)$/i);
+  const deadline = deadlineMatch ? deadlineMatch[1].trim() : null;
+
+  // Format: "WD-XXXXX - Location - Services - Deadline ..."
+  const parts = title.split(" - ");
+  const category = parts.length >= 3 ? parts.slice(2, -1).join(" - ").replace(/\s*-?\s*Deadline.*$/i, "").trim() : null;
+  const location = parts.length >= 2 ? parts[1].trim() : null;
+
+  return { deadline, category, location };
+};
+
 const DashboardSkeleton = () => (
   <div className="container max-w-6xl py-12">
     <div className="flex items-center justify-between mb-10">
@@ -201,26 +213,44 @@ const Dashboard = () => {
 
             {externalRfps.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {externalRfps.map((opp) => (
-                  <div
-                    key={opp.id}
-                    className="group rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 flex flex-col justify-between transition-all hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5"
-                  >
-                    <div className="mb-4">
-                      <h3 className="text-sm font-display font-semibold text-foreground leading-snug line-clamp-3">
-                        {opp.title}
-                      </h3>
-                      <p className="text-[10px] text-muted-foreground mt-2 font-body">
-                        Added {new Date(opp.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                      </p>
+                {externalRfps.map((opp) => {
+                  const parsed = parseExternalRFP(opp.title);
+                  return (
+                    <div
+                      key={opp.id}
+                      className="group rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 flex flex-col justify-between transition-all hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5"
+                    >
+                      <div className="mb-4">
+                        <h3 className="text-sm font-display font-semibold text-foreground leading-snug line-clamp-3">
+                          {opp.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          {parsed.category && (
+                            <Badge variant="secondary" className="text-[10px]">{parsed.category}</Badge>
+                          )}
+                          {parsed.location && (
+                            <Badge variant="outline" className="text-[10px]">{parsed.location}</Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-[10px] text-muted-foreground font-body">
+                            Added {new Date(opp.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                          {parsed.deadline && (
+                            <p className="text-[10px] font-semibold text-destructive font-body">
+                              ⏰ {parsed.deadline}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <Button asChild size="sm" className="w-full rounded-full mt-auto bg-accent text-accent-foreground hover:bg-accent/90">
+                        <a href={opp.source_url} target="_blank" rel="noopener noreferrer">
+                          View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                        </a>
+                      </Button>
                     </div>
-                    <Button asChild size="sm" className="w-full rounded-full mt-auto bg-accent text-accent-foreground hover:bg-accent/90">
-                      <a href={opp.source_url} target="_blank" rel="noopener noreferrer">
-                        View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                      </a>
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
