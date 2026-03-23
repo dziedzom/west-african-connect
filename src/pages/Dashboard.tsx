@@ -167,6 +167,9 @@ const Dashboard = () => {
             </div>
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm" className="rounded-full">
+                <Link to="/scrape"><Bot className="h-4 w-4 mr-1" /> Scraper</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link to="/knowledge-base"><BookOpen className="h-4 w-4 mr-1" /> Knowledge</Link>
               </Button>
               <Button asChild variant="outline" size="sm" className="rounded-full">
