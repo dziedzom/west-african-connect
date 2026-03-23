@@ -61,6 +61,7 @@ const Dashboard = () => {
   const [appCount, setAppCount] = useState(0);
   const [externalRfps, setExternalRfps] = useState<ExternalRFP[]>([]);
   const [externalError, setExternalError] = useState<string | null>(null);
+  const [scrapedCount, setScrapedCount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
