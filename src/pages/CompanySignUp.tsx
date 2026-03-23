@@ -12,7 +12,18 @@ import SEO from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 
 const expertiseOptions = ["Pharmaceuticals", "Transport & Logistics", "Construction", "IT & Tech", "Agriculture", "Energy", "Consulting", "Manufacturing"];
-const locationOptions = ["Ghana", "Nigeria", "Senegal", "Côte d'Ivoire", "Cameroon", "Togo", "Benin", "Other"];
+const locationOptions = [
+  "Algeria", "Angola", "Benin", "Botswana", "Burkina Faso", "Burundi",
+  "Cabo Verde", "Cameroon", "Central African Republic", "Chad", "Comoros",
+  "Congo (Brazzaville)", "Congo (DRC)", "Côte d'Ivoire", "Djibouti", "Egypt",
+  "Equatorial Guinea", "Eritrea", "Eswatini", "Ethiopia", "Gabon", "Gambia",
+  "Ghana", "Guinea", "Guinea-Bissau", "Kenya", "Lesotho", "Liberia", "Libya",
+  "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco",
+  "Mozambique", "Namibia", "Niger", "Nigeria", "Rwanda",
+  "São Tomé and Príncipe", "Senegal", "Seychelles", "Sierra Leone", "Somalia",
+  "South Africa", "South Sudan", "Sudan", "Tanzania", "Togo", "Tunisia",
+  "Uganda", "Zambia", "Zimbabwe",
+];
 
 const CompanySignUp = () => {
   const { toast } = useToast();
