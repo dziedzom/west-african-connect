@@ -89,6 +89,7 @@ const Dashboard = () => {
   const [scrapedCount, setScrapedCount] = useState(0);
   const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
   const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
+  const [proposalCounts, setProposalCounts] = useState<Record<string, number>>({ draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
