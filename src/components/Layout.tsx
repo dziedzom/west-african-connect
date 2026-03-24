@@ -74,9 +74,16 @@ const Navbar = () => {
             </button>
             <NotificationCenter />
             {user ? (
-              <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
-                <Link to="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> Dashboard</Link>
-              </Button>
+              <div className="flex items-center gap-1">
+                {isAdmin && (
+                  <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
+                    <Link to="/admin"><Shield className="h-3.5 w-3.5 mr-1" /> Admin</Link>
+                  </Button>
+                )}
+                <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
+                  <Link to="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> Dashboard</Link>
+                </Button>
+              </div>
             ) : (
               <Button asChild size="sm" className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 text-xs h-8 px-4">
                 <Link to="/auth"><LogIn className="h-3.5 w-3.5 mr-1" /> Sign In</Link>
