@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Menu, X, LogIn, LayoutDashboard, Moon, Sun, ArrowRight } from "lucide-react";
+import { Menu, X, LogIn, LayoutDashboard, Moon, Sun, ArrowRight, Shield } from "lucide-react";
 import NotificationCenter from "@/components/NotificationCenter";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   useEffect(() => {
     if (dark) {
@@ -74,9 +74,16 @@ const Navbar = () => {
             </button>
             <NotificationCenter />
             {user ? (
-              <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
-                <Link to="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> Dashboard</Link>
-              </Button>
+              <div className="flex items-center gap-1">
+                {isAdmin && (
+                  <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
+                    <Link to="/admin"><Shield className="h-3.5 w-3.5 mr-1" /> Admin</Link>
+                  </Button>
+                )}
+                <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
+                  <Link to="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> Dashboard</Link>
+                </Button>
+              </div>
             ) : (
               <Button asChild size="sm" className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 text-xs h-8 px-4">
                 <Link to="/auth"><LogIn className="h-3.5 w-3.5 mr-1" /> Sign In</Link>
