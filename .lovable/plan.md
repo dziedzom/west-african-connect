@@ -1,42 +1,61 @@
 
 
-## Auto-Scheduled Scraping with pg_cron
+## Admin Dashboard
 
-### What we're building
-1. Enable `pg_cron` and `pg_net` extensions
-2. Create a cron job that calls the `scrape-rfps` edge function daily at 6 AM UTC
-3. Add a "Last scraped" timestamp display on the Dashboard
+### Overview
+Add a protected `/admin` route with a dedicated admin dashboard page. Since there's no role system yet, we need to create one using the `user_roles` table pattern, then build the admin UI.
 
 ### Steps
 
-**Step 1: Database migration — enable extensions**
-```sql
-CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
-CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
-```
+**Step 1: Database migration — admin role system**
+- Create `app_role` enum and `user_roles` table
+- Create `has_role()` security definer function
+- Add RLS policies on `user_roles` (admins can view all, users see own)
+- Add SELECT policies on `profiles`, `proposals`, `contact_messages`, `newsletter_subscribers` for admins to read all rows
+- Manually insert yourself as admin (you'll need to provide your user ID after signing up)
 
-**Step 2: Insert cron job (via insert tool, not migration)**
-Schedule a daily 6 AM UTC job that POSTs to the `scrape-rfps` edge function with all default portals:
 ```sql
-SELECT cron.schedule(
-  'daily-rfp-scrape',
-  '0 6 * * *',
-  $$
-  SELECT net.http_post(
-    url:='https://tjuunlzlspznabgldvjr.supabase.co/functions/v1/scrape-rfps',
-    headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGci..."}'::jsonb,
-    body:='{"portals": ["UNGM", "AfDB", "SA eTenders"]}'::jsonb
-  ) as request_id;
-  $$
+CREATE TYPE public.app_role AS ENUM ('admin', 'moderator', 'user');
+
+CREATE TABLE public.user_roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  role app_role NOT NULL,
+  UNIQUE (user_id, role)
 );
+
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role)
+$$;
 ```
 
-**Step 3: Update Dashboard UI**
-- Query `scraped_rfps` for `MAX(scraped_at)` to get last scrape timestamp
-- Display a small "Last scraped: X hours ago" indicator near the AI-Scraped Opportunities section header
-- Use relative time formatting (e.g., "2 hours ago", "Yesterday at 6:00 AM")
+Add admin-only SELECT policies on `profiles`, `proposals`, `contact_messages` so the admin dashboard can read all records.
+
+**Step 2: Create `src/pages/AdminDashboard.tsx`**
+A tabbed interface with three sections:
+- **Users tab**: Fetches all `profiles` rows — shows company name, email, location, join date
+- **Proposals tab**: Fetches all `proposals` with status badges — shows title, status, user, created date
+- **Activity tab**: Shows counts from `rfps`, `scraped_rfps`, `rfp_opportunities`, `contact_messages`, `newsletter_subscribers` plus recent contact messages
+
+Each tab uses existing UI components (Table, Badge, Card). Stats cards at the top show total users, proposals, RFPs, and contact messages.
+
+**Step 3: Create admin route guard**
+A new `<AdminRoute>` component in `App.tsx` that checks `has_role(auth.uid(), 'admin')` via a Supabase RPC call. Redirects non-admins to `/dashboard`.
+
+**Step 4: Register route and add nav link**
+- Add `/admin` route in `App.tsx` wrapped in `<AdminRoute>`
+- Conditionally show "Admin" link in the navbar when the user has the admin role
 
 ### Files affected
-- `src/pages/Dashboard.tsx` — add last-scraped timestamp display
-- Database: 1 migration (extensions) + 1 insert (cron schedule)
+- Database: 1 migration (role system + admin policies)
+- **New**: `src/pages/AdminDashboard.tsx`
+- **Edit**: `src/App.tsx` (add AdminRoute + route)
+- **Edit**: `src/components/Layout.tsx` (conditional admin nav link)
+- **Edit**: `src/contexts/AuthContext.tsx` (expose `isAdmin` flag)
+
+### Security note
+After migration, you'll need to insert your own user ID into `user_roles` with `role = 'admin'`. I'll provide an insert statement once you confirm your user ID, or you can do it via the backend UI.
 
