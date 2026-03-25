@@ -160,9 +160,11 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Small card — decorative */}
-            <div className="reveal rounded-2xl border border-border bg-gradient-to-br from-accent/5 via-transparent to-accent/10 p-6 flex items-center justify-center">
-              <Zap className="h-8 w-8 text-accent/30" />
+            {/* Small card — Speed */}
+            <div className="reveal rounded-2xl border border-border bg-gradient-to-br from-accent/5 via-transparent to-accent/10 p-6 flex flex-col items-center justify-center text-center group hover:border-accent/30 transition-colors duration-300">
+              <Zap className="h-8 w-8 text-accent/40 mb-3 group-hover:text-accent transition-colors duration-300" />
+              <h3 className="text-lg font-display font-semibold text-foreground mb-1">Fast Turnaround</h3>
+              <p className="text-xs text-muted-foreground font-body">Matched to opportunities within 48 hours.</p>
             </div>
           </div>
         </div>
