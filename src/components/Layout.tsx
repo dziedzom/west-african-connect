@@ -45,7 +45,7 @@ const Navbar = () => {
             MiddlBrand
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((l) => (
               <Link
                 key={l.to}
@@ -64,7 +64,7 @@ const Navbar = () => {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             <button
               onClick={() => setDark(!dark)}
               className="p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
@@ -91,7 +91,7 @@ const Navbar = () => {
             )}
           </div>
 
-          <button className="md:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+          <button className="lg:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </nav>
