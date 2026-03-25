@@ -39,7 +39,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl">
+      <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-5xl">
         <nav className="flex items-center justify-between gap-2 rounded-full border border-border/50 bg-background/60 backdrop-blur-xl px-4 py-2.5 shadow-lg shadow-foreground/5">
           <Link to="/" className="font-display text-lg font-bold tracking-tight text-foreground pl-2">
             MiddlBrand
