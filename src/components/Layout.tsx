@@ -182,12 +182,21 @@ const Footer = () => {
           </div>
           <div>
             <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Connect</h4>
-            <div className="flex flex-col gap-2">
-              <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">LinkedIn</a>
-              <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">Twitter</a>
-              <a href="#" className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">Facebook</a>
+            <div className="flex items-center gap-3 mb-4">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
+                <Linkedin className="h-4 w-4" />
+              </a>
+              <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
+                <Twitter className="h-4 w-4" />
+              </a>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
+                <Facebook className="h-4 w-4" />
+              </a>
+              <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
+                <MessageCircle className="h-4 w-4" />
+              </a>
             </div>
-            <p className="text-sm font-body opacity-40 mt-4">info@middlbrand.com</p>
+            <p className="text-sm font-body opacity-40">info@middlbrand.com</p>
           </div>
           <div>
             <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Newsletter</h4>
