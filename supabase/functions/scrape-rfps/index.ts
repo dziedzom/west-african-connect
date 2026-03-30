@@ -12,7 +12,24 @@ const DEFAULT_PORTALS = [
   { name: "UNGM", url: "https://www.ungm.org/Public/Notice" },
   { name: "AfDB", url: "https://www.afdb.org/en/about-us/corporate-procurement/current-opportunities" },
   { name: "SA eTenders", url: "https://www.etenders.gov.za/content/advertised-tenders.html" },
+  { name: "DevBusiness", url: "https://www.devbusiness.com/default.aspx" },
+  { name: "UNDP Procurement", url: "https://procurement-notices.undp.org/" },
+  { name: "World Bank", url: "https://projects.worldbank.org/en/projects-operations/procurement" },
+  { name: "TenderInfo Africa", url: "https://www.tendersinfo.com/global-africa-tenders.php" },
 ];
+
+// Minimum days until deadline for an RFP to be considered relevant
+const MIN_DAYS_UNTIL_DEADLINE = 7;
+
+function isDeadlineValid(deadlineStr: string | null): boolean {
+  if (!deadlineStr) return true; // No deadline = keep it
+  const d = new Date(deadlineStr);
+  if (isNaN(d.getTime())) return true; // Unparseable = keep it
+  const now = new Date();
+  const diffMs = d.getTime() - now.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays >= MIN_DAYS_UNTIL_DEADLINE;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -38,7 +55,6 @@ serve(async (req) => {
     const customUrls: string[] = body.urls || [];
     const portalFilter: string[] = body.portals || [];
 
-    // Build target list
     let targets = DEFAULT_PORTALS.filter(
       (p) => portalFilter.length === 0 || portalFilter.includes(p.name)
     ).map((p) => ({ name: p.name, url: p.url }));
@@ -54,13 +70,13 @@ serve(async (req) => {
       );
     }
 
-    const results: Array<{ portal: string; url: string; rfps_found: number; error?: string }> = [];
+    const todayISO = new Date().toISOString().split("T")[0];
+    const results: Array<{ portal: string; url: string; rfps_found: number; skipped_expired: number; error?: string }> = [];
 
     for (const target of targets) {
       try {
         console.log(`Scraping: ${target.name} - ${target.url}`);
 
-        // Step 1: Scrape the page with Firecrawl
         const scrapeRes = await fetch(`${FIRECRAWL_API}/scrape`, {
           method: "POST",
           headers: {
@@ -71,7 +87,7 @@ serve(async (req) => {
             url: target.url,
             formats: ["markdown", "links"],
             onlyMainContent: true,
-            waitFor: 3000,
+            waitFor: 5000,
           }),
         });
 
@@ -84,12 +100,11 @@ serve(async (req) => {
         const links = scrapeData.data?.links || scrapeData.links || [];
 
         if (!markdown || markdown.length < 100) {
-          results.push({ portal: target.name, url: target.url, rfps_found: 0, error: "Page content too short or empty" });
+          results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, error: "Page content too short or empty" });
           continue;
         }
 
-        // Step 2: Use AI to extract structured RFP data
-        const truncatedContent = markdown.substring(0, 12000);
+        const truncatedContent = markdown.substring(0, 15000);
 
         const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -98,15 +113,26 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
+            model: "google/gemini-2.5-flash",
             messages: [
               {
                 role: "system",
-                content: `You are an expert at extracting RFP (Request for Proposal) and tender opportunities from procurement portal content. Extract ALL distinct RFP/tender listings you can find. For each, extract the title, description, deadline, category, budget, location, and organization. Return ONLY valid JSON.`,
+                content: `You are an expert at extracting RFP (Request for Proposal) and tender opportunities from procurement portal content.
+
+CRITICAL RULES:
+1. Extract ALL distinct RFP/tender listings you can find.
+2. **TRANSLATE everything to English.** Many portals are in French, Portuguese, or other languages — ALL extracted fields (title, description, category, location, organization) MUST be in English.
+3. **Deadlines**: Convert ALL dates to ISO 8601 format (YYYY-MM-DD). Today is ${todayISO}. ONLY include RFPs whose deadline is at least ${MIN_DAYS_UNTIL_DEADLINE} days from today. SKIP any that are already expired or closing within ${MIN_DAYS_UNTIL_DEADLINE} days.
+4. If the deadline is ambiguous or missing, still include the RFP but set deadline to null.
+5. For category, use standard English categories: IT, Construction, Consulting, Agriculture, Energy, Health, Education, Transport, Marketing, Environment, Finance, Water, Legal, Mining, Pharma, Telecommunications, Other.
+6. For location, provide the country name in English.
+7. For source_url, use the most specific link to the individual RFP from the links list. If none match, use the portal URL.
+
+Return ONLY valid JSON via the function call.`,
               },
               {
                 role: "user",
-                content: `Extract all RFP/tender opportunities from this procurement portal content. Here are some links found on the page that might be useful for source URLs: ${JSON.stringify(links.slice(0, 30))}\n\nContent:\n${truncatedContent}`,
+                content: `Extract all current, non-expired RFP/tender opportunities from this procurement portal (${target.name}). Links found on page: ${JSON.stringify(links.slice(0, 40))}\n\nContent:\n${truncatedContent}`,
               },
             ],
             tools: [
@@ -123,14 +149,14 @@ serve(async (req) => {
                         items: {
                           type: "object",
                           properties: {
-                            title: { type: "string", description: "Full title of the RFP/tender" },
-                            description: { type: "string", description: "Brief description of requirements" },
-                            deadline: { type: "string", description: "Deadline date in ISO format if available, null otherwise" },
-                            category: { type: "string", description: "Category like IT, Construction, Consulting, Agriculture, etc." },
+                            title: { type: "string", description: "Full title of the RFP/tender in English" },
+                            description: { type: "string", description: "Brief description of requirements in English" },
+                            deadline: { type: "string", description: "Deadline in ISO 8601 (YYYY-MM-DD) format, null if unknown" },
+                            category: { type: "string", description: "Category in English (IT, Construction, Consulting, etc.)" },
                             budget: { type: "string", description: "Budget or value if mentioned, null otherwise" },
-                            location: { type: "string", description: "Location/country of the opportunity" },
-                            organization: { type: "string", description: "Issuing organization name" },
-                            source_url: { type: "string", description: "Direct URL to the RFP if found in the links, otherwise the portal URL" },
+                            location: { type: "string", description: "Country name in English" },
+                            organization: { type: "string", description: "Issuing organization name in English" },
+                            source_url: { type: "string", description: "Direct URL to the RFP if found in the links" },
                           },
                           required: ["title", "source_url"],
                           additionalProperties: false,
@@ -150,7 +176,7 @@ serve(async (req) => {
         if (!aiRes.ok) {
           const errText = await aiRes.text();
           if (aiRes.status === 429) {
-            results.push({ portal: target.name, url: target.url, rfps_found: 0, error: "AI rate limited, try again later" });
+            results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, error: "AI rate limited, try again later" });
             continue;
           }
           throw new Error(`AI gateway error (${aiRes.status}): ${errText}`);
@@ -159,17 +185,25 @@ serve(async (req) => {
         const aiData = await aiRes.json();
         const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
         if (!toolCall) {
-          results.push({ portal: target.name, url: target.url, rfps_found: 0, error: "AI returned no structured data" });
+          results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, error: "AI returned no structured data" });
           continue;
         }
 
         const extracted = JSON.parse(toolCall.function.arguments);
         const rfps = extracted.rfps || [];
 
-        // Step 3: Upsert into database
         let insertedCount = 0;
+        let skippedExpired = 0;
+
         for (const rfp of rfps) {
           if (!rfp.title || !rfp.source_url) continue;
+
+          // Double-check deadline validity server-side
+          if (!isDeadlineValid(rfp.deadline)) {
+            skippedExpired++;
+            console.log(`Skipping expired/near-deadline RFP: "${rfp.title}" (deadline: ${rfp.deadline})`);
+            continue;
+          }
 
           const { error: upsertError } = await supabase.from("scraped_rfps").upsert(
             {
@@ -192,23 +226,32 @@ serve(async (req) => {
           else console.error(`Upsert error for "${rfp.title}":`, upsertError.message);
         }
 
-        results.push({ portal: target.name, url: target.url, rfps_found: insertedCount });
-        console.log(`${target.name}: Found ${rfps.length} RFPs, inserted ${insertedCount}`);
+        results.push({ portal: target.name, url: target.url, rfps_found: insertedCount, skipped_expired: skippedExpired });
+        console.log(`${target.name}: Found ${rfps.length} RFPs, inserted ${insertedCount}, skipped ${skippedExpired} expired`);
 
       } catch (portalError: unknown) {
         const msg = portalError instanceof Error ? portalError.message : "Unknown error";
         console.error(`Error scraping ${target.name}:`, msg);
-        results.push({ portal: target.name, url: target.url, rfps_found: 0, error: msg });
+        results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, error: msg });
       }
 
-      // Small delay between portals to respect rate limits
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1500));
     }
 
+    // Clean up expired RFPs from the database
+    const { count: cleanedCount } = await supabase
+      .from("scraped_rfps")
+      .delete({ count: "exact" })
+      .lt("deadline", new Date().toISOString())
+      .not("deadline", "is", null);
+
+    console.log(`Cleaned ${cleanedCount || 0} expired RFPs from database`);
+
     const totalFound = results.reduce((sum, r) => sum + r.rfps_found, 0);
+    const totalSkipped = results.reduce((sum, r) => sum + r.skipped_expired, 0);
 
     return new Response(
-      JSON.stringify({ success: true, total_rfps_found: totalFound, results }),
+      JSON.stringify({ success: true, total_rfps_found: totalFound, total_skipped_expired: totalSkipped, cleaned_expired: cleanedCount || 0, results }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
