@@ -42,17 +42,32 @@ export function useRFPFilters() {
   });
 
   useEffect(() => {
+    const now = new Date();
+    const nowISO = now.toISOString();
+
+    const isNotExpired = (deadline: string | null | undefined): boolean => {
+      if (!deadline) return true;
+      const d = new Date(deadline);
+      return isNaN(d.getTime()) || d >= now;
+    };
+
     const fetchAll = async () => {
       const [localRes, scrapedRes, externalRes] = await Promise.all([
         supabase.from("rfps").select("*").order("created_at", { ascending: false }),
-        supabase.from("scraped_rfps").select("*").order("scraped_at", { ascending: false }),
+        supabase
+          .from("scraped_rfps")
+          .select("*")
+          .or(`deadline.is.null,deadline.gte.${nowISO}`)
+          .order("scraped_at", { ascending: false }),
         supabase.from("rfp_opportunities").select("*").order("created_at", { ascending: false }),
       ]);
 
-      const local: RFP[] = (localRes.data || []).map((r) => ({
-        ...r,
-        source: "local" as const,
-      }));
+      const local: RFP[] = (localRes.data || [])
+        .filter((r) => isNotExpired(r.deadline))
+        .map((r) => ({
+          ...r,
+          source: "local" as const,
+        }));
 
       const scraped: RFP[] = (scrapedRes.data || []).map((r) => ({
         id: r.id,
@@ -73,7 +88,6 @@ export function useRFPFilters() {
       }));
 
       const external: RFP[] = (externalRes.data || []).map((r) => {
-        // Parse structured info from title
         const parts = r.title.split(" - ");
         const deadlineMatch = r.title.match(/Deadline\s+(.+?)$/i);
         return {
@@ -92,7 +106,7 @@ export function useRFPFilters() {
           source: "external" as const,
           source_url: r.source_url,
         };
-      });
+      }).filter((r) => isNotExpired(r.deadline));
 
       setRfps([...local, ...scraped, ...external]);
       setLoading(false);
