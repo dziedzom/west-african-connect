@@ -127,12 +127,14 @@ serve(async (req) => {
                 content: `You are an expert at extracting RFP (Request for Proposal) and tender opportunities from procurement portal content.
 
 CRITICAL RULES:
-1. Extract ALL distinct RFP/tender listings you can find.
+1. Extract ONLY RFP/tender listings located in AFRICAN countries. Skip any opportunities in non-African countries (e.g. Afghanistan, India, Bangladesh, Philippines, etc.).
+   African countries include: Algeria, Angola, Benin, Botswana, Burkina Faso, Burundi, Cameroon, Cape Verde, Central African Republic, Chad, Comoros, Congo, DR Congo, Côte d'Ivoire, Djibouti, Egypt, Equatorial Guinea, Eritrea, Eswatini, Ethiopia, Gabon, Gambia, Ghana, Guinea, Guinea-Bissau, Kenya, Lesotho, Liberia, Libya, Madagascar, Malawi, Mali, Mauritania, Mauritius, Morocco, Mozambique, Namibia, Niger, Nigeria, Rwanda, São Tomé and Príncipe, Senegal, Seychelles, Sierra Leone, Somalia, South Africa, South Sudan, Sudan, Tanzania, Togo, Tunisia, Uganda, Zambia, Zimbabwe.
+   If the location is unclear or could be Africa-wide / multi-country within Africa, include it with location set to the best match or "Africa".
 2. **TRANSLATE everything to English.** Many portals are in French, Portuguese, or other languages — ALL extracted fields (title, description, category, location, organization) MUST be in English.
 3. **Deadlines**: Convert ALL dates to ISO 8601 format (YYYY-MM-DD). Today is ${todayISO}. ONLY include RFPs whose deadline is at least ${MIN_DAYS_UNTIL_DEADLINE} days from today. SKIP any that are already expired or closing within ${MIN_DAYS_UNTIL_DEADLINE} days.
 4. If the deadline is ambiguous or missing, still include the RFP but set deadline to null.
 5. For category, use standard English categories: IT, Construction, Consulting, Agriculture, Energy, Health, Education, Transport, Marketing, Environment, Finance, Water, Legal, Mining, Pharma, Telecommunications, Other.
-6. For location, provide the country name in English.
+6. For location, provide the African country name in English.
 7. For source_url, use the most specific link to the individual RFP from the links list. If none match, use the portal URL.
 
 Return ONLY valid JSON via the function call.`,
