@@ -85,7 +85,9 @@ export function useRFPFilters() {
           source: "local" as const,
         }));
 
-      const scraped: RFP[] = (scrapedRes.data || []).map((r) => ({
+      const scraped: RFP[] = (scrapedRes.data || [])
+        .filter((r) => isAfricanLocation(r.location))
+        .map((r) => ({
         id: r.id,
         title: r.title,
         description: r.description || "",
