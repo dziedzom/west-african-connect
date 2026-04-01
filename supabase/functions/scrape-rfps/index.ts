@@ -16,6 +16,13 @@ const DEFAULT_PORTALS = [
   { name: "UNDP Procurement", url: "https://procurement-notices.undp.org/" },
   { name: "World Bank", url: "https://projects.worldbank.org/en/projects-operations/procurement" },
   { name: "TenderInfo Africa", url: "https://www.tendersinfo.com/global-africa-tenders.php" },
+  { name: "Nigeria BPP", url: "https://www.bpp.gov.ng/opportunities/" },
+  { name: "Kenya PPRA", url: "https://www.ppra.go.ke/tenders/" },
+  { name: "Ghana PPA", url: "https://www.ppa.gov.gh/tenders" },
+  { name: "Tanzania PPRA", url: "https://www.ppra.go.tz/tenders" },
+  { name: "Uganda PPDA", url: "https://www.ppda.go.ug/opportunities/" },
+  { name: "Rwanda RPP", url: "https://www.rppa.gov.rw/tenders" },
+  { name: "Ethiopia FPPA", url: "https://www.fppa.gov.et/tenders.html" },
 ];
 
 // Minimum days until deadline for an RFP to be considered relevant
