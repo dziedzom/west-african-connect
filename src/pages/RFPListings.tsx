@@ -11,8 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import RFPDetailModal from "@/components/RFPDetailModal";
-import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
-import type { RFP, RFPSource } from "@/types/rfp";
+import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 
 const sourceBadge: Record<RFPSource, { label: string; icon: typeof Database; className: string }> = {
