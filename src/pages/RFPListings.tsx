@@ -109,7 +109,7 @@ const RFPListings = () => {
                 <Input
                   placeholder="Search opportunities..."
                   value={filters.search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => handleSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
