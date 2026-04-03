@@ -175,8 +175,6 @@ const RFPListings = () => {
 
           <div className="grid gap-4">
             {filtered.map((rfp) => {
-              const srcBadge = sourceBadge[rfp.source];
-              const SrcIcon = srcBadge.icon;
               return (
                 <div
                   key={`${rfp.source}-${rfp.id}`}
