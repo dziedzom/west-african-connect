@@ -58,75 +58,36 @@ export function useRFPFilters() {
   });
 
   useEffect(() => {
-    const now = new Date();
-    const nowISO = now.toISOString();
-
-    const isNotExpired = (deadline: string | null | undefined): boolean => {
-      if (!deadline) return true;
-      const d = new Date(deadline);
-      return isNaN(d.getTime()) || d >= now;
-    };
+    const nowISO = new Date().toISOString();
 
     const fetchAll = async () => {
-      const [localRes, scrapedRes, externalRes] = await Promise.all([
-        supabase.from("rfps").select("*").order("created_at", { ascending: false }),
-        supabase
-          .from("scraped_rfps")
-          .select("*")
-          .or(`deadline.is.null,deadline.gte.${nowISO}`)
-          .order("scraped_at", { ascending: false }),
-        supabase.from("rfp_opportunities").select("*").order("created_at", { ascending: false }),
-      ]);
+      const { data } = await supabase
+        .from("scraped_rfps")
+        .select("*")
+        .or(`deadline.is.null,deadline.gte.${nowISO}`)
+        .order("scraped_at", { ascending: false });
 
-      const local: RFP[] = (localRes.data || [])
-        .filter((r) => isNotExpired(r.deadline))
-        .map((r) => ({
-          ...r,
-          source: "local" as const,
-        }));
-
-      const scraped: RFP[] = (scrapedRes.data || [])
+      const scraped: RFP[] = (data || [])
         .filter((r) => isAfricanLocation(r.location))
         .map((r) => ({
-        id: r.id,
-        title: r.title,
-        description: r.description || "",
-        category: r.category || "Uncategorized",
-        org: r.organization,
-        location: r.location,
-        value: r.budget,
-        budget: r.budget,
-        deadline: r.deadline,
-        status: r.status,
-        created_at: r.created_at,
-        updated_at: r.updated_at,
-        source: "scraped" as const,
-        source_url: r.source_url,
-        portal: r.portal,
-      }));
-
-      const external: RFP[] = (externalRes.data || []).map((r) => {
-        const parts = r.title.split(" - ");
-        const deadlineMatch = r.title.match(/Deadline\s+(.+?)$/i);
-        return {
           id: r.id,
           title: r.title,
-          description: "",
-          category: parts.length >= 3 ? parts.slice(2, -1).join(" - ").replace(/\s*-?\s*Deadline.*$/i, "").trim() || "Uncategorized" : "Uncategorized",
-          org: null,
-          location: parts.length >= 2 ? parts[1].trim() : null,
-          value: null,
-          budget: null,
-          deadline: deadlineMatch ? deadlineMatch[1].trim() : null,
-          status: "open",
+          description: r.description || "",
+          category: r.category || "Uncategorized",
+          org: r.organization,
+          location: r.location,
+          value: r.budget,
+          budget: r.budget,
+          deadline: r.deadline,
+          status: r.status,
           created_at: r.created_at,
-          updated_at: r.created_at,
-          source: "external" as const,
+          updated_at: r.updated_at,
+          source: "scraped" as const,
           source_url: r.source_url,
-        };
-      }).filter((r) => isNotExpired(r.deadline));
+          portal: r.portal,
+        }));
 
-      setRfps([...local, ...scraped, ...external]);
+      setRfps(scraped);
       setLoading(false);
     };
     fetchAll();
