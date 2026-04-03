@@ -184,7 +184,7 @@ const RFPListings = () => {
                 max={BUDGET_BOUNDS.max}
                 step={10_000}
                 value={filters.budgetRange}
-                onValueChange={(v) => setBudgetRange(v as [number, number])}
+                onValueChange={(v) => handleBudgetRange(v as [number, number])}
                 className="[&_[role=slider]]:bg-accent [&_[role=slider]]:border-accent [&_[role=slider]]:shadow-[0_0_8px_hsl(224_100%_57%/0.4)] [&_[data-orientation=horizontal]>.relative]:bg-accent"
               />
             </div>
