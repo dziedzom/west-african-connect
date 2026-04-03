@@ -201,62 +201,63 @@ const RFPListings = () => {
             )}
           </div>
 
-          <p className="text-sm text-muted-foreground mb-4">
-            {filtered.length} opportunit{filtered.length === 1 ? "y" : "ies"} found
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-muted-foreground">
+              {filtered.length} opportunit{filtered.length === 1 ? "y" : "ies"} found
+              {totalPages > 1 && ` · Page ${safeCurrentPage} of ${totalPages}`}
+            </p>
+          </div>
 
           <div className="grid gap-4">
-            {filtered.map((rfp) => {
-              return (
-                <div
-                  key={`${rfp.source}-${rfp.id}`}
-                  onClick={() => setSelectedRFP(rfp)}
-                  className="rounded-lg border border-border bg-card p-6 hover:border-accent/40 hover:shadow-md transition-all cursor-pointer"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-display font-semibold text-foreground">{rfp.title}</h3>
-                      {rfp.org && <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>}
-                      {rfp.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>}
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        <Badge variant="secondary">{rfp.category}</Badge>
-                        {rfp.location && (
-                          <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
-                        )}
-                        {rfp.value && <Badge variant="outline">{rfp.value}</Badge>}
-                      </div>
+            {paginatedRFPs.map((rfp) => (
+              <div
+                key={`${rfp.source}-${rfp.id}`}
+                onClick={() => setSelectedRFP(rfp)}
+                className="rounded-lg border border-border bg-card p-6 hover:border-accent/40 hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-display font-semibold text-foreground">{rfp.title}</h3>
+                    {rfp.org && <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>}
+                    {rfp.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <Badge variant="secondary">{rfp.category}</Badge>
+                      {rfp.location && (
+                        <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
+                      )}
+                      {rfp.value && <Badge variant="outline">{rfp.value}</Badge>}
                     </div>
-                    <div className="text-right shrink-0 flex flex-col items-end gap-2">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Deadline</p>
-                        <p className="font-semibold text-foreground">
-                          {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        {rfp.source_url && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="rounded-full"
-                            onClick={(e) => { e.stopPropagation(); window.open(rfp.source_url!, "_blank"); }}
-                          >
-                            <ExternalLink className="h-3.5 w-3.5 mr-1" /> Source
-                          </Button>
-                        )}
+                  </div>
+                  <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Deadline</p>
+                      <p className="font-semibold text-foreground">
+                        {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {rfp.source_url && (
                         <Button
                           size="sm"
-                          className="bg-accent text-accent-foreground hover:bg-accent/90"
-                          onClick={(e) => { e.stopPropagation(); setSelectedRFP(rfp); }}
+                          variant="outline"
+                          className="rounded-full"
+                          onClick={(e) => { e.stopPropagation(); window.open(rfp.source_url!, "_blank"); }}
                         >
-                          View Details
+                          <ExternalLink className="h-3.5 w-3.5 mr-1" /> Source
                         </Button>
-                      </div>
+                      )}
+                      <Button
+                        size="sm"
+                        className="bg-accent text-accent-foreground hover:bg-accent/90"
+                        onClick={(e) => { e.stopPropagation(); setSelectedRFP(rfp); }}
+                      >
+                        View Details
+                      </Button>
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
             {filtered.length === 0 && (
               <div className="text-center py-16 text-muted-foreground">
                 <p className="text-lg">No opportunities match your filters.</p>
@@ -264,6 +265,43 @@ const RFPListings = () => {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination className="mt-8">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className={cn("cursor-pointer", safeCurrentPage === 1 && "pointer-events-none opacity-50")}
+                  />
+                </PaginationItem>
+                {getPageNumbers().map((page, i) =>
+                  page === "ellipsis" ? (
+                    <PaginationItem key={`ellipsis-${i}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        isActive={page === safeCurrentPage}
+                        onClick={() => setCurrentPage(page)}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className={cn("cursor-pointer", safeCurrentPage === totalPages && "pointer-events-none opacity-50")}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </div>
 
         <RFPDetailModal rfp={selectedRFP} open={!!selectedRFP} onOpenChange={(open) => !open && setSelectedRFP(null)} />
