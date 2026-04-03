@@ -194,7 +194,7 @@ const RFPListings = () => {
               <div className="flex items-center gap-2 flex-wrap">
                 <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground font-body">{activeCount} active filter{activeCount > 1 ? "s" : ""}</span>
-                <Button variant="ghost" size="sm" onClick={resetFilters} className="h-6 px-2 text-xs text-accent hover:text-accent/80">
+                <Button variant="ghost" size="sm" onClick={handleResetFilters} className="h-6 px-2 text-xs text-accent hover:text-accent/80">
                   <X className="h-3 w-3 mr-1" /> Clear all
                 </Button>
               </div>
