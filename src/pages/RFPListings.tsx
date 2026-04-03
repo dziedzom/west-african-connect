@@ -86,6 +86,7 @@ const RFPListings = () => {
     }
     return pages;
   };
+  if (loading) return <RFPSkeleton />;
 
   return (
     <>
