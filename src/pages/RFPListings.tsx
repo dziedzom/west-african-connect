@@ -187,11 +187,6 @@ const RFPListings = () => {
                       {rfp.org && <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>}
                       {rfp.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>}
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <Badge variant="outline" className={`text-[10px] gap-1 ${srcBadge.className}`}>
-                          <SrcIcon className="h-3 w-3" />
-                          {srcBadge.label}
-                          {rfp.portal && <span className="opacity-70">· {rfp.portal}</span>}
-                        </Badge>
                         <Badge variant="secondary">{rfp.category}</Badge>
                         {rfp.location && (
                           <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
