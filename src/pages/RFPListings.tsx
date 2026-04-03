@@ -55,8 +55,37 @@ const RFPListings = () => {
   } = useRFPFilters();
 
   const [selectedRFP, setSelectedRFP] = useState<RFP | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
-  if (loading) return <RFPSkeleton />;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedRFPs = useMemo(() => {
+    const start = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(start, start + ITEMS_PER_PAGE);
+  }, [filtered, safeCurrentPage]);
+
+  // Reset to page 1 when filters change
+  const handleSearch = (v: string) => { setSearch(v); setCurrentPage(1); };
+  const handleCategory = (v: string) => { setCategory(v); setCurrentPage(1); };
+  const handleLocation = (v: string) => { setLocation(v); setCurrentPage(1); };
+  const handleBudgetRange = (v: [number, number]) => { setBudgetRange(v); setCurrentPage(1); };
+  const handleDateRange = (v: { from: Date | undefined; to: Date | undefined }) => { setDateRange(v); setCurrentPage(1); };
+  const handleResetFilters = () => { resetFilters(); setCurrentPage(1); };
+
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (safeCurrentPage > 3) pages.push("ellipsis");
+      for (let i = Math.max(2, safeCurrentPage - 1); i <= Math.min(totalPages - 1, safeCurrentPage + 1); i++) pages.push(i);
+      if (safeCurrentPage < totalPages - 2) pages.push("ellipsis");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
 
   return (
     <>
