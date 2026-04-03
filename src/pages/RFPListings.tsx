@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal, ExternalLink, Bot, Database } from "lucide-react";
+import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +12,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import RFPDetailModal from "@/components/RFPDetailModal";
 import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
-import type { RFP, RFPSource } from "@/types/rfp";
+import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 
-const sourceBadge: Record<RFPSource, { label: string; icon: typeof Database; className: string }> = {
-  local: { label: "Local", icon: Database, className: "bg-primary/10 text-primary border-primary/20" },
-  scraped: { label: "AI Scraped", icon: Bot, className: "bg-accent/10 text-accent border-accent/20" },
-  external: { label: "External", icon: ExternalLink, className: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
-};
 
 const formatBudget = (v: number) => {
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
@@ -181,8 +176,6 @@ const RFPListings = () => {
 
           <div className="grid gap-4">
             {filtered.map((rfp) => {
-              const srcBadge = sourceBadge[rfp.source];
-              const SrcIcon = srcBadge.icon;
               return (
                 <div
                   key={`${rfp.source}-${rfp.id}`}
@@ -195,11 +188,6 @@ const RFPListings = () => {
                       {rfp.org && <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>}
                       {rfp.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>}
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <Badge variant="outline" className={`text-[10px] gap-1 ${srcBadge.className}`}>
-                          <SrcIcon className="h-3 w-3" />
-                          {srcBadge.label}
-                          {rfp.portal && <span className="opacity-70">· {rfp.portal}</span>}
-                        </Badge>
                         <Badge variant="secondary">{rfp.category}</Badge>
                         {rfp.location && (
                           <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>
