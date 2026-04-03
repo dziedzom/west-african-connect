@@ -124,7 +124,7 @@ const RFPListings = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={filters.location} onValueChange={setLocation}>
+              <Select value={filters.location} onValueChange={handleLocation}>
                 <SelectTrigger>
                   <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Location" />
