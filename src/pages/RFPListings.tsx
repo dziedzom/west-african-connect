@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal, ExternalLink, Bot, Database } from "lucide-react";
+import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
