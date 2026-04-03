@@ -14,11 +14,6 @@ import RFPDetailModal from "@/components/RFPDetailModal";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 
-const sourceBadge: Record<RFPSource, { label: string; icon: typeof Database; className: string }> = {
-  local: { label: "Local", icon: Database, className: "bg-primary/10 text-primary border-primary/20" },
-  scraped: { label: "AI Scraped", icon: Bot, className: "bg-accent/10 text-accent border-accent/20" },
-  external: { label: "External", icon: ExternalLink, className: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
-};
 
 const formatBudget = (v: number) => {
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
