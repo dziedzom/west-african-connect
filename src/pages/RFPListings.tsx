@@ -113,7 +113,7 @@ const RFPListings = () => {
                   className="pl-10"
                 />
               </div>
-              <Select value={filters.category} onValueChange={setCategory}>
+              <Select value={filters.category} onValueChange={handleCategory}>
                 <SelectTrigger>
                   <Tag className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Category" />
