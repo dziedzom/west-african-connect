@@ -159,7 +159,7 @@ const RFPListings = () => {
                     mode="range"
                     selected={{ from: filters.dateRange.from, to: filters.dateRange.to }}
                     onSelect={(range) =>
-                      setDateRange({ from: range?.from, to: range?.to })
+                      handleDateRange({ from: range?.from, to: range?.to })
                     }
                     numberOfMonths={1}
                     className={cn("p-3 pointer-events-auto")}
