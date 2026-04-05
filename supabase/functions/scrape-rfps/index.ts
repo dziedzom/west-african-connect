@@ -9,20 +9,40 @@ const corsHeaders = {
 const FIRECRAWL_API = "https://api.firecrawl.dev/v1";
 
 const DEFAULT_PORTALS = [
+  // International / Multilateral
   { name: "UNGM", url: "https://www.ungm.org/Public/Notice" },
   { name: "AfDB", url: "https://www.afdb.org/en/about-us/corporate-procurement/current-opportunities" },
-  { name: "SA eTenders", url: "https://www.etenders.gov.za/content/advertised-tenders.html" },
   { name: "DevBusiness", url: "https://www.devbusiness.com/default.aspx" },
   { name: "UNDP Procurement", url: "https://procurement-notices.undp.org/" },
   { name: "World Bank", url: "https://projects.worldbank.org/en/projects-operations/procurement" },
   { name: "TenderInfo Africa", url: "https://www.tendersinfo.com/global-africa-tenders.php" },
+  // Regional Bodies
+  { name: "ECOWAS", url: "https://www.ecowas.int/procurement/" },
+  { name: "SADC", url: "https://www.sadc.int/opportunities/procurement" },
+  { name: "AU Commission", url: "https://au.int/en/bids" },
+  { name: "COMESA", url: "https://www.comesa.int/procurement/" },
+  { name: "EAC", url: "https://www.eac.int/procurement" },
+  // Southern Africa
+  { name: "SA eTenders", url: "https://www.etenders.gov.za/content/advertised-tenders.html" },
+  { name: "Botswana PPADB", url: "https://www.ppadb.co.bw/tenders" },
+  { name: "Zambia ZPPA", url: "https://www.zppa.org.zm/tenders" },
+  { name: "Mozambique", url: "https://www.ufsa.gov.mz/concursos" },
+  { name: "Namibia CPB", url: "https://www.cpb.gov.na/tenders.html" },
+  // West Africa
   { name: "Nigeria BPP", url: "https://www.bpp.gov.ng/opportunities/" },
-  { name: "Kenya PPRA", url: "https://www.ppra.go.ke/tenders/" },
   { name: "Ghana PPA", url: "https://www.ppa.gov.gh/tenders" },
+  { name: "Senegal ARMP", url: "https://www.marchespublics.sn/" },
+  { name: "Côte d'Ivoire", url: "https://www.marchespublics-ci.net/" },
+  // East Africa
+  { name: "Kenya PPRA", url: "https://www.ppra.go.ke/tenders/" },
   { name: "Tanzania PPRA", url: "https://www.ppra.go.tz/tenders" },
   { name: "Uganda PPDA", url: "https://www.ppda.go.ug/opportunities/" },
   { name: "Rwanda RPP", url: "https://www.rppa.gov.rw/tenders" },
   { name: "Ethiopia FPPA", url: "https://www.fppa.gov.et/tenders.html" },
+  // North Africa
+  { name: "Egypt Tenders", url: "https://etenders.gov.eg/" },
+  { name: "Morocco MP", url: "https://www.marchespublics.gov.ma/" },
+  { name: "Tunisia TUNEPS", url: "https://www.tuneps.tn/" },
 ];
 
 // Minimum days until deadline for an RFP to be considered relevant
