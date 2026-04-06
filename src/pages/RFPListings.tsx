@@ -15,6 +15,9 @@ import RFPDetailModal from "@/components/RFPDetailModal";
 import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
+import UpgradeBanner from "@/components/UpgradeBanner";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 const formatBudget = (v: number) => {
