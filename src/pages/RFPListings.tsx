@@ -105,6 +105,9 @@ const RFPListings = () => {
             <p className="mt-2 text-muted-foreground">Browse active RFPs, tenders and contracts across Africa.</p>
           </div>
 
+          {/* Upgrade banner for free users */}
+          {(!user || !isPro) && <UpgradeBanner />}
+
           {/* Search + Filters */}
           <div className="space-y-4 mb-8">
             {/* Row 1: Search + selects */}
