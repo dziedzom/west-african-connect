@@ -237,6 +237,11 @@ export type Database = {
           expertise: string | null
           id: string
           location: string | null
+          subscription_amount: number | null
+          subscription_end: string | null
+          subscription_plan: string | null
+          subscription_start: string | null
+          subscription_tier: string
           updated_at: string
           user_id: string
           website: string | null
@@ -249,6 +254,11 @@ export type Database = {
           expertise?: string | null
           id?: string
           location?: string | null
+          subscription_amount?: number | null
+          subscription_end?: string | null
+          subscription_plan?: string | null
+          subscription_start?: string | null
+          subscription_tier?: string
           updated_at?: string
           user_id: string
           website?: string | null
@@ -261,6 +271,11 @@ export type Database = {
           expertise?: string | null
           id?: string
           location?: string | null
+          subscription_amount?: number | null
+          subscription_end?: string | null
+          subscription_plan?: string | null
+          subscription_start?: string | null
+          subscription_tier?: string
           updated_at?: string
           user_id?: string
           website?: string | null
@@ -475,6 +490,60 @@ export type Database = {
         Update: {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      won_contracts: {
+        Row: {
+          agreement_confirmed: boolean
+          contract_value: number
+          created_at: string
+          currency: string
+          fee_paid: boolean
+          fee_paid_at: string | null
+          id: string
+          invoice_sent: boolean
+          invoice_sent_at: string | null
+          notes: string | null
+          rfp_id: string | null
+          rfp_title: string
+          success_fee: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agreement_confirmed?: boolean
+          contract_value: number
+          created_at?: string
+          currency?: string
+          fee_paid?: boolean
+          fee_paid_at?: string | null
+          id?: string
+          invoice_sent?: boolean
+          invoice_sent_at?: string | null
+          notes?: string | null
+          rfp_id?: string | null
+          rfp_title: string
+          success_fee?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agreement_confirmed?: boolean
+          contract_value?: number
+          created_at?: string
+          currency?: string
+          fee_paid?: boolean
+          fee_paid_at?: string | null
+          id?: string
+          invoice_sent?: boolean
+          invoice_sent_at?: string | null
+          notes?: string | null
+          rfp_id?: string | null
+          rfp_title?: string
+          success_fee?: number | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
