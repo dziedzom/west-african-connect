@@ -59,6 +59,8 @@ const RFPListings = () => {
 
   const [selectedRFP, setSelectedRFP] = useState<RFP | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const { user } = useAuth();
+  const { isPro } = useSubscription();
   const ITEMS_PER_PAGE = 10;
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
