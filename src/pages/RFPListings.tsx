@@ -15,6 +15,9 @@ import RFPDetailModal from "@/components/RFPDetailModal";
 import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
+import UpgradeBanner from "@/components/UpgradeBanner";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 const formatBudget = (v: number) => {
@@ -56,6 +59,8 @@ const RFPListings = () => {
 
   const [selectedRFP, setSelectedRFP] = useState<RFP | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const { user } = useAuth();
+  const { isPro } = useSubscription();
   const ITEMS_PER_PAGE = 10;
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -99,6 +104,9 @@ const RFPListings = () => {
             </h1>
             <p className="mt-2 text-muted-foreground">Browse active RFPs, tenders and contracts across Africa.</p>
           </div>
+
+          {/* Upgrade banner for free users */}
+          {(!user || !isPro) && <UpgradeBanner />}
 
           {/* Search + Filters */}
           <div className="space-y-4 mb-8">

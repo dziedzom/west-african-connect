@@ -3,8 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle, Trophy, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
+import UpgradeModal from "@/components/UpgradeModal";
+import WonContractModal from "@/components/WonContractModal";
 import type { RFP } from "@/types/rfp";
 
 interface AIInsight {
@@ -70,7 +74,6 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         return;
       }
 
-      // Auto-generate insights
       setLoading(false);
       setGenerating(true);
       try {
@@ -124,11 +127,9 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         <Brain className="h-4 w-4 text-accent" />
         <span className="text-sm font-display font-semibold text-foreground">AI Insights</span>
       </div>
-
       <div className="flex justify-center relative">
         <ScoreGauge score={insight.match_score} />
       </div>
-
       {insight.winning_strategy_summary && (
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
@@ -138,7 +139,6 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
           <p className="text-xs text-muted-foreground leading-relaxed">{insight.winning_strategy_summary}</p>
         </div>
       )}
-
       {insight.gap_analysis && (
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
@@ -152,48 +152,91 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
   );
 };
 
+const LockedInsightsPanel = ({ onUpgrade }: { onUpgrade: () => void }) => (
+  <div
+    className="rounded-lg border border-border bg-muted/20 p-6 text-center cursor-pointer hover:border-accent/30 transition-colors"
+    onClick={onUpgrade}
+  >
+    <Lock className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+    <p className="text-sm font-display font-semibold text-foreground mb-1">AI Insights — Pro Only</p>
+    <p className="text-xs text-muted-foreground">Upgrade to Pro to see your AI match score, winning strategy, and gap analysis.</p>
+  </div>
+);
+
 const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
+  const { user } = useAuth();
+  const { isPro } = useSubscription();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [wonOpen, setWonOpen] = useState(false);
+
   if (!rfp) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl">{rfp.title}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 mt-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Building className="h-4 w-4 text-accent" />
-            <span>{rfp.org}</span>
-          </div>
-          <p className="text-sm text-foreground leading-relaxed">{rfp.description}</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4 text-accent" />
-              <span>{rfp.location}</span>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">{rfp.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Building className="h-4 w-4 text-accent" />
+              <span>{rfp.org}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <DollarSign className="h-4 w-4 text-accent" />
-              <span>{rfp.value}</span>
+            <p className="text-sm text-foreground leading-relaxed">{rfp.description}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4 text-accent" />
+                <span>{rfp.location}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <DollarSign className="h-4 w-4 text-accent" />
+                <span>{rfp.value}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="h-4 w-4 text-accent" />
+                <span>Due: {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "N/A"}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-accent" />
-              <span>Due: {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "N/A"}</span>
+            <div className="flex gap-2">
+              <Badge variant="secondary">{rfp.category}</Badge>
+              {rfp.location && <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>}
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Badge variant="secondary">{rfp.category}</Badge>
-            {rfp.location && <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>}
-          </div>
 
-          <AIInsightsPanel rfpId={rfp.id} />
+            {/* AI Insights — gated behind Pro */}
+            {user && isPro ? (
+              <AIInsightsPanel rfpId={rfp.id} />
+            ) : (
+              <LockedInsightsPanel onUpgrade={() => setUpgradeOpen(true)} />
+            )}
 
-          <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold mt-2">
-            Express Interest
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+            <div className="flex gap-2 mt-2">
+              {isPro && (
+                <Button
+                  className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
+                  onClick={() => setWonOpen(true)}
+                >
+                  <Trophy className="h-4 w-4 mr-1" /> I Won This Contract
+                </Button>
+              )}
+              <Button
+                className={`${isPro ? "flex-1" : "w-full"} bg-accent text-accent-foreground hover:bg-accent/90 font-semibold`}
+                onClick={() => {
+                  if (!isPro) {
+                    setUpgradeOpen(true);
+                  }
+                }}
+              >
+                {isPro ? "I'm Bidding" : "Express Interest"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <UpgradeModal open={upgradeOpen} onOpenChange={setUpgradeOpen} feature="AI Insights" />
+      {rfp && <WonContractModal open={wonOpen} onOpenChange={setWonOpen} rfpId={rfp.id} rfpTitle={rfp.title} />}
+    </>
   );
 };
 

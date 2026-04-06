@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import { Menu, X, LogIn, LayoutDashboard, Moon, Sun, ArrowRight, Shield, Facebook, Linkedin, Twitter, MessageCircle } from "lucide-react";
 import NotificationCenter from "@/components/NotificationCenter";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +28,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const { user, isAdmin } = useAuth();
+  const { isPro } = useSubscription();
 
   useEffect(() => {
     if (dark) {
@@ -75,6 +78,16 @@ const Navbar = () => {
             <NotificationCenter />
             {user ? (
               <div className="flex items-center gap-1">
+                {!isPro && (
+                  <Badge variant="outline" className="text-[10px] border-border text-muted-foreground mr-1">
+                    Free
+                  </Badge>
+                )}
+                {isPro && (
+                  <Badge className="text-[10px] bg-accent text-accent-foreground mr-1">
+                    Pro
+                  </Badge>
+                )}
                 {isAdmin && (
                   <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
                     <Link to="/admin"><Shield className="h-3.5 w-3.5 mr-1" /> Admin</Link>
