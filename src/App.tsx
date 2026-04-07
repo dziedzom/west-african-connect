@@ -23,6 +23,11 @@ import Learn from "./pages/Learn";
 import ScrapeAgent from "./pages/ScrapeAgent";
 import ProposalBuilder from "./pages/ProposalBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
+import BidStudio from "./pages/BidStudio";
+import BidAnalyser from "./pages/BidAnalyser";
+import BidWriter from "./pages/BidWriter";
+import BidReviewer from "./pages/BidReviewer";
+import BidChecklist from "./pages/BidChecklist";
 
 const queryClient = new QueryClient();
 
