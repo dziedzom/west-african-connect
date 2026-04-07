@@ -392,6 +392,10 @@ const AdminDashboard = () => {
             </Card>
           </div>
         </TabsContent>
+
+        <TabsContent value="bid-studio">
+          <BidStudioAdminTab profiles={profiles} loading={loading} />
+        </TabsContent>
       </Tabs>
     </div>
   );
