@@ -78,6 +78,55 @@ const statusColor = (status: string) => {
   }
 };
 
+const BidStudioAdminTab = ({ profiles, loading }: { profiles: Profile[]; loading: boolean }) => {
+  const [reviews, setReviews] = useState<{ overall_score: number }[]>([]);
+
+  useEffect(() => {
+    supabase.from("bid_reviews").select("overall_score").then(({ data }) => {
+      if (data) setReviews(data as { overall_score: number }[]);
+    });
+  }, []);
+
+  const totalAnalysed = profiles.reduce((s, p) => s + ((p as any).rfps_analysed || 0), 0);
+  const totalGenerated = profiles.reduce((s, p) => s + ((p as any).bids_generated || 0), 0);
+  const totalReviewed = profiles.reduce((s, p) => s + ((p as any).bids_reviewed || 0), 0);
+  const totalChecklists = profiles.reduce((s, p) => s + ((p as any).checklists_created || 0), 0);
+  const avgScore = reviews.length > 0 ? Math.round(reviews.reduce((s, r) => s + (r.overall_score || 0), 0) / reviews.length) : 0;
+
+  const topUsers = [...profiles]
+    .map(p => ({ name: p.company_name || p.email || "—", total: ((p as any).rfps_analysed || 0) + ((p as any).bids_generated || 0) + ((p as any).bids_reviewed || 0) + ((p as any).checklists_created || 0) }))
+    .filter(u => u.total > 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <StatCard title="RFPs Analysed" value={totalAnalysed} icon={Activity} loading={loading} />
+        <StatCard title="Bids Generated" value={totalGenerated} icon={Pencil} loading={loading} />
+        <StatCard title="Bids Reviewed" value={totalReviewed} icon={FileText} loading={loading} />
+        <StatCard title="Checklists Created" value={totalChecklists} icon={CheckCircle} loading={loading} />
+        <StatCard title="Avg Review Score" value={avgScore} icon={TrendingUp} loading={loading} />
+      </div>
+      {topUsers.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Most Active Bid Studio Users</CardTitle></CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader><TableRow><TableHead>Company</TableHead><TableHead>Total Tool Uses</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {topUsers.map((u, i) => (
+                  <TableRow key={i}><TableCell className="font-medium">{u.name}</TableCell><TableCell>{u.total}</TableCell></TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
 const AdminDashboard = () => {
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<Profile[]>([]);
