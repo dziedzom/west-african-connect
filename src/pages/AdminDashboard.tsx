@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, FileText, Activity, Mail, DollarSign, TrendingUp, CheckCircle } from "lucide-react";
+import { Users, FileText, Activity, Mail, DollarSign, TrendingUp, CheckCircle, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
