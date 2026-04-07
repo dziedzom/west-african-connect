@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.draft-proposal]
 verify_jwt = false
+
+[functions.bid-studio-ai]
+verify_jwt = false

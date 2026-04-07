@@ -23,6 +23,11 @@ import Learn from "./pages/Learn";
 import ScrapeAgent from "./pages/ScrapeAgent";
 import ProposalBuilder from "./pages/ProposalBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
+import BidStudio from "./pages/BidStudio";
+import BidAnalyser from "./pages/BidAnalyser";
+import BidWriter from "./pages/BidWriter";
+import BidReviewer from "./pages/BidReviewer";
+import BidChecklist from "./pages/BidChecklist";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +72,11 @@ const App = () => (
               <Route path="/scrape" element={<ScrapeAgent />} />
               <Route path="/proposals" element={<ProtectedRoute><ProposalBuilder /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/bid-studio" element={<ProtectedRoute><BidStudio /></ProtectedRoute>} />
+              <Route path="/bid-studio/analyser" element={<ProtectedRoute><BidAnalyser /></ProtectedRoute>} />
+              <Route path="/bid-studio/writer" element={<ProtectedRoute><BidWriter /></ProtectedRoute>} />
+              <Route path="/bid-studio/reviewer" element={<ProtectedRoute><BidReviewer /></ProtectedRoute>} />
+              <Route path="/bid-studio/checklist" element={<ProtectedRoute><BidChecklist /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
