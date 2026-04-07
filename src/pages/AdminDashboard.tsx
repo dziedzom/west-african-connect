@@ -157,6 +157,7 @@ const AdminDashboard = () => {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="proposals">Proposals</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
+          <TabsTrigger value="bid-studio">Bid Studio</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
