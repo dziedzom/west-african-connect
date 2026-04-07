@@ -91,6 +91,80 @@ export type Database = {
           },
         ]
       }
+      bid_drafts: {
+        Row: {
+          company_intake: Json | null
+          created_at: string | null
+          generated_sections: Json | null
+          id: string
+          rfp_id: string | null
+          rfp_title: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          company_intake?: Json | null
+          created_at?: string | null
+          generated_sections?: Json | null
+          id?: string
+          rfp_id?: string | null
+          rfp_title?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          company_intake?: Json | null
+          created_at?: string | null
+          generated_sections?: Json | null
+          id?: string
+          rfp_id?: string | null
+          rfp_title?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_drafts_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_rfps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bid_reviews: {
+        Row: {
+          created_at: string | null
+          grade: string | null
+          id: string
+          overall_score: number | null
+          review_data: Json | null
+          rfp_title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          grade?: string | null
+          id?: string
+          overall_score?: number | null
+          review_data?: Json | null
+          rfp_title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          grade?: string | null
+          id?: string
+          overall_score?: number | null
+          review_data?: Json | null
+          rfp_title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -231,12 +305,16 @@ export type Database = {
       profiles: {
         Row: {
           about: string | null
+          bids_generated: number | null
+          bids_reviewed: number | null
+          checklists_created: number | null
           company_name: string | null
           created_at: string
           email: string | null
           expertise: string | null
           id: string
           location: string | null
+          rfps_analysed: number | null
           subscription_amount: number | null
           subscription_end: string | null
           subscription_plan: string | null
@@ -248,12 +326,16 @@ export type Database = {
         }
         Insert: {
           about?: string | null
+          bids_generated?: number | null
+          bids_reviewed?: number | null
+          checklists_created?: number | null
           company_name?: string | null
           created_at?: string
           email?: string | null
           expertise?: string | null
           id?: string
           location?: string | null
+          rfps_analysed?: number | null
           subscription_amount?: number | null
           subscription_end?: string | null
           subscription_plan?: string | null
@@ -265,12 +347,16 @@ export type Database = {
         }
         Update: {
           about?: string | null
+          bids_generated?: number | null
+          bids_reviewed?: number | null
+          checklists_created?: number | null
           company_name?: string | null
           created_at?: string
           email?: string | null
           expertise?: string | null
           id?: string
           location?: string | null
+          rfps_analysed?: number | null
           subscription_amount?: number | null
           subscription_end?: string | null
           subscription_plan?: string | null
