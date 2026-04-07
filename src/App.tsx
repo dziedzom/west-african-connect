@@ -72,6 +72,11 @@ const App = () => (
               <Route path="/scrape" element={<ScrapeAgent />} />
               <Route path="/proposals" element={<ProtectedRoute><ProposalBuilder /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/bid-studio" element={<ProtectedRoute><BidStudio /></ProtectedRoute>} />
+              <Route path="/bid-studio/analyser" element={<ProtectedRoute><BidAnalyser /></ProtectedRoute>} />
+              <Route path="/bid-studio/writer" element={<ProtectedRoute><BidWriter /></ProtectedRoute>} />
+              <Route path="/bid-studio/reviewer" element={<ProtectedRoute><BidReviewer /></ProtectedRoute>} />
+              <Route path="/bid-studio/checklist" element={<ProtectedRoute><BidChecklist /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

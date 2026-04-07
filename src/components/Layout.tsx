@@ -14,6 +14,7 @@ const navLinks = [
   { to: "/", label: "Home" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/rfps", label: "RFPs" },
+  { to: "/bid-studio", label: "Bid Studio" },
   { to: "/pricing", label: "Pricing" },
   { to: "/join", label: "Join" },
   { to: "/partnerships", label: "Partners" },
