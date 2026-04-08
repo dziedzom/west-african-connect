@@ -161,10 +161,17 @@ const BidAnalyser = () => {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center hover:border-primary/50 transition-colors"
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      className={`w-full border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+                        isDragging
+                          ? "border-primary bg-primary/5"
+                          : "border-muted-foreground/25 hover:border-primary/50"
+                      }`}
                     >
-                      <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                      <p className="text-sm font-medium">Click to upload a PDF</p>
+                      <Upload className={`h-10 w-10 mx-auto mb-3 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
+                      <p className="text-sm font-medium">{isDragging ? "Drop your PDF here" : "Drag & drop a PDF or click to upload"}</p>
                       <p className="text-xs text-muted-foreground mt-1">Max 20MB</p>
                     </button>
                   ) : (
