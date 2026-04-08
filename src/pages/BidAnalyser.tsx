@@ -277,7 +277,7 @@ const BidAnalyser = () => {
           </Card>
 
           <div className="flex gap-4">
-            <Button variant="outline" onClick={() => { setResult(null); setRfpText(""); }}>Analyse Another</Button>
+            <Button variant="outline" onClick={() => { setResult(null); setRfpText(""); setPdfFile(null); }}>Analyse Another</Button>
             <Button asChild>
               <Link to="/bid-studio/writer" state={{ rfpText }}>Start Bid Writer <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
