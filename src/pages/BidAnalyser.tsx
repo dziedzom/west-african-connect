@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Upload, FileText, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import * as pdfjsLib from "pdfjs-dist";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 
