@@ -33,6 +33,45 @@ const BidAnalyser = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfExtracting, setPdfExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const extractTextFromPdf = useCallback(async (file: File) => {
+    setPdfExtracting(true);
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs`;
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item: any) => item.str).join(" ") + "\n\n";
+      }
+      setRfpText(text.trim());
+    } catch {
+      setError("Failed to extract text from PDF. Please try pasting the text instead.");
+    } finally {
+      setPdfExtracting(false);
+    }
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      setError("Please upload a PDF file.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setError("File must be under 20MB.");
+      return;
+    }
+    setError("");
+    setPdfFile(file);
+    extractTextFromPdf(file);
+  }, [extractTextFromPdf]);
 
   if (!isPro) {
     return (
