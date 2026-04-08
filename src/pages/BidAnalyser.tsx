@@ -38,20 +38,6 @@ const BidAnalyser = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const processFile = useCallback((file: File) => {
-    if (file.type !== "application/pdf") {
-      setError("Please upload a PDF file.");
-      return;
-    }
-    if (file.size > 20 * 1024 * 1024) {
-      setError("File must be under 20MB.");
-      return;
-    }
-    setError("");
-    setPdfFile(file);
-    extractTextFromPdf(file);
-  }, [extractTextFromPdf]);
-
   const extractTextFromPdf = useCallback(async (file: File) => {
     setPdfExtracting(true);
     try {
@@ -72,9 +58,7 @@ const BidAnalyser = () => {
     }
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processFile = useCallback((file: File) => {
     if (file.type !== "application/pdf") {
       setError("Please upload a PDF file.");
       return;
@@ -87,6 +71,28 @@ const BidAnalyser = () => {
     setPdfFile(file);
     extractTextFromPdf(file);
   }, [extractTextFromPdf]);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  }, [processFile]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
+  }, [processFile]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
   if (!isPro) {
     return (
