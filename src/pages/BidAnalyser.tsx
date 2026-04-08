@@ -36,6 +36,7 @@ const BidAnalyser = () => {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfExtracting, setPdfExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const extractTextFromPdf = useCallback(async (file: File) => {
     setPdfExtracting(true);
@@ -57,9 +58,7 @@ const BidAnalyser = () => {
     }
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processFile = useCallback((file: File) => {
     if (file.type !== "application/pdf") {
       setError("Please upload a PDF file.");
       return;
@@ -72,6 +71,28 @@ const BidAnalyser = () => {
     setPdfFile(file);
     extractTextFromPdf(file);
   }, [extractTextFromPdf]);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  }, [processFile]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
+  }, [processFile]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
   if (!isPro) {
     return (
@@ -140,10 +161,17 @@ const BidAnalyser = () => {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center hover:border-primary/50 transition-colors"
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      className={`w-full border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+                        isDragging
+                          ? "border-primary bg-primary/5"
+                          : "border-muted-foreground/25 hover:border-primary/50"
+                      }`}
                     >
-                      <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                      <p className="text-sm font-medium">Click to upload a PDF</p>
+                      <Upload className={`h-10 w-10 mx-auto mb-3 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
+                      <p className="text-sm font-medium">{isDragging ? "Drop your PDF here" : "Drag & drop a PDF or click to upload"}</p>
                       <p className="text-xs text-muted-foreground mt-1">Max 20MB</p>
                     </button>
                   ) : (
