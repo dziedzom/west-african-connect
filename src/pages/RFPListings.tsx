@@ -280,7 +280,7 @@ const RFPListings = () => {
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                     className={cn("cursor-pointer", safeCurrentPage === 1 && "pointer-events-none opacity-50")}
                   />
                 </PaginationItem>
@@ -293,7 +293,7 @@ const RFPListings = () => {
                     <PaginationItem key={page}>
                       <PaginationLink
                         isActive={page === safeCurrentPage}
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                         className="cursor-pointer"
                       >
                         {page}
@@ -303,7 +303,7 @@ const RFPListings = () => {
                 )}
                 <PaginationItem>
                   <PaginationNext
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() => { setCurrentPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                     className={cn("cursor-pointer", safeCurrentPage === totalPages && "pointer-events-none opacity-50")}
                   />
                 </PaginationItem>
