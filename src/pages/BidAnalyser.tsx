@@ -36,6 +36,21 @@ const BidAnalyser = () => {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfExtracting, setPdfExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const processFile = useCallback((file: File) => {
+    if (file.type !== "application/pdf") {
+      setError("Please upload a PDF file.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setError("File must be under 20MB.");
+      return;
+    }
+    setError("");
+    setPdfFile(file);
+    extractTextFromPdf(file);
+  }, [extractTextFromPdf]);
 
   const extractTextFromPdf = useCallback(async (file: File) => {
     setPdfExtracting(true);
