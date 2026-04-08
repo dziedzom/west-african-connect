@@ -293,7 +293,7 @@ const RFPListings = () => {
                     <PaginationItem key={page}>
                       <PaginationLink
                         isActive={page === safeCurrentPage}
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                         className="cursor-pointer"
                       >
                         {page}
