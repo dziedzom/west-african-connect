@@ -117,7 +117,7 @@ const BidAnalyser = () => {
             <Tabs defaultValue="paste">
               <TabsList>
                 <TabsTrigger value="paste">Paste RFP Text</TabsTrigger>
-                <TabsTrigger value="upload" disabled>Upload PDF (Coming Soon)</TabsTrigger>
+                <TabsTrigger value="upload">Upload PDF</TabsTrigger>
               </TabsList>
               <TabsContent value="paste">
                 <Textarea
@@ -126,6 +126,53 @@ const BidAnalyser = () => {
                   value={rfpText}
                   onChange={(e) => setRfpText(e.target.value)}
                 />
+              </TabsContent>
+              <TabsContent value="upload">
+                <div className="mt-4 space-y-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {!pdfFile ? (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center hover:border-primary/50 transition-colors"
+                    >
+                      <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-sm font-medium">Click to upload a PDF</p>
+                      <p className="text-xs text-muted-foreground mt-1">Max 20MB</p>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3 p-4 border rounded-lg bg-muted/30">
+                      <FileText className="h-8 w-8 text-primary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{pdfFile.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pdfExtracting ? "Extracting text..." : `${(pdfFile.size / 1024).toFixed(0)} KB — text extracted`}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => { setPdfFile(null); setRfpText(""); }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  {rfpText && pdfFile && (
+                    <Textarea
+                      value={rfpText}
+                      onChange={(e) => setRfpText(e.target.value)}
+                      className="min-h-[150px]"
+                      placeholder="Extracted text will appear here..."
+                    />
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
             <Button onClick={handleAnalyse} disabled={!rfpText.trim() || loading} className="w-full">
