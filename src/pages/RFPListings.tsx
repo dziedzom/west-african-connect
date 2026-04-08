@@ -303,7 +303,7 @@ const RFPListings = () => {
                 )}
                 <PaginationItem>
                   <PaginationNext
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() => { setCurrentPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                     className={cn("cursor-pointer", safeCurrentPage === totalPages && "pointer-events-none opacity-50")}
                   />
                 </PaginationItem>
