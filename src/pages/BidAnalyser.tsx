@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Upload, FileText, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import * as pdfjsLib from "pdfjs-dist";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 
@@ -32,6 +33,45 @@ const BidAnalyser = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfExtracting, setPdfExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const extractTextFromPdf = useCallback(async (file: File) => {
+    setPdfExtracting(true);
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs`;
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item: any) => item.str).join(" ") + "\n\n";
+      }
+      setRfpText(text.trim());
+    } catch {
+      setError("Failed to extract text from PDF. Please try pasting the text instead.");
+    } finally {
+      setPdfExtracting(false);
+    }
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      setError("Please upload a PDF file.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setError("File must be under 20MB.");
+      return;
+    }
+    setError("");
+    setPdfFile(file);
+    extractTextFromPdf(file);
+  }, [extractTextFromPdf]);
 
   if (!isPro) {
     return (
@@ -77,7 +117,7 @@ const BidAnalyser = () => {
             <Tabs defaultValue="paste">
               <TabsList>
                 <TabsTrigger value="paste">Paste RFP Text</TabsTrigger>
-                <TabsTrigger value="upload" disabled>Upload PDF (Coming Soon)</TabsTrigger>
+                <TabsTrigger value="upload">Upload PDF</TabsTrigger>
               </TabsList>
               <TabsContent value="paste">
                 <Textarea
@@ -86,6 +126,53 @@ const BidAnalyser = () => {
                   value={rfpText}
                   onChange={(e) => setRfpText(e.target.value)}
                 />
+              </TabsContent>
+              <TabsContent value="upload">
+                <div className="mt-4 space-y-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {!pdfFile ? (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center hover:border-primary/50 transition-colors"
+                    >
+                      <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-sm font-medium">Click to upload a PDF</p>
+                      <p className="text-xs text-muted-foreground mt-1">Max 20MB</p>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3 p-4 border rounded-lg bg-muted/30">
+                      <FileText className="h-8 w-8 text-primary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{pdfFile.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pdfExtracting ? "Extracting text..." : `${(pdfFile.size / 1024).toFixed(0)} KB — text extracted`}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => { setPdfFile(null); setRfpText(""); }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  {rfpText && pdfFile && (
+                    <Textarea
+                      value={rfpText}
+                      onChange={(e) => setRfpText(e.target.value)}
+                      className="min-h-[150px]"
+                      placeholder="Extracted text will appear here..."
+                    />
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
             <Button onClick={handleAnalyse} disabled={!rfpText.trim() || loading} className="w-full">
@@ -190,7 +277,7 @@ const BidAnalyser = () => {
           </Card>
 
           <div className="flex gap-4">
-            <Button variant="outline" onClick={() => { setResult(null); setRfpText(""); }}>Analyse Another</Button>
+            <Button variant="outline" onClick={() => { setResult(null); setRfpText(""); setPdfFile(null); }}>Analyse Another</Button>
             <Button asChild>
               <Link to="/bid-studio/writer" state={{ rfpText }}>Start Bid Writer <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
