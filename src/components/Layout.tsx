@@ -10,16 +10,29 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const navLinks = [
+const publicLinks = [
   { to: "/", label: "Home" },
+  { to: "/rfps", label: "RFPs" },
+  { to: "/pricing", label: "Pricing" },
+  { to: "/join", label: "Join" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
+];
+
+const authedLinks = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/rfps", label: "RFPs" },
   { to: "/bid-studio", label: "Bid\u00A0Studio" },
+  { to: "/knowledge-base", label: "Knowledge" },
+  { to: "/learn", label: "Learn" },
+];
+
+const footerLinks = [
+  { to: "/", label: "Home" },
+  { to: "/rfps", label: "RFPs" },
   { to: "/pricing", label: "Pricing" },
   { to: "/join", label: "Join" },
   { to: "/partnerships", label: "Partners" },
-  { to: "/knowledge-base", label: "Knowledge" },
-  { to: "/learn", label: "Learn" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
@@ -40,6 +53,8 @@ const Navbar = () => {
       localStorage.setItem("theme", "light");
     }
   }, [dark]);
+
+  const navLinks = user ? authedLinks : publicLinks;
 
   return (
     <>
@@ -187,7 +202,7 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Links</h4>
             <div className="flex flex-col gap-2">
-              {navLinks.map((l) => (
+              {footerLinks.map((l) => (
                 <Link key={l.to} to={l.to} className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">
                   {l.label}
                 </Link>
