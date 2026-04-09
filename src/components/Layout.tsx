@@ -202,7 +202,7 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Links</h4>
             <div className="flex flex-col gap-2">
-              {navLinks.map((l) => (
+              {footerLinks.map((l) => (
                 <Link key={l.to} to={l.to} className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">
                   {l.label}
                 </Link>
