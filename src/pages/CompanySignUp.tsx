@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import SEO from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 
-const expertiseOptions = ["Pharmaceuticals", "Transport & Logistics", "Construction", "IT & Tech", "Agriculture", "Energy", "Consulting", "Manufacturing"];
+const expertiseOptions = ["Consulting", "Construction", "IT & Tech", "Energy", "Agriculture", "Health", "Transport & Logistics", "Finance", "Environment", "Water", "Telecommunications", "Marketing", "Pharmaceuticals", "Manufacturing", "Other"];
 const locationGroups = [
   { region: "North Africa", countries: ["Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia"] },
   { region: "West Africa", countries: ["Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo"] },
