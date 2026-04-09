@@ -14,6 +14,7 @@ const publicLinks = [
   { to: "/", label: "Home" },
   { to: "/rfps", label: "RFPs" },
   { to: "/pricing", label: "Pricing" },
+  { to: "/partnerships", label: "Partners" },
   { to: "/join", label: "Join" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
