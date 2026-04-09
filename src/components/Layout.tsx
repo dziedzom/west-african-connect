@@ -62,6 +62,9 @@ const Navbar = () => {
             MiddlBrand
           </Link>
 
+          const navLinks = user ? authedLinks : publicLinks;
+          // rendered below
+          </>{/* force re-check */}</>
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((l) => (
               <Link
