@@ -23,6 +23,7 @@ const authedLinks = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/rfps", label: "RFPs" },
   { to: "/bid-studio", label: "Bid\u00A0Studio" },
+  { to: "/partnerships", label: "Partners" },
   { to: "/knowledge-base", label: "Knowledge" },
   { to: "/learn", label: "Learn" },
 ];
