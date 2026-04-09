@@ -54,6 +54,8 @@ const Navbar = () => {
     }
   }, [dark]);
 
+  const navLinks = user ? authedLinks : publicLinks;
+
   return (
     <>
       <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-5xl">
@@ -62,9 +64,6 @@ const Navbar = () => {
             MiddlBrand
           </Link>
 
-          const navLinks = user ? authedLinks : publicLinks;
-          // rendered below
-          </>{/* force re-check */}</>
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((l) => (
               <Link
