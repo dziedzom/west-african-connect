@@ -204,23 +204,20 @@ const Index = () => {
       </section>
 
       {/* CTA */}
-      <section ref={ctaRef} className="py-24 bg-primary grain-mesh">
+      <section ref={ctaRef} className="py-24 bg-foreground">
         <div className="container text-center reveal">
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-primary-foreground">
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-background">
             Ready to Win More Contracts?
           </h2>
-          <p className="mt-4 text-primary-foreground/60 font-body text-sm max-w-lg mx-auto">
+          <p className="mt-4 text-background/60 font-body text-sm max-w-lg mx-auto">
             Join hundreds of African companies growing through MiddlBrand's opportunity matching platform.
           </p>
-          <div className="mt-10 flex justify-center gap-4 flex-wrap">
+          <div className="mt-10 flex justify-center">
             <Button asChild size="lg" className="group rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-8 transition-all duration-300">
               <Link to="/join">
                 Get Started Free
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="rounded-full border-primary-foreground/20 text-primary-foreground hover:border-accent hover:text-accent transition-all duration-300">
-              <Link to="/about">Learn More</Link>
             </Button>
           </div>
         </div>
