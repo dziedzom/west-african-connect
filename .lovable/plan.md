@@ -1,37 +1,36 @@
-## Hybrid Monetisation Upgrade Plan
 
-### Phase 1 — Database Changes
-- Add subscription columns to `profiles` table (subscription_tier, subscription_plan, subscription_start, subscription_end, subscription_amount)
-- Create `won_contracts` table with auto-calculated success fee (3.5%, capped at $5,000)
-- Add RLS policies for both
 
-### Phase 2 — Auth & Subscription Context
-- Extend AuthContext to expose `subscriptionTier` (free/pro)
-- Create a `useSubscription` hook for gating logic
-- Create an `UpgradeModal` component for free users clicking gated features
+## Problem Summary
 
-### Phase 3 — Pricing Page Overhaul
-- Replace current commission-based pricing with 3-column Free / Pro Monthly / Pro Annual
-- Update FAQ section with new questions
-- Add monthly/annual toggle with savings callout
+Two issues with the current authentication flow:
 
-### Phase 4 — RFP Gating & Pro Features
-- Add upgrade CTA banner on /rfps for free users
-- Gate AI match score badge, detail page, "I'm Bidding" button behind Pro
-- Show upgrade modal when free users click gated features
+1. **No Google sign-in option** — The Auth page only has email/password fields. There's no "Sign in with Google" button, so users who want to use their Gmail account must still create a password. The user attempted to sign up without a password and got stuck.
 
-### Phase 5 — Won Contract Flow
-- "I Won This Contract" button on RFP detail (Pro only)
-- Modal with contract value input, currency selector, live fee calculation
-- Save to won_contracts table
+2. **No post-signup redirect** — After email/password signup, the user stays on the auth page with a toast saying "Check your email" but no clear next step. Email confirmation is required, which is correct, but the experience is confusing.
 
-### Phase 6 — Admin Revenue Dashboard
-- Revenue summary bar (MRR, ARR, success fees)
-- Subscriptions table
-- Won contracts table with actions
+## Plan
 
-### Phase 7 — Invoice Emails (deferred)
-- Requires email domain setup — will scaffold after core features work
+### Step 1: Add Google OAuth sign-in to the Auth page
 
-### What stays untouched:
-- Scraper, cron jobs, RFP filters, existing display logic
+- Add a "Continue with Google" button to `src/pages/Auth.tsx`
+- Use `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/dashboard' } })`
+- Place the Google button above the email/password form with a visual divider ("or")
+- Style it consistently with the existing design (rounded-full, proper colors)
+
+### Step 2: Configure Google auth provider
+
+- Use the `configure_auth` tool to enable Google OAuth if not already enabled
+- This allows users to sign in/up with their Google account without needing a password
+
+### Step 3: Improve signup UX
+
+- After successful email/password signup, show a clear "Check your email" state inline (not just a toast) so the user knows what to do next
+- Keep the user on the auth page but swap the form for a confirmation message
+
+### Technical Details
+
+- Google OAuth uses Lovable Cloud's built-in Google provider support
+- Users who sign up with Google are automatically confirmed (no email verification needed)
+- The `AuthProvider` already handles `onAuthStateChange` and will pick up Google OAuth sessions automatically
+- No database changes needed — the `handle_new_user` trigger already creates profiles for new users
+
