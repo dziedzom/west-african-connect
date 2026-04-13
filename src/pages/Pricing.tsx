@@ -40,8 +40,8 @@ const tiers = [
       "\"I'm Bidding\" pipeline tracker",
       "Success fee partnership (3.5%, capped at $5,000)",
     ],
-    cta: "Start Pro Monthly",
-    ctaLink: "/join",
+    cta: "Start 7-Day Free Trial",
+    ctaLink: "/auth",
   },
   {
     name: "Pro Annual",
@@ -56,8 +56,8 @@ const tiers = [
       "Priority email support",
       "Billed annually at $384",
     ],
-    cta: "Start Pro Annual",
-    ctaLink: "/join",
+    cta: "Start 7-Day Free Trial",
+    ctaLink: "/auth",
   },
 ];
 
