@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Crown } from "lucide-react";
+import { Check, Crown, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -96,12 +96,21 @@ const Pricing = () => {
       />
       <section className="py-16 bg-background min-h-screen">
         <div className="container max-w-5xl">
+          {/* Trial Banner */}
+          <div className="rounded-2xl border border-accent/30 bg-accent/5 px-6 py-4 flex items-center justify-center gap-3 mb-10 max-w-2xl mx-auto">
+            <Sparkles className="h-5 w-5 text-accent shrink-0" />
+            <p className="text-sm font-body text-foreground">
+              <span className="font-semibold">New users get 7 days of Pro — free.</span>
+              <span className="text-muted-foreground ml-1">No credit card required. Full access from day one.</span>
+            </p>
+          </div>
+
           <div className="text-center mb-16 max-w-2xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">
               Plans that grow with you.
             </h1>
             <p className="mt-4 text-sm text-muted-foreground font-body">
-              Start free. Upgrade when you're ready for AI-powered matching and full RFP intelligence.
+              Start with a free 7-day Pro trial. Upgrade when you're ready for AI-powered matching and full RFP intelligence.
             </p>
           </div>
 
