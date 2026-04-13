@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Crown } from "lucide-react";
+import { Check, Crown, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,8 +40,8 @@ const tiers = [
       "\"I'm Bidding\" pipeline tracker",
       "Success fee partnership (3.5%, capped at $5,000)",
     ],
-    cta: "Start Pro Monthly",
-    ctaLink: "/join",
+    cta: "Start 7-Day Free Trial",
+    ctaLink: "/auth",
   },
   {
     name: "Pro Annual",
@@ -56,12 +56,16 @@ const tiers = [
       "Priority email support",
       "Billed annually at $384",
     ],
-    cta: "Start Pro Annual",
-    ctaLink: "/join",
+    cta: "Start 7-Day Free Trial",
+    ctaLink: "/auth",
   },
 ];
 
 const faqs = [
+  {
+    question: "How does the 7-day free trial work?",
+    answer: "Every new account automatically gets full Pro access for 7 days — no credit card required. After your trial ends, you can upgrade to Pro or continue on the Free plan.",
+  },
   {
     question: "What is the success fee?",
     answer: "When you win a contract you found through MiddlBrand, a 3.5% fee applies on the contract value, capped at $5,000. Payment is due within 30 days of your first receipt from the contracting authority.",
@@ -96,12 +100,21 @@ const Pricing = () => {
       />
       <section className="py-16 bg-background min-h-screen">
         <div className="container max-w-5xl">
+          {/* Trial Banner */}
+          <div className="rounded-2xl border border-accent/30 bg-accent/5 px-6 py-4 flex items-center justify-center gap-3 mb-10 max-w-2xl mx-auto">
+            <Sparkles className="h-5 w-5 text-accent shrink-0" />
+            <p className="text-sm font-body text-foreground">
+              <span className="font-semibold">New users get 7 days of Pro — free.</span>
+              <span className="text-muted-foreground ml-1">No credit card required. Full access from day one.</span>
+            </p>
+          </div>
+
           <div className="text-center mb-16 max-w-2xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">
               Plans that grow with you.
             </h1>
             <p className="mt-4 text-sm text-muted-foreground font-body">
-              Start free. Upgrade when you're ready for AI-powered matching and full RFP intelligence.
+              Start with a free 7-day Pro trial. Upgrade when you're ready for AI-powered matching and full RFP intelligence.
             </p>
           </div>
 
