@@ -63,6 +63,10 @@ const tiers = [
 
 const faqs = [
   {
+    question: "How does the 7-day free trial work?",
+    answer: "Every new account automatically gets full Pro access for 7 days — no credit card required. After your trial ends, you can upgrade to Pro or continue on the Free plan.",
+  },
+  {
     question: "What is the success fee?",
     answer: "When you win a contract you found through MiddlBrand, a 3.5% fee applies on the contract value, capped at $5,000. Payment is due within 30 days of your first receipt from the contracting authority.",
   },
