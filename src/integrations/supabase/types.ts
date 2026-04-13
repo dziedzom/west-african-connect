@@ -636,7 +636,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_profiles_view: {
+        Row: {
+          about: string | null
+          bids_generated: number | null
+          bids_reviewed: number | null
+          checklists_created: number | null
+          company_name: string | null
+          created_at: string | null
+          email: string | null
+          expertise: string | null
+          id: string | null
+          location: string | null
+          rfps_analysed: number | null
+          subscription_plan: string | null
+          subscription_tier: string | null
+          updated_at: string | null
+          user_id: string | null
+          website: string | null
+        }
+        Insert: {
+          about?: string | null
+          bids_generated?: number | null
+          bids_reviewed?: number | null
+          checklists_created?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          expertise?: string | null
+          id?: string | null
+          location?: string | null
+          rfps_analysed?: number | null
+          subscription_plan?: string | null
+          subscription_tier?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          website?: string | null
+        }
+        Update: {
+          about?: string | null
+          bids_generated?: number | null
+          bids_reviewed?: number | null
+          checklists_created?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          expertise?: string | null
+          id?: string | null
+          location?: string | null
+          rfps_analysed?: number | null
+          subscription_plan?: string | null
+          subscription_tier?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
