@@ -79,8 +79,8 @@ const Auth = () => {
                 <CheckCircle className="w-7 h-7 text-accent" />
               </div>
               <h1 className="text-2xl font-display font-bold text-foreground">Check your email</h1>
-              <p className="text-muted-foreground font-body text-sm">
-                We've sent a confirmation link to <strong className="text-foreground">{email}</strong>. Click the link in your email to activate your account.
+                  <p className="text-muted-foreground font-body text-sm">
+                We've sent a confirmation link to <strong className="text-foreground">{email}</strong>. Click the link in your email to activate your account and start your 7-day Pro trial.
               </p>
               <Button variant="outline" className="rounded-full mt-2" onClick={() => { setSignupComplete(false); setIsLogin(true); }}>
                 Back to sign in
@@ -93,7 +93,7 @@ const Auth = () => {
                   {isLogin ? "Welcome Back" : "Create Account"}
                 </h1>
                 <p className="mt-2 text-muted-foreground font-body text-sm">
-                  {isLogin ? "Sign in to your MiddlBrand account" : "Join MiddlBrand to access opportunities"}
+                  {isLogin ? "Sign in to your MiddlBrand account" : "Start your free 7-day Pro trial — no credit card required"}
                 </p>
               </div>
 
