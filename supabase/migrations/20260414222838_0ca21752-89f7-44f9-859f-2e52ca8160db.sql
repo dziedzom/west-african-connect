@@ -1,0 +1,1 @@
+UPDATE profiles SET subscription_tier = 'pro', subscription_plan = 'monthly', subscription_start = now()::date, subscription_end = (now() + interval '30 days')::date WHERE user_id = 'bc942991-bb2b-4bbe-abee-c0eaa5b7bd3f';
