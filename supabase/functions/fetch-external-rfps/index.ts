@@ -38,9 +38,9 @@ serve(async (req) => {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("fetch-external-rfps error:", message);
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
+    console.error("fetch-external-rfps error (returning empty array):", message);
+    return new Response(JSON.stringify([]), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
