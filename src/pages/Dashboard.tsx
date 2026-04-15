@@ -4,19 +4,13 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, AlertCircle, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle, Brain, Zap } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle, Brain, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
 
-interface ExternalRFP {
-  id: string;
-  title: string;
-  source_url: string;
-  created_at: string;
-}
 
 interface ScrapedRFP {
   id: string;
@@ -51,17 +45,6 @@ const formatRelativeTime = (dateStr: string) => {
   return `${days}d ago`;
 };
 
-const parseExternalRFP = (title: string) => {
-  const deadlineMatch = title.match(/Deadline\s+(.+?)$/i);
-  const deadline = deadlineMatch ? deadlineMatch[1].trim() : null;
-
-  // Format: "WD-XXXXX - Location - Services - Deadline ..."
-  const parts = title.split(" - ");
-  const category = parts.length >= 3 ? parts.slice(2, -1).join(" - ").replace(/\s*-?\s*Deadline.*$/i, "").trim() : null;
-  const location = parts.length >= 2 ? parts[1].trim() : null;
-
-  return { deadline, category, location };
-};
 
 const DashboardSkeleton = () => (
   <div className="container max-w-6xl py-12">
@@ -92,8 +75,6 @@ const Dashboard = () => {
   const [totalRfps, setTotalRfps] = useState(0);
   const [matchedRfps, setMatchedRfps] = useState<RFP[]>([]);
   const [appCount, setAppCount] = useState(0);
-  const [externalRfps, setExternalRfps] = useState<ExternalRFP[]>([]);
-  const [externalError, setExternalError] = useState<string | null>(null);
   const [scrapedCount, setScrapedCount] = useState(0);
   const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
   const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
@@ -107,14 +88,10 @@ const Dashboard = () => {
       const restBase = `https://${projectId}.supabase.co/rest/v1`;
       const headers = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` };
 
-      // Fetch local RFPs, scraped RFPs, and external RFPs in parallel
-      const [rfpRes, scrapedRes, externalRes] = await Promise.all([
+      // Fetch local RFPs and scraped RFPs in parallel
+      const [rfpRes, scrapedRes] = await Promise.all([
         fetch(`${restBase}/rfps?select=*&order=created_at.desc`, { headers }),
         fetch(`${restBase}/scraped_rfps?select=*&order=scraped_at.desc&limit=20`, { headers }),
-        fetch(`https://${projectId}.supabase.co/functions/v1/fetch-external-rfps`, {
-          method: "POST",
-          headers: { ...headers, "Content-Type": "application/json" },
-        }).catch(() => null),
       ]);
 
       // Process local RFPs
@@ -207,18 +184,6 @@ const Dashboard = () => {
         }
       }
 
-      // Process external RFPs
-      if (externalRes && externalRes.ok) {
-        try {
-          const fnData = await externalRes.json();
-          if (Array.isArray(fnData)) setExternalRfps(fnData);
-          else if (fnData?.error) setExternalError(fnData.error);
-        } catch {
-          setExternalError("Failed to parse external RFPs");
-        }
-      } else if (externalRes) {
-        setExternalError(`Error ${externalRes.status}`);
-      }
 
       setLoading(false);
     };
@@ -236,7 +201,7 @@ const Dashboard = () => {
   })();
 
   const stats = [
-    { label: "Active RFPs", value: totalRfps + externalRfps.length + scrapedCount, icon: FileText, accent: true },
+    { label: "Active RFPs", value: totalRfps + scrapedCount, icon: FileText, accent: true },
     { label: "Matched", value: matchedRfps.length, icon: TrendingUp, accent: false },
     { label: "Applications", value: appCount, icon: Briefcase, accent: false },
     { label: "Saved", value: savedCount, icon: Heart, accent: false },
@@ -353,76 +318,6 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* External RFP Opportunities */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                <ExternalLink className="h-4 w-4 text-accent" /> RFP Opportunities
-              </h2>
-              {externalRfps.length > 0 && (
-                <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">
-                  {externalRfps.length} {externalRfps.length === 1 ? "opportunity" : "opportunities"}
-                </span>
-              )}
-            </div>
-
-            {externalError && (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3 mb-4">
-                <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-display font-semibold text-destructive">Failed to load external RFPs</p>
-                  <p className="text-xs text-muted-foreground mt-1 font-body break-all">{externalError}</p>
-                </div>
-              </div>
-            )}
-
-            {externalRfps.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {externalRfps.map((opp) => {
-                  const parsed = parseExternalRFP(opp.title);
-                  return (
-                    <div
-                      key={opp.id}
-                      className="group rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 flex flex-col justify-between transition-all hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5"
-                    >
-                      <div className="mb-4">
-                        <h3 className="text-sm font-display font-semibold text-foreground leading-snug line-clamp-3">
-                          {opp.title}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                          {parsed.category && (
-                            <Badge variant="secondary" className="text-[10px]">{parsed.category}</Badge>
-                          )}
-                          {parsed.location && (
-                            <Badge variant="outline" className="text-[10px]">{parsed.location}</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <p className="text-[10px] text-muted-foreground font-body">
-                            Added {new Date(opp.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                          </p>
-                          {parsed.deadline && (
-                            <p className="text-[10px] font-semibold text-destructive font-body">
-                              ⏰ {parsed.deadline}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <Button asChild size="sm" className="w-full rounded-full mt-auto bg-accent text-accent-foreground hover:bg-accent/90">
-                        <a href={opp.source_url} target="_blank" rel="noopener noreferrer">
-                          View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                        </a>
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {!externalError && externalRfps.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-6">No external RFP opportunities found.</p>
-            )}
-          </div>
 
           {/* Scraped RFPs from AI Agent */}
           {scrapedRfps.length > 0 && (
