@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle, Trophy, Lock } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle, Trophy, Lock, ThumbsUp, ThumbsDown, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -127,8 +127,9 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         <Brain className="h-4 w-4 text-accent" />
         <span className="text-sm font-display font-semibold text-foreground">AI Insights</span>
       </div>
-      <div className="flex justify-center relative">
+      <div className="flex items-center justify-center gap-4 relative">
         <ScoreGauge score={insight.match_score} />
+        <GoNoGoBadge score={insight.match_score} />
       </div>
       {insight.winning_strategy_summary && (
         <div className="space-y-1">
