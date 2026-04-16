@@ -50,6 +50,22 @@ const ScoreGauge = ({ score }: { score: number }) => {
   );
 };
 
+const GoNoGoBadge = ({ score }: { score: number }) => {
+  const config = score >= 75
+    ? { label: "Go", icon: ThumbsUp, bg: "bg-green-500/15", text: "text-green-600", border: "border-green-500/30" }
+    : score >= 50
+    ? { label: "Maybe", icon: HelpCircle, bg: "bg-yellow-500/15", text: "text-yellow-600", border: "border-yellow-500/30" }
+    : { label: "No-Go", icon: ThumbsDown, bg: "bg-red-500/15", text: "text-red-600", border: "border-red-500/30" };
+
+  const Icon = config.icon;
+  return (
+    <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${config.bg} ${config.text} ${config.border}`}>
+      <Icon className="h-3.5 w-3.5" />
+      {config.label}
+    </div>
+  );
+};
+
 const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
   const [insight, setInsight] = useState<AIInsight | null>(null);
   const [loading, setLoading] = useState(true);
