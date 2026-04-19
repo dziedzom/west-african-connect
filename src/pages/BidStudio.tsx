@@ -65,10 +65,7 @@ const BidStudio = () => {
         {tools.map((tool) => (
           <Card key={tool.path} className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{tool.emoji}</span>
-                <CardTitle className="text-lg">{tool.name}</CardTitle>
-              </div>
+              <CardTitle className="text-lg">{tool.name}</CardTitle>
               <CardDescription>{tool.description}</CardDescription>
             </CardHeader>
             <CardContent>
