@@ -267,7 +267,7 @@ const RFPListings = () => {
                             className={cn(
                               "mt-1 text-xs",
                               chip.urgent 
-                                ? "border-red-500/50 text-red-600 bg-red-500/10" 
+                                ? "border-destructive/50 text-destructive bg-destructive/10" 
                                 : "border-muted-foreground/30 text-muted-foreground"
                             )}
                           >
