@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import SEO from "@/components/SEO";
+import PricingComparisonTable from "@/components/PricingComparisonTable";
 
 const tiers = [
   {
