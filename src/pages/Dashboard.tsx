@@ -355,16 +355,16 @@ const Dashboard = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <Bot className="h-4 w-4 text-accent" /> AI-Scraped Opportunities
+                  <Bot className="h-4 w-4 text-accent" /> AI-Tracked Tenders
                 </h2>
                 <div className="flex items-center gap-3">
                   {lastScrapedAt && (
                     <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> Last scraped {formatRelativeTime(lastScrapedAt)}
+                      <Clock className="h-3 w-3" /> Last read {formatRelativeTime(lastScrapedAt)}
                     </span>
                   )}
                   <Link to="/scrape" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                    Run scraper <ArrowRight className="h-3 w-3" />
+                    Run agent <ArrowRight className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
