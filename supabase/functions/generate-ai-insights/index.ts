@@ -105,7 +105,7 @@ ${profileSummary}
 ## Knowledge Base (Case Studies, Certifications, Capabilities)
 ${kbSummary}
 
-Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences on how to win), and gap_analysis (2-3 sentences on weaknesses/gaps to address).`,
+Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences on how to win), gap_analysis (2-3 sentences on weaknesses/gaps to address), key_requirements (3-6 concise must-have requirements extracted from the RFP), risk_flags (2-5 short risk warnings such as tight deadlines, unclear scope, restricted eligibility, payment terms, etc.), and missing_qualifications (2-5 short items the company appears to lack vs the RFP).`,
           },
         ],
         tools: [
