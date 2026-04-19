@@ -401,7 +401,7 @@ const Dashboard = () => {
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <p className="text-[10px] text-muted-foreground font-body">
-                          Scraped {new Date(rfp.scraped_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                          Read {new Date(rfp.scraped_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                         </p>
                         {rfp.deadline && (
                           <p className="text-[10px] font-semibold text-destructive font-body flex items-center gap-0.5">
