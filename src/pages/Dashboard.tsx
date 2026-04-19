@@ -76,6 +76,7 @@ const Dashboard = () => {
   const [matchedRfps, setMatchedRfps] = useState<RFP[]>([]);
   const [appCount, setAppCount] = useState(0);
   const [scrapedCount, setScrapedCount] = useState(0);
+  const [tendersThisWeek, setTendersThisWeek] = useState(0);
   const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
   const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
   const [proposalCounts, setProposalCounts] = useState<Record<string, number>>({ draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 });
