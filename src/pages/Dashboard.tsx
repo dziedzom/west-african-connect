@@ -109,6 +109,17 @@ const Dashboard = () => {
         if (scrapedData.length > 0) {
           setLastScrapedAt(scrapedData[0].scraped_at);
         }
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const weekCount = scrapedData.filter((r: ScrapedRFP) => new Date(r.scraped_at).getTime() >= weekAgo).length;
+        // Also query a count for the full week (in case >20 this week)
+        try {
+          const weekIso = new Date(weekAgo).toISOString();
+          const countRes = await fetch(`${restBase}/scraped_rfps?select=id&scraped_at=gte.${weekIso}`, { headers: { ...headers, Prefer: "count=exact" } });
+          const total = parseInt(countRes.headers.get("content-range")?.split("/")[1] || `${weekCount}`, 10);
+          setTendersThisWeek(isNaN(total) ? weekCount : total);
+        } catch {
+          setTendersThisWeek(weekCount);
+        }
       }
 
       // Fetch profile, applications & proposals only if logged in
