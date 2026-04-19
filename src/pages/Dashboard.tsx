@@ -213,7 +213,7 @@ const Dashboard = () => {
   })();
 
   const stats = [
-    { label: "Active RFPs", value: totalRfps + scrapedCount, icon: FileText, accent: true },
+    { label: "Active Tenders", value: totalRfps + scrapedCount, icon: FileText, accent: true },
     { label: "Matched", value: matchedRfps.length, icon: TrendingUp, accent: false },
     { label: "Applications", value: appCount, icon: Briefcase, accent: false },
     { label: "Saved", value: savedCount, icon: Heart, accent: false },
