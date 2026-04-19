@@ -26,6 +26,22 @@ const formatBudget = (v: number) => {
   return `$${v}`;
 };
 
+const getDeadlineChip = (deadline: string | null) => {
+  if (!deadline) return null;
+  const deadlineDate = new Date(deadline);
+  const now = new Date();
+  const diffMs = deadlineDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) return { text: "Closed", urgent: true };
+  if (diffDays === 0) return { text: "Closes today", urgent: true };
+  if (diffDays === 1) return { text: "1 day left", urgent: true };
+  if (diffDays <= 7) return { text: `${diffDays} days left`, urgent: true };
+  if (diffDays <= 14) return { text: `${diffDays} days left`, urgent: false };
+  if (diffDays <= 30) return { text: `${Math.floor(diffDays / 7)} weeks left`, urgent: false };
+  return { text: `${Math.floor(diffDays / 30)} months left`, urgent: false };
+};
+
 const RFPSkeleton = () => (
   <div className="container py-12">
     <Skeleton className="h-10 w-72 mb-2" />
@@ -242,6 +258,23 @@ const RFPListings = () => {
                       <p className="font-semibold text-foreground">
                         {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}
                       </p>
+                      {(() => {
+                        const chip = getDeadlineChip(rfp.deadline);
+                        if (!chip) return null;
+                        return (
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "mt-1 text-xs",
+                              chip.urgent 
+                                ? "border-destructive/50 text-destructive bg-destructive/10" 
+                                : "border-muted-foreground/30 text-muted-foreground"
+                            )}
+                          >
+                            {chip.text}
+                          </Badge>
+                        );
+                      })()}
                     </div>
                     <div className="flex gap-2">
                       {rfp.source_url && (
