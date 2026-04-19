@@ -264,6 +264,25 @@ const Dashboard = () => {
             ))}
           </div>
 
+          {/* Live Tender Counter */}
+          <div className="rounded-xl border border-accent/30 bg-accent/5 px-5 py-3 mb-8 flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+              </span>
+              <p className="text-xs font-body text-foreground">
+                <span className="font-semibold text-accent">{tendersThisWeek.toLocaleString()}</span>{" "}
+                tenders read this week across African procurement portals
+              </p>
+            </div>
+            {lastScrapedAt && (
+              <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
+                <Clock className="h-3 w-3" /> Updated {formatRelativeTime(lastScrapedAt)}
+              </span>
+            )}
+          </div>
+
           {/* Proposal Pipeline */}
           {user && (
             <div className="mb-8">
