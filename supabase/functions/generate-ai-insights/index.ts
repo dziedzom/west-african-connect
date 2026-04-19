@@ -174,6 +174,9 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
       match_score: score,
       winning_strategy_summary: analysis.winning_strategy_summary,
       gap_analysis: analysis.gap_analysis,
+      key_requirements: analysis.key_requirements ?? [],
+      risk_flags: analysis.risk_flags ?? [],
+      missing_qualifications: analysis.missing_qualifications ?? [],
     });
 
     if (insertError) throw insertError;
@@ -183,6 +186,9 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
       match_score: score,
       winning_strategy_summary: analysis.winning_strategy_summary,
       gap_analysis: analysis.gap_analysis,
+      key_requirements: analysis.key_requirements ?? [],
+      risk_flags: analysis.risk_flags ?? [],
+      missing_qualifications: analysis.missing_qualifications ?? [],
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
