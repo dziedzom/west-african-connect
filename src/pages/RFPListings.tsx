@@ -258,6 +258,23 @@ const RFPListings = () => {
                       <p className="font-semibold text-foreground">
                         {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "TBD"}
                       </p>
+                      {(() => {
+                        const chip = getDeadlineChip(rfp.deadline);
+                        if (!chip) return null;
+                        return (
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "mt-1 text-xs",
+                              chip.urgent 
+                                ? "border-red-500/50 text-red-600 bg-red-500/10" 
+                                : "border-muted-foreground/30 text-muted-foreground"
+                            )}
+                          >
+                            {chip.text}
+                          </Badge>
+                        );
+                      })()}
                     </div>
                     <div className="flex gap-2">
                       {rfp.source_url && (
