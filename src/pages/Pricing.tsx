@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import SEO from "@/components/SEO";
+import PricingComparisonTable from "@/components/PricingComparisonTable";
 
 const tiers = [
   {
@@ -235,6 +236,9 @@ const Pricing = () => {
               </div>
             </div>
           </div>
+
+          {/* Feature Comparison Table */}
+          <PricingComparisonTable />
 
           {/* FAQ */}
           <div className="max-w-3xl mx-auto">

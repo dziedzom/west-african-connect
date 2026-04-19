@@ -76,6 +76,7 @@ const Dashboard = () => {
   const [matchedRfps, setMatchedRfps] = useState<RFP[]>([]);
   const [appCount, setAppCount] = useState(0);
   const [scrapedCount, setScrapedCount] = useState(0);
+  const [tendersThisWeek, setTendersThisWeek] = useState(0);
   const [scrapedRfps, setScrapedRfps] = useState<ScrapedRFP[]>([]);
   const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
   const [proposalCounts, setProposalCounts] = useState<Record<string, number>>({ draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 });
@@ -107,6 +108,17 @@ const Dashboard = () => {
         setScrapedCount(scrapedData.length);
         if (scrapedData.length > 0) {
           setLastScrapedAt(scrapedData[0].scraped_at);
+        }
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const weekCount = scrapedData.filter((r: ScrapedRFP) => new Date(r.scraped_at).getTime() >= weekAgo).length;
+        // Also query a count for the full week (in case >20 this week)
+        try {
+          const weekIso = new Date(weekAgo).toISOString();
+          const countRes = await fetch(`${restBase}/scraped_rfps?select=id&scraped_at=gte.${weekIso}`, { headers: { ...headers, Prefer: "count=exact" } });
+          const total = parseInt(countRes.headers.get("content-range")?.split("/")[1] || `${weekCount}`, 10);
+          setTendersThisWeek(isNaN(total) ? weekCount : total);
+        } catch {
+          setTendersThisWeek(weekCount);
         }
       }
 
@@ -201,7 +213,7 @@ const Dashboard = () => {
   })();
 
   const stats = [
-    { label: "Active RFPs", value: totalRfps + scrapedCount, icon: FileText, accent: true },
+    { label: "Active Tenders", value: totalRfps + scrapedCount, icon: FileText, accent: true },
     { label: "Matched", value: matchedRfps.length, icon: TrendingUp, accent: false },
     { label: "Applications", value: appCount, icon: Briefcase, accent: false },
     { label: "Saved", value: savedCount, icon: Heart, accent: false },
@@ -250,6 +262,25 @@ const Dashboard = () => {
                 <p className="text-[10px] text-muted-foreground mt-1 font-body uppercase tracking-wider">{s.label}</p>
               </div>
             ))}
+          </div>
+
+          {/* Live Tender Counter */}
+          <div className="rounded-xl border border-accent/30 bg-accent/5 px-5 py-3 mb-8 flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+              </span>
+              <p className="text-xs font-body text-foreground">
+                <span className="font-semibold text-accent">{tendersThisWeek.toLocaleString()}</span>{" "}
+                tenders read this week across African procurement portals
+              </p>
+            </div>
+            {lastScrapedAt && (
+              <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
+                <Clock className="h-3 w-3" /> Updated {formatRelativeTime(lastScrapedAt)}
+              </span>
+            )}
           </div>
 
           {/* Proposal Pipeline */}
@@ -324,16 +355,16 @@ const Dashboard = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <Bot className="h-4 w-4 text-accent" /> AI-Scraped Opportunities
+                  <Bot className="h-4 w-4 text-accent" /> AI-Tracked Tenders
                 </h2>
                 <div className="flex items-center gap-3">
                   {lastScrapedAt && (
                     <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> Last scraped {formatRelativeTime(lastScrapedAt)}
+                      <Clock className="h-3 w-3" /> Last read {formatRelativeTime(lastScrapedAt)}
                     </span>
                   )}
                   <Link to="/scrape" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                    Run scraper <ArrowRight className="h-3 w-3" />
+                    Run agent <ArrowRight className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
@@ -370,7 +401,7 @@ const Dashboard = () => {
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <p className="text-[10px] text-muted-foreground font-body">
-                          Scraped {new Date(rfp.scraped_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                          Read {new Date(rfp.scraped_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                         </p>
                         {rfp.deadline && (
                           <p className="text-[10px] font-semibold text-destructive font-body flex items-center gap-0.5">
@@ -391,7 +422,7 @@ const Dashboard = () => {
               {scrapedRfps.length > 6 && (
                 <div className="text-center mt-3">
                   <Link to="/scrape" className="text-xs text-accent hover:underline font-body">
-                    View all {scrapedCount} scraped RFPs →
+                    View all {scrapedCount} tracked tenders →
                   </Link>
                 </div>
               )}
