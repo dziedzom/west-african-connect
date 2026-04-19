@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle, Trophy, Lock, ThumbsUp, ThumbsDown, HelpCircle } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle, Trophy, Lock, ThumbsUp, ThumbsDown, HelpCircle, ListChecks, ShieldAlert, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -15,6 +15,9 @@ interface AIInsight {
   match_score: number;
   winning_strategy_summary: string | null;
   gap_analysis: string | null;
+  key_requirements: string[] | null;
+  risk_flags: string[] | null;
+  missing_qualifications: string[] | null;
 }
 
 interface RFPDetailModalProps {
@@ -79,13 +82,13 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
 
       const { data } = await supabase
         .from("ai_insights")
-        .select("match_score, winning_strategy_summary, gap_analysis")
+        .select("match_score, winning_strategy_summary, gap_analysis, key_requirements, risk_flags, missing_qualifications")
         .eq("rfp_id", rfpId)
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (data) {
-        setInsight(data);
+        setInsight(data as AIInsight);
         setLoading(false);
         return;
       }
@@ -102,6 +105,9 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
             match_score: result.match_score,
             winning_strategy_summary: result.winning_strategy_summary,
             gap_analysis: result.gap_analysis,
+            key_requirements: result.key_requirements ?? [],
+            risk_flags: result.risk_flags ?? [],
+            missing_qualifications: result.missing_qualifications ?? [],
           });
         }
       } catch (e) {
@@ -163,6 +169,54 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
             Gap Analysis
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">{insight.gap_analysis}</p>
+        </div>
+      )}
+      {insight.key_requirements && insight.key_requirements.length > 0 && (
+        <div className="space-y-1.5 pt-3 border-t border-border/50">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+            <ListChecks className="h-3.5 w-3.5 text-accent" />
+            Key Requirements
+          </div>
+          <ul className="space-y-1">
+            {insight.key_requirements.map((req, i) => (
+              <li key={i} className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
+                <span className="text-accent mt-0.5">•</span>
+                <span>{req}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {insight.risk_flags && insight.risk_flags.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+            <ShieldAlert className="h-3.5 w-3.5 text-red-500" />
+            Risk Flags
+          </div>
+          <ul className="space-y-1">
+            {insight.risk_flags.map((risk, i) => (
+              <li key={i} className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
+                <span className="text-red-500 mt-0.5">⚠</span>
+                <span>{risk}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {insight.missing_qualifications && insight.missing_qualifications.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+            <XCircle className="h-3.5 w-3.5 text-yellow-500" />
+            Missing Qualifications
+          </div>
+          <ul className="space-y-1">
+            {insight.missing_qualifications.map((mq, i) => (
+              <li key={i} className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
+                <span className="text-yellow-500 mt-0.5">○</span>
+                <span>{mq}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
