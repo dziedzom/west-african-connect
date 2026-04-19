@@ -422,7 +422,7 @@ const Dashboard = () => {
               {scrapedRfps.length > 6 && (
                 <div className="text-center mt-3">
                   <Link to="/scrape" className="text-xs text-accent hover:underline font-body">
-                    View all {scrapedCount} scraped RFPs →
+                    View all {scrapedCount} tracked tenders →
                   </Link>
                 </div>
               )}
