@@ -55,8 +55,11 @@ export type Database = {
           created_at: string
           gap_analysis: string | null
           id: string
+          key_requirements: Json | null
           match_score: number
+          missing_qualifications: Json | null
           rfp_id: string
+          risk_flags: Json | null
           updated_at: string
           user_id: string
           winning_strategy_summary: string | null
@@ -65,8 +68,11 @@ export type Database = {
           created_at?: string
           gap_analysis?: string | null
           id?: string
+          key_requirements?: Json | null
           match_score?: number
+          missing_qualifications?: Json | null
           rfp_id: string
+          risk_flags?: Json | null
           updated_at?: string
           user_id: string
           winning_strategy_summary?: string | null
@@ -75,8 +81,11 @@ export type Database = {
           created_at?: string
           gap_analysis?: string | null
           id?: string
+          key_requirements?: Json | null
           match_score?: number
+          missing_qualifications?: Json | null
           rfp_id?: string
+          risk_flags?: Json | null
           updated_at?: string
           user_id?: string
           winning_strategy_summary?: string | null

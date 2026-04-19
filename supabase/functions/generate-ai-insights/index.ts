@@ -105,7 +105,7 @@ ${profileSummary}
 ## Knowledge Base (Case Studies, Certifications, Capabilities)
 ${kbSummary}
 
-Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences on how to win), and gap_analysis (2-3 sentences on weaknesses/gaps to address).`,
+Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences on how to win), gap_analysis (2-3 sentences on weaknesses/gaps to address), key_requirements (3-6 concise must-have requirements extracted from the RFP), risk_flags (2-5 short risk warnings such as tight deadlines, unclear scope, restricted eligibility, payment terms, etc.), and missing_qualifications (2-5 short items the company appears to lack vs the RFP).`,
           },
         ],
         tools: [
@@ -120,8 +120,23 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
                   match_score: { type: "number", description: "Match score 0-100" },
                   winning_strategy_summary: { type: "string", description: "2-3 sentence strategy to win this RFP" },
                   gap_analysis: { type: "string", description: "2-3 sentence analysis of gaps/weaknesses" },
+                  key_requirements: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "3-6 concise must-have requirements extracted from the RFP",
+                  },
+                  risk_flags: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "2-5 short risk warnings (tight deadlines, unclear scope, restricted eligibility, payment terms, etc.)",
+                  },
+                  missing_qualifications: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "2-5 short items the company appears to lack vs the RFP",
+                  },
                 },
-                required: ["match_score", "winning_strategy_summary", "gap_analysis"],
+                required: ["match_score", "winning_strategy_summary", "gap_analysis", "key_requirements", "risk_flags", "missing_qualifications"],
                 additionalProperties: false,
               },
             },
@@ -159,6 +174,9 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
       match_score: score,
       winning_strategy_summary: analysis.winning_strategy_summary,
       gap_analysis: analysis.gap_analysis,
+      key_requirements: analysis.key_requirements ?? [],
+      risk_flags: analysis.risk_flags ?? [],
+      missing_qualifications: analysis.missing_qualifications ?? [],
     });
 
     if (insertError) throw insertError;
@@ -168,6 +186,9 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
       match_score: score,
       winning_strategy_summary: analysis.winning_strategy_summary,
       gap_analysis: analysis.gap_analysis,
+      key_requirements: analysis.key_requirements ?? [],
+      risk_flags: analysis.risk_flags ?? [],
+      missing_qualifications: analysis.missing_qualifications ?? [],
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
