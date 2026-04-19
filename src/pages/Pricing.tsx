@@ -237,6 +237,9 @@ const Pricing = () => {
             </div>
           </div>
 
+          {/* Feature Comparison Table */}
+          <PricingComparisonTable />
+
           {/* FAQ */}
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-display font-bold text-foreground text-center mb-2">
