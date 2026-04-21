@@ -62,19 +62,27 @@ const BidStudio = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {tools.map((tool) => (
-          <Card key={tool.path} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-lg">{tool.name}</CardTitle>
-              <CardDescription>{tool.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <Link to={tool.path}>Launch Tool</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+        {tools.map((tool) => {
+          const Icon = tool.icon;
+          return (
+            <Card key={tool.path} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-accent/10 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-accent" />
+                  </div>
+                  <CardTitle className="text-lg">{tool.name}</CardTitle>
+                </div>
+                <CardDescription>{tool.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link to={tool.path}>Launch Tool</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
