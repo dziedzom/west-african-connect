@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import { SAMPLE_RFP_TEXT, SAMPLE_BID_DRAFT } from "@/lib/sampleRfp";
 
 interface ReviewResult {
   overall_score: number;
@@ -95,6 +96,11 @@ const BidReviewer = () => {
       {!result && (
         <Card>
           <CardContent className="pt-6 space-y-4">
+            <div className="flex justify-end">
+              <Button type="button" variant="ghost" size="sm" onClick={() => { setRfpText(SAMPLE_RFP_TEXT); setBidDraft(SAMPLE_BID_DRAFT); setError(""); }}>
+                <Sparkles className="h-3.5 w-3.5 mr-1" /> Load sample RFP + draft
+              </Button>
+            </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Paste original RFP requirements</label>
               <Textarea className="min-h-[150px]" placeholder="Paste the RFP requirements here..." value={rfpText} onChange={(e) => setRfpText(e.target.value)} />

@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, Copy, Check } from "lucide-react";
+import { ArrowRight, Copy, Check, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { useToast } from "@/hooks/use-toast";
+import { SAMPLE_RFP_TEXT } from "@/lib/sampleRfp";
 
 const SECTIONS = [
   { key: "executive_summary", label: "Executive Summary" },
@@ -124,7 +125,20 @@ const BidWriter = () => {
         <>
           {step === 1 && (
             <Card>
-              <CardHeader><CardTitle className="text-base">Step 1: RFP Source</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-base">Step 1: RFP Source</CardTitle>
+                <Button type="button" variant="ghost" size="sm" onClick={() => {
+                  setRfpText(SAMPLE_RFP_TEXT);
+                  setCompanyName(companyName || "SolarMed Africa Ltd");
+                  setYears("5-10"); setEmployees("21-50");
+                  setPastProjects("GAVI cold chain expansion Uganda 2022 (USD 780k, 28 sites); UNICEF Tanzania immunisation upgrade 2023 (USD 1.1M, 35 sites); Kenya MOH Garissa pilot 2024 (USD 540k, 18 sites).");
+                  setCertifications("ISO 9001:2015; KRA Tax Compliance; AGPO certified; WHO PQS-authorised reseller");
+                  setAdvantage("Only Kenyan firm with a permanent service hub in Lodwar (Turkana) — guarantees 48h response on maintenance calls in the target counties.");
+                  setTeamMembers("Eng. Mary Wanjiku — Project Manager (11y cold chain); Eng. James Otieno — Lead Solar Engineer; Ms. Achieng Odhiambo — Training Lead (ex-MOH cold chain officer)");
+                }}>
+                  <Sparkles className="h-3.5 w-3.5 mr-1" /> Load sample RFP + company
+                </Button>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea
                   placeholder="Paste the full RFP text here..."

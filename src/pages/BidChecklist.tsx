@@ -8,12 +8,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, AlertTriangle, Download } from "lucide-react";
-import { format } from "date-fns";
+import { CalendarIcon, AlertTriangle, Download, Sparkles } from "lucide-react";
+import { format, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import { SAMPLE_DOCUMENTS_LIST } from "@/lib/sampleRfp";
 
 const AFRICAN_COUNTRIES = [
   "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic",
@@ -101,6 +102,16 @@ const BidChecklist = () => {
       {!result && (
         <Card>
           <CardContent className="pt-6 space-y-4">
+            <div className="flex justify-end">
+              <Button type="button" variant="ghost" size="sm" onClick={() => {
+                setDeadline(addDays(new Date(), 45));
+                setDocuments(SAMPLE_DOCUMENTS_LIST);
+                setCountry("Kenya");
+                setError("");
+              }}>
+                <Sparkles className="h-3.5 w-3.5 mr-1" /> Load sample RFP
+              </Button>
+            </div>
             <div>
               <label className="text-sm font-medium mb-1 block">RFP Submission Deadline</label>
               <Popover>
