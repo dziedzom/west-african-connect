@@ -7,11 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, ArrowRight, CheckCircle2, Upload, FileText, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Upload, FileText, X, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import * as pdfjsLib from "pdfjs-dist";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import { SAMPLE_RFP_TEXT } from "@/lib/sampleRfp";
 
 interface AnalysisResult {
   summary: string;
@@ -141,9 +142,14 @@ const BidAnalyser = () => {
                 <TabsTrigger value="upload">Upload PDF</TabsTrigger>
               </TabsList>
               <TabsContent value="paste">
+                <div className="flex justify-end mt-4 mb-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { setRfpText(SAMPLE_RFP_TEXT); setPdfFile(null); setError(""); }}>
+                    <Sparkles className="h-3.5 w-3.5 mr-1" /> Load sample RFP
+                  </Button>
+                </div>
                 <Textarea
                   placeholder="Paste the full RFP or tender document text here..."
-                  className="min-h-[250px] mt-4"
+                  className="min-h-[250px]"
                   value={rfpText}
                   onChange={(e) => setRfpText(e.target.value)}
                 />
