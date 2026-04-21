@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_RFP_TEXT, SAMPLE_BID_DRAFT } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import SaveStatusIndicator from "@/components/SaveStatusIndicator";
 
 interface ReviewResult {
   overall_score: number;
@@ -89,9 +90,12 @@ const BidReviewer = () => {
 
   return (
     <div className="container py-12 space-y-8 max-w-4xl">
-      <div>
-        <h1 className="text-2xl font-display font-bold">📋 Bid Reviewer</h1>
-        <p className="text-muted-foreground mt-1">Score your bid before you submit</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold">📋 Bid Reviewer</h1>
+          <p className="text-muted-foreground mt-1">Score your bid before you submit</p>
+        </div>
+        <SaveStatusIndicator />
       </div>
 
       {!result && (

@@ -15,6 +15,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { useToast } from "@/hooks/use-toast";
 import { SAMPLE_RFP_TEXT } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import SaveStatusIndicator from "@/components/SaveStatusIndicator";
 
 const SECTIONS = [
   { key: "executive_summary", label: "Executive Summary" },
@@ -117,9 +118,12 @@ const BidWriter = () => {
 
   return (
     <div className="container py-12 space-y-8 max-w-4xl">
-      <div>
-        <h1 className="text-2xl font-display font-bold">✍️ Bid Writer</h1>
-        <p className="text-muted-foreground mt-1">Generate professional bid sections powered by AI</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold">✍️ Bid Writer</h1>
+          <p className="text-muted-foreground mt-1">Generate professional bid sections powered by AI</p>
+        </div>
+        <SaveStatusIndicator />
       </div>
 
       {Object.keys(sections).length === 0 ? (

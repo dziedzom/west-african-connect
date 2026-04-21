@@ -16,6 +16,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_DOCUMENTS_LIST } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import SaveStatusIndicator from "@/components/SaveStatusIndicator";
 
 const AFRICAN_COUNTRIES = [
   "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic",
@@ -97,9 +98,12 @@ const BidChecklist = () => {
 
   return (
     <div className="container py-12 space-y-8 max-w-4xl">
-      <div>
-        <h1 className="text-2xl font-display font-bold">✅ Submission Checklist</h1>
-        <p className="text-muted-foreground mt-1">Never miss a deadline or document again</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold">✅ Submission Checklist</h1>
+          <p className="text-muted-foreground mt-1">Never miss a deadline or document again</p>
+        </div>
+        <SaveStatusIndicator />
       </div>
 
       {!result && (
