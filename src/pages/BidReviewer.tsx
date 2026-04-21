@@ -90,9 +90,12 @@ const BidReviewer = () => {
 
   return (
     <div className="container py-12 space-y-8 max-w-4xl">
-      <div>
-        <h1 className="text-2xl font-display font-bold">📋 Bid Reviewer</h1>
-        <p className="text-muted-foreground mt-1">Score your bid before you submit</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold">📋 Bid Reviewer</h1>
+          <p className="text-muted-foreground mt-1">Score your bid before you submit</p>
+        </div>
+        <SaveStatusIndicator />
       </div>
 
       {!result && (
