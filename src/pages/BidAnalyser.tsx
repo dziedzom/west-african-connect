@@ -13,6 +13,7 @@ import * as pdfjsLib from "pdfjs-dist";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_RFP_TEXT } from "@/lib/sampleRfp";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 interface AnalysisResult {
   summary: string;
@@ -30,7 +31,7 @@ interface AnalysisResult {
 const BidAnalyser = () => {
   const { isPro } = useSubscription();
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const [rfpText, setRfpText] = useState("");
+  const [rfpText, setRfpText, resetRfpText] = usePersistentState<string>("bid-analyser:rfpText", "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
@@ -311,7 +312,7 @@ const BidAnalyser = () => {
           </Card>
 
           <div className="flex gap-4">
-            <Button variant="outline" onClick={() => { setResult(null); setRfpText(""); setPdfFile(null); }}>Analyse Another</Button>
+            <Button variant="outline" onClick={() => { setResult(null); resetRfpText(); setPdfFile(null); }}>Analyse Another</Button>
             <Button asChild>
               <Link to="/bid-studio/writer" state={{ rfpText }}>Start Bid Writer <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>

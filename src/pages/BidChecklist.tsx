@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_DOCUMENTS_LIST } from "@/lib/sampleRfp";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 const AFRICAN_COUNTRIES = [
   "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic",
@@ -36,9 +37,11 @@ const STORAGE_KEY = "bid-checklist-checks";
 
 const BidChecklist = () => {
   const { isPro } = useSubscription();
-  const [deadline, setDeadline] = useState<Date | undefined>();
-  const [documents, setDocuments] = useState("");
-  const [country, setCountry] = useState("");
+  const [deadlineIso, setDeadlineIso] = usePersistentState<string | null>("bid-checklist:deadline", null);
+  const deadline = deadlineIso ? new Date(deadlineIso) : undefined;
+  const setDeadline = (d: Date | undefined) => setDeadlineIso(d ? d.toISOString() : null);
+  const [documents, setDocuments] = usePersistentState<string>("bid-checklist:documents", "");
+  const [country, setCountry] = usePersistentState<string>("bid-checklist:country", "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ChecklistResult | null>(null);
   const [error, setError] = useState("");

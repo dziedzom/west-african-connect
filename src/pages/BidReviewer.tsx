@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_RFP_TEXT, SAMPLE_BID_DRAFT } from "@/lib/sampleRfp";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 interface ReviewResult {
   overall_score: number;
@@ -42,8 +43,8 @@ const BidReviewer = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { isPro } = useSubscription();
-  const [rfpText, setRfpText] = useState((location.state as any)?.rfpText || "");
-  const [bidDraft, setBidDraft] = useState((location.state as any)?.bidDraft || "");
+  const [rfpText, setRfpText] = usePersistentState<string>("bid-reviewer:rfpText", (location.state as any)?.rfpText || "");
+  const [bidDraft, setBidDraft] = usePersistentState<string>("bid-reviewer:bidDraft", (location.state as any)?.bidDraft || "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ReviewResult | null>(null);
   const [error, setError] = useState("");
