@@ -14,6 +14,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { useToast } from "@/hooks/use-toast";
 import { SAMPLE_RFP_TEXT } from "@/lib/sampleRfp";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 const SECTIONS = [
   { key: "executive_summary", label: "Executive Summary" },
@@ -29,17 +30,17 @@ const BidWriter = () => {
   const { user } = useAuth();
   const { isPro } = useSubscription();
   const { toast } = useToast();
-  const [step, setStep] = useState(1);
-  const [rfpText, setRfpText] = useState((location.state as any)?.rfpText || "");
-  const [companyName, setCompanyName] = useState("");
-  const [years, setYears] = useState("");
-  const [employees, setEmployees] = useState("");
-  const [pastProjects, setPastProjects] = useState("");
-  const [certifications, setCertifications] = useState("");
-  const [advantage, setAdvantage] = useState("");
-  const [teamMembers, setTeamMembers] = useState("");
+  const [step, setStep] = usePersistentState<number>("bid-writer:step", 1);
+  const [rfpText, setRfpText, resetRfpText] = usePersistentState<string>("bid-writer:rfpText", (location.state as any)?.rfpText || "");
+  const [companyName, setCompanyName] = usePersistentState<string>("bid-writer:companyName", "");
+  const [years, setYears] = usePersistentState<string>("bid-writer:years", "");
+  const [employees, setEmployees] = usePersistentState<string>("bid-writer:employees", "");
+  const [pastProjects, setPastProjects] = usePersistentState<string>("bid-writer:pastProjects", "");
+  const [certifications, setCertifications] = usePersistentState<string>("bid-writer:certifications", "");
+  const [advantage, setAdvantage] = usePersistentState<string>("bid-writer:advantage", "");
+  const [teamMembers, setTeamMembers] = usePersistentState<string>("bid-writer:teamMembers", "");
   const [loading, setLoading] = useState(false);
-  const [sections, setSections] = useState<Record<string, string>>({});
+  const [sections, setSections, resetSections] = usePersistentState<Record<string, string>>("bid-writer:sections", {});
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [draftId, setDraftId] = useState<string | null>(null);
@@ -249,7 +250,7 @@ const BidWriter = () => {
             </Card>
           ))}
           <div className="flex gap-4">
-            <Button variant="outline" onClick={() => { setSections({}); setStep(1); }}>Start Over</Button>
+            <Button variant="outline" onClick={() => { resetSections(); setStep(1); }}>Start Over</Button>
             <Button asChild>
               <Link to="/bid-studio/reviewer" state={{ rfpText, bidDraft: SECTIONS.map(s => `## ${s.label}\n\n${sections[s.key] || ""}`).join("\n\n") }}>
                 Review My Bid <ArrowRight className="h-4 w-4 ml-1" />
