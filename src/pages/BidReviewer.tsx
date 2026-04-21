@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_RFP_TEXT, SAMPLE_BID_DRAFT } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import SaveStatusIndicator from "@/components/SaveStatusIndicator";
 
 interface ReviewResult {
   overall_score: number;

@@ -16,6 +16,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_DOCUMENTS_LIST } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import SaveStatusIndicator from "@/components/SaveStatusIndicator";
 
 const AFRICAN_COUNTRIES = [
   "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic",
