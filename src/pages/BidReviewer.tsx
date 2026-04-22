@@ -85,6 +85,11 @@ const BidReviewer = () => {
       setError(data?.error || "Our AI assistant is busy right now — please try again in a moment.");
     } else {
       setResult(data.result);
+      // Append to score history (keep last 20)
+      setScoreHistory([
+        ...scoreHistory,
+        { timestamp: Date.now(), overall_score: data.result.overall_score, grade: data.result.grade },
+      ].slice(-20));
       // Save review
       if (user) {
         await supabase.from("bid_reviews").insert({
