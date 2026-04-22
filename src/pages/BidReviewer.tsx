@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, XCircle, ArrowLeft, Sparkles } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -13,11 +13,13 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_RFP_TEXT, SAMPLE_BID_DRAFT } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import SaveStatusIndicator from "@/components/SaveStatusIndicator";
+import ScoreDashboard, { CategoryScores, ScoreHistoryEntry } from "@/components/ScoreDashboard";
 
 interface ReviewResult {
   overall_score: number;
   grade: string;
   verdict: string;
+  category_scores?: CategoryScores;
   strengths: string[];
   weaknesses: string[];
   missing_elements: string[];
