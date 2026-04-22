@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, XCircle, ArrowLeft, Sparkles } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -13,11 +13,13 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_RFP_TEXT, SAMPLE_BID_DRAFT } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import SaveStatusIndicator from "@/components/SaveStatusIndicator";
+import ScoreDashboard, { CategoryScores, ScoreHistoryEntry } from "@/components/ScoreDashboard";
 
 interface ReviewResult {
   overall_score: number;
   grade: string;
   verdict: string;
+  category_scores?: CategoryScores;
   strengths: string[];
   weaknesses: string[];
   missing_elements: string[];
@@ -46,9 +48,17 @@ const BidReviewer = () => {
   const { isPro } = useSubscription();
   const [rfpText, setRfpText] = usePersistentState<string>("bid-reviewer:rfpText", (location.state as any)?.rfpText || "");
   const [bidDraft, setBidDraft] = usePersistentState<string>("bid-reviewer:bidDraft", (location.state as any)?.bidDraft || "");
+  const [scoreHistory, setScoreHistory, resetHistory] = usePersistentState<ScoreHistoryEntry[]>("bid-reviewer:scoreHistory", []);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ReviewResult | null>(null);
   const [error, setError] = useState("");
+
+  const handleRescore = () => {
+    setResult(null);
+    setError("");
+    // Scroll to top so user can edit inputs
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (!isPro) {
     return (
@@ -75,6 +85,11 @@ const BidReviewer = () => {
       setError(data?.error || "Our AI assistant is busy right now — please try again in a moment.");
     } else {
       setResult(data.result);
+      // Append to score history (keep last 20)
+      setScoreHistory([
+        ...scoreHistory,
+        { timestamp: Date.now(), overall_score: data.result.overall_score, grade: data.result.grade },
+      ].slice(-20));
       // Save review
       if (user) {
         await supabase.from("bid_reviews").insert({
@@ -125,14 +140,24 @@ const BidReviewer = () => {
 
       {result && (
         <div className="space-y-6">
-          {/* Score Circle */}
-          <div className="flex flex-col items-center text-center">
-            <div className={`w-32 h-32 rounded-full border-4 flex flex-col items-center justify-center ${getScoreColor(result.overall_score)}`}>
-              <span className="text-3xl font-bold">{result.grade}</span>
-              <span className="text-lg font-semibold">{result.overall_score}/100</span>
+          {/* Visual Score Dashboard */}
+          <ScoreDashboard
+            overallScore={result.overall_score}
+            grade={result.grade}
+            verdict={result.verdict}
+            categoryScores={result.category_scores}
+            history={scoreHistory}
+          />
+
+          {/* Re-score CTA */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg border bg-muted/30">
+            <div>
+              <p className="text-sm font-medium">Made improvements to your bid?</p>
+              <p className="text-xs text-muted-foreground">Edit your draft above and re-score to track progress.</p>
             </div>
-            <p className="text-sm font-medium mt-2">{getScoreLabel(result.overall_score)}</p>
-            <p className="text-sm text-muted-foreground mt-1 max-w-md font-semibold">{result.verdict}</p>
+            <Button onClick={handleRescore} size="sm">
+              <RefreshCw className="h-4 w-4 mr-1.5" /> Re-score Bid
+            </Button>
           </div>
 
           {/* Strengths / Weaknesses / Missing */}
@@ -194,9 +219,16 @@ const BidReviewer = () => {
             <CardContent><p className="text-sm">{result.competitive_assessment}</p></CardContent>
           </Card>
 
-          <div className="flex gap-4">
-            <Button variant="outline" onClick={() => setResult(null)}>Review Again</Button>
-            <Button asChild variant="outline">
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={handleRescore}>
+              <RefreshCw className="h-4 w-4 mr-1.5" /> Re-score Bid
+            </Button>
+            {scoreHistory.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => resetHistory()}>
+                Clear score history
+              </Button>
+            )}
+            <Button asChild variant="outline" className="ml-auto">
               <Link to="/bid-studio/writer"><ArrowLeft className="h-4 w-4 mr-1" /> Go Back to Bid Writer</Link>
             </Button>
           </div>
