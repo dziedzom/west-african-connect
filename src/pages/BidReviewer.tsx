@@ -14,6 +14,7 @@ import { SAMPLE_RFP_TEXT, SAMPLE_BID_DRAFT } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import SaveStatusIndicator from "@/components/SaveStatusIndicator";
 import ScoreDashboard, { CategoryScores, ScoreHistoryEntry } from "@/components/ScoreDashboard";
+import WinProbability, { WinProbabilityData } from "@/components/WinProbability";
 
 interface ReviewResult {
   overall_score: number;
@@ -26,6 +27,7 @@ interface ReviewResult {
   compliance_check: { requirement: string; addressed: boolean; comment: string }[];
   specific_improvements: { section: string; issue: string; suggestion: string }[];
   competitive_assessment: string;
+  win_probability?: WinProbabilityData;
 }
 
 const getScoreColor = (score: number) => {
@@ -148,6 +150,9 @@ const BidReviewer = () => {
             categoryScores={result.category_scores}
             history={scoreHistory}
           />
+
+          {/* Win Probability */}
+          {result.win_probability && <WinProbability data={result.win_probability} />}
 
           {/* Re-score CTA */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg border bg-muted/30">
