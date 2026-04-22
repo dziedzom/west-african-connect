@@ -219,9 +219,16 @@ const BidReviewer = () => {
             <CardContent><p className="text-sm">{result.competitive_assessment}</p></CardContent>
           </Card>
 
-          <div className="flex gap-4">
-            <Button variant="outline" onClick={() => setResult(null)}>Review Again</Button>
-            <Button asChild variant="outline">
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={handleRescore}>
+              <RefreshCw className="h-4 w-4 mr-1.5" /> Re-score Bid
+            </Button>
+            {scoreHistory.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => resetHistory()}>
+                Clear score history
+              </Button>
+            )}
+            <Button asChild variant="outline" className="ml-auto">
               <Link to="/bid-studio/writer"><ArrowLeft className="h-4 w-4 mr-1" /> Go Back to Bid Writer</Link>
             </Button>
           </div>
