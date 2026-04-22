@@ -48,9 +48,17 @@ const BidReviewer = () => {
   const { isPro } = useSubscription();
   const [rfpText, setRfpText] = usePersistentState<string>("bid-reviewer:rfpText", (location.state as any)?.rfpText || "");
   const [bidDraft, setBidDraft] = usePersistentState<string>("bid-reviewer:bidDraft", (location.state as any)?.bidDraft || "");
+  const [scoreHistory, setScoreHistory, resetHistory] = usePersistentState<ScoreHistoryEntry[]>("bid-reviewer:scoreHistory", []);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ReviewResult | null>(null);
   const [error, setError] = useState("");
+
+  const handleRescore = () => {
+    setResult(null);
+    setError("");
+    // Scroll to top so user can edit inputs
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (!isPro) {
     return (
