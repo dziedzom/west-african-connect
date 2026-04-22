@@ -61,6 +61,13 @@ COMPANY INFORMATION: ${v.company_info}`,
   "overall_score": number between 0 and 100,
   "grade": "A, B, C, D, or F",
   "verdict": "one sentence honest overall assessment",
+  "category_scores": {
+    "compliance": { "score": number 0-100, "recommendation": "one-line specific recommendation" },
+    "technical_strength": { "score": number 0-100, "recommendation": "one-line specific recommendation" },
+    "pricing_value": { "score": number 0-100, "recommendation": "one-line specific recommendation" },
+    "language_clarity": { "score": number 0-100, "recommendation": "one-line specific recommendation" },
+    "completeness": { "score": number 0-100, "recommendation": "one-line specific recommendation" }
+  },
   "strengths": ["specific things the bid does well — minimum 3"],
   "weaknesses": ["specific things that need improvement — minimum 3"],
   "missing_elements": ["requirements from the RFP not addressed in the bid"],
