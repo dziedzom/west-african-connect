@@ -140,14 +140,24 @@ const BidReviewer = () => {
 
       {result && (
         <div className="space-y-6">
-          {/* Score Circle */}
-          <div className="flex flex-col items-center text-center">
-            <div className={`w-32 h-32 rounded-full border-4 flex flex-col items-center justify-center ${getScoreColor(result.overall_score)}`}>
-              <span className="text-3xl font-bold">{result.grade}</span>
-              <span className="text-lg font-semibold">{result.overall_score}/100</span>
+          {/* Visual Score Dashboard */}
+          <ScoreDashboard
+            overallScore={result.overall_score}
+            grade={result.grade}
+            verdict={result.verdict}
+            categoryScores={result.category_scores}
+            history={scoreHistory}
+          />
+
+          {/* Re-score CTA */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg border bg-muted/30">
+            <div>
+              <p className="text-sm font-medium">Made improvements to your bid?</p>
+              <p className="text-xs text-muted-foreground">Edit your draft above and re-score to track progress.</p>
             </div>
-            <p className="text-sm font-medium mt-2">{getScoreLabel(result.overall_score)}</p>
-            <p className="text-sm text-muted-foreground mt-1 max-w-md font-semibold">{result.verdict}</p>
+            <Button onClick={handleRescore} size="sm">
+              <RefreshCw className="h-4 w-4 mr-1.5" /> Re-score Bid
+            </Button>
           </div>
 
           {/* Strengths / Weaknesses / Missing */}
