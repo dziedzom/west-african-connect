@@ -85,7 +85,19 @@ COMPANY INFORMATION: ${v.company_info}`,
       "suggestion": "exactly how to fix it"
     }
   ],
-  "competitive_assessment": "honest assessment of how competitive this bid is likely to be and the main reasons why"
+  "competitive_assessment": "honest assessment of how competitive this bid is likely to be and the main reasons why",
+  "win_probability": {
+    "percentage": number 0-100 estimating realistic chance of winning given the bid score, RFP complexity, and likely market competitiveness for this type of opportunity in Africa,
+    "confidence": "low, medium, or high",
+    "rationale": "1-2 sentence plain-English explanation of how this probability was estimated, referencing the bid score, RFP complexity, and competitive landscape",
+    "benchmark": "one-line context like 'Bids scoring above 80 in this category typically win 3 out of 5 times'",
+    "boost_tips": [
+      {
+        "action": "specific concrete action the bidder can take",
+        "estimated_lift": "approximate percentage point lift, e.g. '+15%'"
+      }
+    ]
+  }
 }
 
 Return ONLY valid JSON. No preamble. No markdown fences.
