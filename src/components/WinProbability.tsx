@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Trophy, TrendingUp, Sparkles, FlaskConical } from "lucide-react";
 
 export interface BoostTip {
   action: string;
@@ -21,16 +23,36 @@ const probabilityTone = (pct: number) => {
   return { text: "text-red-600", ring: "stroke-red-500", bg: "bg-red-50 dark:bg-red-950/20", border: "border-red-500/40", label: "Long shot" };
 };
 
+type Complexity = "low" | "medium" | "high";
+
+// Baseline assumes "medium" complexity (the AI's default estimate).
+// Low complexity → easier to win; High complexity → harder.
+const COMPLEXITY_MODIFIER: Record<Complexity, number> = {
+  low: 1.18,
+  medium: 1.0,
+  high: 0.78,
+};
+
+const COMPLEXITY_LABEL: Record<Complexity, string> = {
+  low: "Few requirements, light competition",
+  medium: "Standard RFP, typical competition",
+  high: "Many requirements, strong incumbents",
+};
+
 interface Props {
   data: WinProbabilityData;
 }
 
 const WinProbability = ({ data }: Props) => {
-  const pct = Math.max(0, Math.min(100, Math.round(data.percentage ?? 0)));
-  const tone = probabilityTone(pct);
+  const basePct = Math.max(0, Math.min(100, Math.round(data.percentage ?? 0)));
+  const [complexity, setComplexity] = useState<Complexity>("medium");
+
+  const simulatedPct = Math.max(0, Math.min(100, Math.round(basePct * COMPLEXITY_MODIFIER[complexity])));
+  const delta = simulatedPct - basePct;
+  const tone = probabilityTone(simulatedPct);
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (pct / 100) * circumference;
+  const offset = circumference - (simulatedPct / 100) * circumference;
 
   return (
     <Card className={`${tone.border} ${tone.bg}`}>
@@ -62,7 +84,7 @@ const WinProbability = ({ data }: Props) => {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className={`text-4xl font-bold ${tone.text}`}>{pct}%</span>
+              <span className={`text-4xl font-bold ${tone.text}`}>{simulatedPct}%</span>
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Estimated</span>
             </div>
           </div>
@@ -79,6 +101,47 @@ const WinProbability = ({ data }: Props) => {
               <p className="text-sm text-muted-foreground">{data.rationale}</p>
             )}
           </div>
+        </div>
+
+        {/* What if simulator */}
+        <div className="mt-6 pt-4 border-t border-border/50">
+          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+            <h4 className="text-sm font-semibold flex items-center gap-1.5">
+              <FlaskConical className="h-3.5 w-3.5 text-primary" />
+              What if… RFP complexity is
+            </h4>
+            {complexity !== "medium" && (
+              <Badge
+                variant="secondary"
+                className={`text-xs font-semibold ${delta >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}
+              >
+                {delta >= 0 ? "+" : ""}{delta} pts vs baseline
+              </Badge>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {(["low", "medium", "high"] as Complexity[]).map((c) => {
+              const active = complexity === c;
+              return (
+                <Button
+                  key={c}
+                  type="button"
+                  variant={active ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setComplexity(c)}
+                  className="capitalize h-auto py-2 flex flex-col items-center gap-0.5"
+                >
+                  <span className="text-sm font-semibold">{c}</span>
+                  <span className="text-[10px] font-normal opacity-80 leading-tight">
+                    {Math.round(basePct * COMPLEXITY_MODIFIER[c])}%
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            {COMPLEXITY_LABEL[complexity]}. Same bid score, simulated against different market conditions.
+          </p>
         </div>
 
         {data.boost_tips && data.boost_tips.length > 0 && (
