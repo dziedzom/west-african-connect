@@ -142,6 +142,49 @@ const WinProbability = ({ data }: Props) => {
           <p className="text-xs text-muted-foreground mt-2">
             {COMPLEXITY_LABEL[complexity]}. Same bid score, simulated against different market conditions.
           </p>
+
+          {/* Sensitivity chart */}
+          <div className="mt-4 rounded-md border border-border/50 bg-background/60 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Sensitivity vs baseline
+              </p>
+              <span className="text-[10px] text-muted-foreground">Baseline {basePct}%</span>
+            </div>
+            <div className="flex items-end justify-between gap-2 h-24">
+              {([
+                { key: "baseline" as const, label: "Baseline", value: basePct, active: false },
+                ...(["low", "medium", "high"] as Complexity[]).map((c) => ({
+                  key: c,
+                  label: c.charAt(0).toUpperCase() + c.slice(1),
+                  value: Math.round(basePct * COMPLEXITY_MODIFIER[c]),
+                  active: complexity === c,
+                })),
+              ]).map((bar) => {
+                const barTone = probabilityTone(bar.value);
+                const heightPct = Math.max(4, bar.value);
+                const isBaseline = bar.key === "baseline";
+                return (
+                  <div key={bar.key} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                    <span className={`text-xs font-semibold ${isBaseline ? "text-muted-foreground" : barTone.text}`}>
+                      {bar.value}%
+                    </span>
+                    <div
+                      className={`w-full rounded-t transition-all duration-500 ${
+                        isBaseline
+                          ? "bg-muted-foreground/40"
+                          : barTone.ring.replace("stroke-", "bg-")
+                      } ${bar.active ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}`}
+                      style={{ height: `${heightPct}%` }}
+                    />
+                    <span className={`text-[10px] ${bar.active ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                      {bar.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {data.boost_tips && data.boost_tips.length > 0 && (
