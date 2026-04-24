@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
-import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal, ExternalLink } from "lucide-react";
+import { Search, MapPin, Tag, DollarSign, CalendarDays, X, SlidersHorizontal, ExternalLink, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,8 +70,10 @@ const RFPListings = () => {
     setLocation,
     setBudgetRange,
     setDateRange,
+    setShowGlobal,
     resetFilters,
     activeCount,
+    globalHiddenCount,
   } = useRFPFilters();
 
   const [selectedRFP, setSelectedRFP] = useState<RFP | null>(null);
@@ -213,16 +216,26 @@ const RFPListings = () => {
               />
             </div>
 
-            {/* Active filters bar */}
-            {activeCount > 0 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground font-body">{activeCount} active filter{activeCount > 1 ? "s" : ""}</span>
-                <Button variant="ghost" size="sm" onClick={handleResetFilters} className="h-6 px-2 text-xs text-accent hover:text-accent/80">
-                  <X className="h-3 w-3 mr-1" /> Clear all
-                </Button>
+            {/* Africa toggle + active filters bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5">
+                <Globe className="h-3.5 w-3.5 text-accent" />
+                <span className="text-xs font-body text-foreground">Show global opportunities</span>
+                <Switch checked={filters.showGlobal} onCheckedChange={(v) => { setShowGlobal(v); setCurrentPage(1); }} />
+                {!filters.showGlobal && globalHiddenCount > 0 && (
+                  <span className="text-[10px] text-muted-foreground">({globalHiddenCount} hidden)</span>
+                )}
               </div>
-            )}
+              {activeCount > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground font-body">{activeCount} active filter{activeCount > 1 ? "s" : ""}</span>
+                  <Button variant="ghost" size="sm" onClick={handleResetFilters} className="h-6 px-2 text-xs text-accent hover:text-accent/80">
+                    <X className="h-3 w-3 mr-1" /> Clear all
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center justify-between mb-4">
