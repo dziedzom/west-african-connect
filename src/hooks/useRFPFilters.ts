@@ -8,6 +8,7 @@ export interface RFPFilters {
   location: string;
   budgetRange: [number, number];
   dateRange: { from: Date | undefined; to: Date | undefined };
+  showGlobal: boolean;
 }
 
 const BUDGET_MIN = 0;
@@ -55,6 +56,7 @@ export function useRFPFilters() {
     location: "All",
     budgetRange: [BUDGET_MIN, BUDGET_MAX],
     dateRange: { from: undefined, to: undefined },
+    showGlobal: false,
   });
 
   useEffect(() => {
@@ -67,25 +69,25 @@ export function useRFPFilters() {
         .or(`deadline.is.null,deadline.gte.${nowISO}`)
         .order("scraped_at", { ascending: false });
 
-      const scraped: RFP[] = (data || [])
-        .filter((r) => isAfricanLocation(r.location))
-        .map((r) => ({
-          id: r.id,
-          title: r.title,
-          description: r.description || "",
-          category: r.category || "Uncategorized",
-          org: r.organization,
-          location: r.location,
-          value: r.budget,
-          budget: r.budget,
-          deadline: r.deadline,
-          status: r.status,
-          created_at: r.created_at,
-          updated_at: r.updated_at,
-          source: "scraped" as const,
-          source_url: r.source_url,
-          portal: r.portal,
-        }));
+      const scraped: RFP[] = (data || []).map((r) => ({
+        id: r.id,
+        title: r.title,
+        description: r.description || "",
+        category: r.category || "Uncategorized",
+        org: r.organization,
+        location: r.location,
+        value: r.budget,
+        budget: r.budget,
+        deadline: r.deadline,
+        status: r.status,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        source: "scraped" as const,
+        source_url: r.source_url,
+        portal: r.portal,
+        africa_relevant: (r as { africa_relevant?: boolean }).africa_relevant !== false
+          && isAfricanLocation(r.location),
+      }));
 
       setRfps(scraped);
       setLoading(false);
@@ -98,6 +100,7 @@ export function useRFPFilters() {
   const setLocation = useCallback((v: string) => setFilters((f) => ({ ...f, location: v })), []);
   const setBudgetRange = useCallback((v: [number, number]) => setFilters((f) => ({ ...f, budgetRange: v })), []);
   const setDateRange = useCallback((v: { from: Date | undefined; to: Date | undefined }) => setFilters((f) => ({ ...f, dateRange: v })), []);
+  const setShowGlobal = useCallback((v: boolean) => setFilters((f) => ({ ...f, showGlobal: v })), []);
 
   const resetFilters = useCallback(() => {
     setFilters({
@@ -106,11 +109,15 @@ export function useRFPFilters() {
       location: "All",
       budgetRange: [BUDGET_MIN, BUDGET_MAX],
       dateRange: { from: undefined, to: undefined },
+      showGlobal: false,
     });
   }, []);
 
   const filtered = useMemo(() => {
     return rfps.filter((r) => {
+      // Africa relevance (default ON; user can toggle "Show global opportunities")
+      if (!filters.showGlobal && r.africa_relevant === false) return false;
+
       // Text search
       if (filters.search) {
         const q = filters.search.toLowerCase();
@@ -121,20 +128,15 @@ export function useRFPFilters() {
         if (!matchText) return false;
       }
 
-      // Category
       if (filters.category !== "All" && r.category !== filters.category) return false;
-
-      // Location
       if (filters.location !== "All" && r.location !== filters.location) return false;
 
-      // Budget range
       const [lo, hi] = filters.budgetRange;
       if (lo !== BUDGET_MIN || hi !== BUDGET_MAX) {
         const budget = parseBudgetValue(r.value) ?? parseBudgetValue(r.budget);
         if (budget !== null && (budget < lo || budget > hi)) return false;
       }
 
-      // Date range
       if (filters.dateRange.from || filters.dateRange.to) {
         if (!r.deadline) return false;
         const d = new Date(r.deadline);
@@ -147,12 +149,18 @@ export function useRFPFilters() {
     });
   }, [rfps, filters]);
 
+  const globalHiddenCount = useMemo(
+    () => (filters.showGlobal ? 0 : rfps.filter((r) => r.africa_relevant === false).length),
+    [rfps, filters.showGlobal]
+  );
+
   const activeCount = useMemo(() => {
     let count = 0;
     if (filters.category !== "All") count++;
     if (filters.location !== "All") count++;
     if (filters.budgetRange[0] !== BUDGET_MIN || filters.budgetRange[1] !== BUDGET_MAX) count++;
     if (filters.dateRange.from || filters.dateRange.to) count++;
+    if (filters.showGlobal) count++;
     return count;
   }, [filters]);
 
@@ -166,7 +174,9 @@ export function useRFPFilters() {
     setLocation,
     setBudgetRange,
     setDateRange,
+    setShowGlobal,
     resetFilters,
     activeCount,
+    globalHiddenCount,
   };
 }
