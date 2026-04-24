@@ -69,28 +69,25 @@ export function useRFPFilters() {
         .or(`deadline.is.null,deadline.gte.${nowISO}`)
         .order("scraped_at", { ascending: false });
 
-      const scraped: RFP[] = (data || [])
-        .map((r) => ({
-          ...r,
-          _africa_relevant: (r as { africa_relevant?: boolean }).africa_relevant !== false && isAfricanLocation(r.location),
-        }))
-        .map((r) => ({
-          id: r.id,
-          title: r.title,
-          description: r.description || "",
-          category: r.category || "Uncategorized",
-          org: r.organization,
-          location: r.location,
-          value: r.budget,
-          budget: r.budget,
-          deadline: r.deadline,
-          status: r.status,
-          created_at: r.created_at,
-          updated_at: r.updated_at,
-          source: "scraped" as const,
-          source_url: r.source_url,
-          portal: r.portal,
-        }));
+      const scraped: RFP[] = (data || []).map((r) => ({
+        id: r.id,
+        title: r.title,
+        description: r.description || "",
+        category: r.category || "Uncategorized",
+        org: r.organization,
+        location: r.location,
+        value: r.budget,
+        budget: r.budget,
+        deadline: r.deadline,
+        status: r.status,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        source: "scraped" as const,
+        source_url: r.source_url,
+        portal: r.portal,
+        africa_relevant: (r as { africa_relevant?: boolean }).africa_relevant !== false
+          && isAfricanLocation(r.location),
+      }));
 
       setRfps(scraped);
       setLoading(false);
@@ -103,6 +100,7 @@ export function useRFPFilters() {
   const setLocation = useCallback((v: string) => setFilters((f) => ({ ...f, location: v })), []);
   const setBudgetRange = useCallback((v: [number, number]) => setFilters((f) => ({ ...f, budgetRange: v })), []);
   const setDateRange = useCallback((v: { from: Date | undefined; to: Date | undefined }) => setFilters((f) => ({ ...f, dateRange: v })), []);
+  const setShowGlobal = useCallback((v: boolean) => setFilters((f) => ({ ...f, showGlobal: v })), []);
 
   const resetFilters = useCallback(() => {
     setFilters({
@@ -111,6 +109,7 @@ export function useRFPFilters() {
       location: "All",
       budgetRange: [BUDGET_MIN, BUDGET_MAX],
       dateRange: { from: undefined, to: undefined },
+      showGlobal: false,
     });
   }, []);
 
