@@ -8,6 +8,7 @@ export interface RFPFilters {
   location: string;
   budgetRange: [number, number];
   dateRange: { from: Date | undefined; to: Date | undefined };
+  showGlobal: boolean;
 }
 
 const BUDGET_MIN = 0;
@@ -55,6 +56,7 @@ export function useRFPFilters() {
     location: "All",
     budgetRange: [BUDGET_MIN, BUDGET_MAX],
     dateRange: { from: undefined, to: undefined },
+    showGlobal: false,
   });
 
   useEffect(() => {
@@ -68,7 +70,10 @@ export function useRFPFilters() {
         .order("scraped_at", { ascending: false });
 
       const scraped: RFP[] = (data || [])
-        .filter((r) => isAfricanLocation(r.location))
+        .map((r) => ({
+          ...r,
+          _africa_relevant: (r as { africa_relevant?: boolean }).africa_relevant !== false && isAfricanLocation(r.location),
+        }))
         .map((r) => ({
           id: r.id,
           title: r.title,
