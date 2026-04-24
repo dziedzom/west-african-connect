@@ -16,4 +16,5 @@ export interface RFP {
   source: RFPSource;
   source_url?: string | null;
   portal?: string | null;
+  africa_relevant?: boolean;
 }
