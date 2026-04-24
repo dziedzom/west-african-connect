@@ -9,6 +9,7 @@ import { Bot, Play, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, Loader
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
 import Layout from "@/components/Layout";
+import SourceCoveragePanel from "@/components/SourceCoveragePanel";
 
 const DEFAULT_PORTALS = [
   { name: "UNGM", label: "UN Global Marketplace", url: "https://www.ungm.org/Public/Notice" },
@@ -182,6 +183,8 @@ const ScrapeAgent = () => {
               </p>
             </div>
           </div>
+
+          <SourceCoveragePanel />
 
           {/* Controls */}
           <div className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 mb-6">
