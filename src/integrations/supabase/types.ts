@@ -487,10 +487,73 @@ export type Database = {
         }
         Relationships: []
       }
+      scrape_sources: {
+        Row: {
+          auto_disabled_until: string | null
+          category: Database["public"]["Enums"]["scrape_source_category"]
+          consecutive_failures: number
+          created_at: string
+          domain: string
+          enabled: boolean
+          id: string
+          last_error: string | null
+          last_run_at: string | null
+          last_success_at: string | null
+          name: string
+          notes: string | null
+          priority: number
+          successful_runs: number
+          total_runs: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          auto_disabled_until?: string | null
+          category?: Database["public"]["Enums"]["scrape_source_category"]
+          consecutive_failures?: number
+          created_at?: string
+          domain: string
+          enabled?: boolean
+          id?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          last_success_at?: string | null
+          name: string
+          notes?: string | null
+          priority?: number
+          successful_runs?: number
+          total_runs?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          auto_disabled_until?: string | null
+          category?: Database["public"]["Enums"]["scrape_source_category"]
+          consecutive_failures?: number
+          created_at?: string
+          domain?: string
+          enabled?: boolean
+          id?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          last_success_at?: string | null
+          name?: string
+          notes?: string | null
+          priority?: number
+          successful_runs?: number
+          total_runs?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       scraped_rfps: {
         Row: {
+          additional_source_urls: string[]
+          africa_relevant: boolean
           budget: string | null
           category: string | null
+          content_hash: string | null
           created_at: string
           deadline: string | null
           description: string | null
@@ -499,14 +562,22 @@ export type Database = {
           organization: string | null
           portal: string
           scraped_at: string
+          source_category:
+            | Database["public"]["Enums"]["scrape_source_category"]
+            | null
+          source_domain: string | null
+          source_priority: number | null
           source_url: string
           status: string
           title: string
           updated_at: string
         }
         Insert: {
+          additional_source_urls?: string[]
+          africa_relevant?: boolean
           budget?: string | null
           category?: string | null
+          content_hash?: string | null
           created_at?: string
           deadline?: string | null
           description?: string | null
@@ -515,14 +586,22 @@ export type Database = {
           organization?: string | null
           portal: string
           scraped_at?: string
+          source_category?:
+            | Database["public"]["Enums"]["scrape_source_category"]
+            | null
+          source_domain?: string | null
+          source_priority?: number | null
           source_url: string
           status?: string
           title: string
           updated_at?: string
         }
         Update: {
+          additional_source_urls?: string[]
+          africa_relevant?: boolean
           budget?: string | null
           category?: string | null
+          content_hash?: string | null
           created_at?: string
           deadline?: string | null
           description?: string | null
@@ -531,6 +610,11 @@ export type Database = {
           organization?: string | null
           portal?: string
           scraped_at?: string
+          source_category?:
+            | Database["public"]["Enums"]["scrape_source_category"]
+            | null
+          source_domain?: string | null
+          source_priority?: number | null
           source_url?: string
           status?: string
           title?: string
@@ -720,6 +804,13 @@ export type Database = {
         | "production"
         | "web_digital"
       proposal_status: "draft" | "submitted" | "under_review" | "won" | "lost"
+      scrape_source_category:
+        | "multilateral"
+        | "bilateral_donor"
+        | "african_government"
+        | "regional_body"
+        | "aggregator"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -855,6 +946,14 @@ export const Constants = {
         "web_digital",
       ],
       proposal_status: ["draft", "submitted", "under_review", "won", "lost"],
+      scrape_source_category: [
+        "multilateral",
+        "bilateral_donor",
+        "african_government",
+        "regional_body",
+        "aggregator",
+        "other",
+      ],
     },
   },
 } as const
