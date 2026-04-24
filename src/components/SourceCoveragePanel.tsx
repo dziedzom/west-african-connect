@@ -89,7 +89,7 @@ const SourceCoveragePanel = () => {
               <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   {disabled ? <PauseCircle className="h-4 w-4 text-destructive shrink-0" />
-                    : s.last_error ? <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                    : s.last_error ? <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0" />
                     : <CheckCircle2 className="h-4 w-4 text-accent shrink-0" />}
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
