@@ -214,16 +214,16 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Connect</h4>
             <div className="flex items-center gap-3 mb-4">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="MiddlBrand on LinkedIn" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
                 <Linkedin className="h-4 w-4" />
               </a>
-              <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
+              <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="MiddlBrand on X / Twitter" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
                 <Twitter className="h-4 w-4" />
               </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="MiddlBrand on Facebook" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
                 <Facebook className="h-4 w-4" />
               </a>
-              <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
+              <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" aria-label="Contact MiddlBrand on WhatsApp" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
                 <MessageCircle className="h-4 w-4" />
               </a>
             </div>
@@ -241,7 +241,7 @@ const Footer = () => {
                 className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/30 text-xs h-9"
                 required
               />
-              <Button type="submit" size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full h-9 px-4 shrink-0">
+              <Button type="submit" size="sm" aria-label="Subscribe to newsletter" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full h-9 px-4 shrink-0">
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </form>

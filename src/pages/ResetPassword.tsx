@@ -60,7 +60,7 @@ const ResetPassword = () => {
   if (success) {
     return (
       <>
-        <SEO title="Password Updated" path="/reset-password" description="Your password has been updated." />
+        <SEO title="Password Updated" path="/reset-password" description="Your MiddlBrand account password has been updated successfully. You can now sign in with your new credentials." />
         <section className="py-16 bg-background min-h-screen flex items-center">
           <div className="container max-w-md">
             <div className="rounded-2xl border border-border p-8 text-center backdrop-blur-xl bg-card/60 shadow-lg">
@@ -80,7 +80,7 @@ const ResetPassword = () => {
 
   return (
     <>
-      <SEO title="Set New Password" path="/reset-password" description="Set a new password for your MiddlBrand account." />
+      <SEO title="Set New Password" path="/reset-password" description="Set a new password for your MiddlBrand account and regain access to your RFP dashboard and bid tools." />
       <section className="py-16 bg-background min-h-screen flex items-center">
         <div className="container max-w-md">
           <div className="text-center mb-8">

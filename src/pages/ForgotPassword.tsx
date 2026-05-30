@@ -32,7 +32,7 @@ const ForgotPassword = () => {
 
   return (
     <>
-      <SEO title="Forgot Password" path="/forgot-password" description="Reset your MiddlBrand account password." />
+      <SEO title="Forgot Password" path="/forgot-password" description="Reset your MiddlBrand account password and restore access to your RFP matches, proposals, and Bid Studio tools." />
       <section className="py-16 bg-background min-h-screen flex items-center">
         <div className="container max-w-md">
           {!sent ? (

@@ -62,6 +62,7 @@ const Index = () => {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-display font-black text-foreground leading-[0.9] animate-fade-in">
               MiddlBrand
+              <span className="sr-only"> — Connecting African Businesses to Winning RFP Contracts</span>
             </h1>
             <p className="mt-8 text-base md:text-lg text-muted-foreground font-body max-w-xl mx-auto animate-fade-in"
                style={{ animationDelay: "200ms" }}>

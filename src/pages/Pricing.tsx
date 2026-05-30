@@ -98,6 +98,15 @@ const Pricing = () => {
         title="Pricing"
         path="/pricing"
         description="MiddlBrand pricing: Free to browse, $40/month Pro for AI matching and full RFP access. Success fee of 3.5% capped at $5,000."
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: { "@type": "Answer", text: f.answer },
+          })),
+        }}
       />
       <section className="py-16 bg-background min-h-screen">
         <div className="container max-w-5xl">

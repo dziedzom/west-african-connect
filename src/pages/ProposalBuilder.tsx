@@ -152,7 +152,7 @@ const ProposalBuilder = () => {
 
   return (
     <>
-      <SEO title="Proposal Builder" path="/proposals" description="Draft, edit, and submit proposals against RFPs." />
+      <SEO title="Proposal Builder" path="/proposals" description="Draft, edit, track, and submit winning proposals against African RFPs with MiddlBrand's AI-assisted proposal builder." />
       <section className="py-12 bg-background min-h-screen grain-mesh">
         <div className="container max-w-4xl">
           {/* Header */}
