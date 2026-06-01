@@ -111,6 +111,7 @@ const Learn = () => {
                         {!isPlaying && (
                           <button
                             onClick={togglePlay}
+                            aria-label="Play video"
                             className="absolute inset-0 flex items-center justify-center bg-black/30 z-10 cursor-pointer"
                           >
                             <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center shadow-lg">
