@@ -220,7 +220,7 @@ const ScrapeAgent = () => {
                 onKeyDown={(e) => e.key === "Enter" && addCustomUrl()}
                 className="flex-1"
               />
-              <Button variant="outline" size="icon" onClick={addCustomUrl}>
+              <Button variant="outline" size="icon" onClick={addCustomUrl} aria-label="Add custom URL">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
