@@ -297,6 +297,8 @@ const Partnerships = () => {
                     </div>
                     {fileName && (
                       <button
+                        type="button"
+                        aria-label="Remove uploaded file"
                         onClick={(e) => {
                           e.stopPropagation();
                           setFileName("");

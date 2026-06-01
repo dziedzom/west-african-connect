@@ -254,7 +254,7 @@ const RFPListings = () => {
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-display font-semibold text-foreground">{rfp.title}</h3>
+                    <h2 className="text-lg font-display font-semibold text-foreground">{rfp.title}</h2>
                     {rfp.org && <p className="text-sm text-muted-foreground mt-1">{rfp.org}</p>}
                     {rfp.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{rfp.description}</p>}
                     <div className="flex flex-wrap gap-2 mt-3">
