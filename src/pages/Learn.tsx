@@ -123,12 +123,14 @@ const Learn = () => {
                           <div className="absolute bottom-3 right-3 flex gap-2 z-10">
                             <button
                               onClick={togglePlay}
+                              aria-label="Pause video"
                               className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center"
                             >
                               <div className="w-2 h-3 border-l-2 border-r-2 border-foreground" />
                             </button>
                             <button
                               onClick={toggleMute}
+                              aria-label={isMuted ? "Unmute video" : "Mute video"}
                               className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center"
                             >
                               {isMuted ? (
