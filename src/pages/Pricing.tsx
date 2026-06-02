@@ -192,7 +192,7 @@ const Pricing = () => {
                     <li
                       key={f}
                       className={`flex items-start gap-2 text-xs font-body ${
-                        tier.featured ? "opacity-40" : "text-muted-foreground/50"
+                        tier.featured ? "opacity-70" : "text-muted-foreground"
                       } line-through`}
                     >
                       <span className="h-3.5 w-3.5 mt-0.5 shrink-0 text-center">—</span>
