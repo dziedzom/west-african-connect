@@ -194,7 +194,7 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
     });
   } catch (e) {
     console.error("generate-ai-insights error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "An unexpected error occurred. Please try again." }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
