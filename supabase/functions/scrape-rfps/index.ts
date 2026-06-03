@@ -304,11 +304,49 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // AuthZ: allow internal cron/service-role calls OR authenticated admin users.
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearer = authHeader.replace(/^Bearer\s+/i, "").trim();
+    const isServiceRoleCall = !!bearer && bearer === SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!isServiceRoleCall) {
+      if (!bearer) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const authedClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${bearer}` } },
+      });
+      const { data: claimsData, error: claimsError } = await authedClient.auth.getClaims(bearer);
+      if (claimsError || !claimsData?.claims?.sub) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const adminCheck = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const { data: roleRow } = await adminCheck
+        .from("user_roles").select("role")
+        .eq("user_id", claimsData.claims.sub).eq("role", "admin").maybeSingle();
+      if (!roleRow) {
+        return new Response(JSON.stringify({ error: "Forbidden: admin role required" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const body = await req.json().catch(() => ({}));
-    const customUrls: string[] = body.urls || [];
+    // Validate & bound custom URLs (must be http/https, max 50) to prevent SSRF-via-proxy abuse.
+    const customUrls: string[] = (Array.isArray(body.urls) ? body.urls : [])
+      .filter((u: unknown): u is string => typeof u === "string")
+      .map((u: string) => u.trim())
+      .filter((u: string) => { try { const p = new URL(u); return p.protocol === "http:" || p.protocol === "https:"; } catch { return false; } })
+      .slice(0, 50);
     const portalFilter: string[] = body.portals || [];
     const sourceDomain: string | undefined = body.source_domain;
     const priorityFilter: number | null = typeof body.priority === "number" ? body.priority : null;
