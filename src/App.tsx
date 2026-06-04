@@ -29,6 +29,7 @@ import BidAnalyser from "./pages/BidAnalyser";
 import BidWriter from "./pages/BidWriter";
 import BidReviewer from "./pages/BidReviewer";
 import BidChecklist from "./pages/BidChecklist";
+import IndexingStatus from "./pages/IndexingStatus";
 
 const queryClient = new QueryClient();
 
