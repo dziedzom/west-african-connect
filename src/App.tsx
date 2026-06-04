@@ -73,6 +73,7 @@ const App = () => (
               <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
               <Route path="/knowledge-base" element={<ProtectedRoute><KnowledgeBase /></ProtectedRoute>} />
               <Route path="/scrape" element={<AdminRoute><ScrapeAgent /></AdminRoute>} />
+              <Route path="/indexing" element={<AdminRoute><IndexingStatus /></AdminRoute>} />
               <Route path="/proposals" element={<ProtectedRoute><ProposalBuilder /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/bid-studio" element={<ProtectedRoute><BidStudio /></ProtectedRoute>} />
