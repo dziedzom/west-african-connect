@@ -198,7 +198,7 @@ const Footer = () => {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 mb-12">
           <div>
             <p className="text-sm font-body opacity-60 max-w-xs">
-              Connecting vetted African companies to real business opportunities. No upfront fees.
+              Connecting vetted African companies to real business opportunities. Pro plans from $40/mo.
             </p>
           </div>
           <div>
