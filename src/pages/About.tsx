@@ -6,7 +6,7 @@ const values = [
   { icon: Eye, title: "Transparency", text: "Every step of our matching process is visible. Companies know exactly how and why they're paired with opportunities." },
   { icon: Handshake, title: "Partnership", text: "We're not just a listing service. We actively facilitate introductions, due diligence, and bid preparation." },
   { icon: Heart, title: "Community Impact", text: "By connecting local companies to contracts, we keep economic value within African communities." },
-  { icon: Scale, title: "Ethical Practice", text: "No hidden fees, no conflicts of interest. Our 5–10% tiered commission model ensures aligned incentives." },
+  { icon: Scale, title: "Ethical Practice", text: "No hidden fees, no conflicts of interest. Our subscription + success-fee model ensures aligned incentives." },
 ];
 
 const About = () => {
@@ -34,7 +34,7 @@ MiddlBrand was born from a simple observation: qualified African companies consi
             <p><strong className="text-foreground font-display">2. Match</strong> — We analyze each opportunity against our directory of vetted companies, considering expertise, location, capacity, and track record.</p>
             <p><strong className="text-foreground font-display">3. Notify</strong> — Matched companies receive curated alerts with full tender details, requirements, and our guidance on submission best practices.</p>
             <p><strong className="text-foreground font-display">4. Facilitate</strong> — We support bid preparation, provide market intelligence, and make direct introductions where appropriate.</p>
-            <p><strong className="text-foreground font-display">5. Commission</strong> — Only when a company wins a contract through our platform do we charge a success fee. No upfront costs ever.</p>
+            <p><strong className="text-foreground font-display">5. Commission</strong> — Start with a free plan to browse opportunities. Upgrade to Pro for AI-powered matching and bidding tools. A 3.5% success fee applies when you win.</p>
           </div>
         </div>
 

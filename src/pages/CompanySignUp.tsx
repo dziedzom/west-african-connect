@@ -76,14 +76,14 @@ const CompanySignUp = () => {
 
   return (
     <>
-    <SEO title="Join" path="/join" description="Register your company with MiddlBrand and get matched to RFP opportunities across Africa. No upfront fees." />
+    <SEO title="Join" path="/join" description="Register your company with MiddlBrand and get matched to RFP opportunities across Africa. Start free, upgrade to Pro." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-2xl">
         <div className="mb-10">
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
             Join the MiddlBrand Directory
           </h1>
-          <p className="mt-2 text-muted-foreground font-body text-sm">Register your company to receive matched opportunities. It's free — we only earn when you win.</p>
+          <p className="mt-2 text-muted-foreground font-body text-sm">Register your company to receive matched opportunities. Start free, upgrade to Pro for AI-powered bidding.</p>
           {!user && (
             <p className="mt-2 text-sm text-accent font-body">
               You'll need to <a href="/auth" className="underline font-semibold">sign in</a> before submitting.
@@ -137,7 +137,7 @@ const CompanySignUp = () => {
           <Button type="submit" size="lg" disabled={loading} className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold transition-all duration-300">
             {loading ? "Submitting..." : "Submit Application"}
           </Button>
-          <p className="text-[10px] text-center text-muted-foreground font-body">By submitting, you agree to our terms of service. No fees until you win a contract.</p>
+          <p className="text-[10px] text-center text-muted-foreground font-body">By submitting, you agree to our terms of service. Start free. Upgrade anytime.</p>
         </form>
       </div>
     </section>

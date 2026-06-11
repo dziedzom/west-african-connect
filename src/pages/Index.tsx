@@ -8,7 +8,7 @@ import SEO from "@/components/SEO";
 const stats = [
   { value: "500+", label: "Vetted Companies" },
   { value: "$12M+", label: "Matched" },
-  { value: "5%", label: "Commission" },
+  { value: "$40", label: "Pro Plan" },
   { value: "54", label: "Countries" },
 ];
 
@@ -20,7 +20,7 @@ const testimonials = [
     icon: Building2,
   },
   {
-    quote: "The commission model means zero risk for us. We only pay when we win — and we've won three contracts in six months.",
+    quote: "The AI-powered matching and bid tools save us hours every week. We've won three contracts in six months through MiddlBrand.",
     name: "Amina Diallo",
     title: "Director, Sahel Logistics",
     icon: Briefcase,
@@ -67,7 +67,7 @@ const Index = () => {
             <p className="mt-8 text-base md:text-lg text-muted-foreground font-body max-w-xl mx-auto animate-fade-in"
                style={{ animationDelay: "200ms" }}>
               Connecting vetted African businesses to real opportunities.
-              No upfront fees. No risk. We earn 5% when you win.
+              Start free. Upgrade to Pro for AI-powered matching and bidding.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4 animate-fade-in" style={{ animationDelay: "400ms" }}>
               <Button asChild size="lg" className="group rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-8 transition-all duration-300">
@@ -137,14 +137,14 @@ const Index = () => {
               </p>
             </div>
 
-            {/* Small card — Commission */}
+            {/* Small card — Subscription */}
             <div className="reveal rounded-2xl border border-border bg-card p-6 group hover:border-accent/30 transition-colors duration-300">
               <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
                 <TrendingUp className="h-5 w-5 text-accent" />
               </div>
-              <h3 className="text-lg font-display font-semibold text-foreground mb-2">5–10% Commission</h3>
+              <h3 className="text-lg font-display font-semibold text-foreground mb-2">Pro Subscription</h3>
               <p className="text-xs text-muted-foreground font-body">
-                We only earn when you win. Tiered from 5% to 10% based on service level.
+                $40/mo for AI matching, bid tools, and daily alerts. 3.5% success fee when you win.
               </p>
             </div>
 
