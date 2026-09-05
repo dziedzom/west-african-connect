@@ -559,6 +559,7 @@ export type Database = {
           description: string | null
           id: string
           location: string | null
+          needs_review: boolean
           organization: string | null
           portal: string
           scraped_at: string
@@ -583,6 +584,7 @@ export type Database = {
           description?: string | null
           id?: string
           location?: string | null
+          needs_review?: boolean
           organization?: string | null
           portal: string
           scraped_at?: string
@@ -607,6 +609,7 @@ export type Database = {
           description?: string | null
           id?: string
           location?: string | null
+          needs_review?: boolean
           organization?: string | null
           portal?: string
           scraped_at?: string
