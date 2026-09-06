@@ -358,7 +358,8 @@ serve(async (req) => {
     const includeDisabled: boolean = !!body.include_disabled;
 
     // Load source catalog from DB
-    let q = supabase.from("scrape_sources").select("*").eq("enabled", true);
+    // Stable ordering is required so batch slices never overlap or skip sources.
+    let q = supabase.from("scrape_sources").select("*").eq("enabled", true).order("priority", { ascending: true }).order("id", { ascending: true });
     if (priorityFilter !== null) q = q.eq("priority", priorityFilter);
     if (sourceDomain) q = q.eq("domain", sourceDomain);
     if (portalFilter.length > 0) q = q.in("name", portalFilter);
