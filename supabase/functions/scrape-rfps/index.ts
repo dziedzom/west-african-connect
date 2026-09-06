@@ -307,12 +307,15 @@ serve(async (req) => {
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // AuthZ: allow internal cron/service-role calls OR authenticated admin users.
+    // AuthZ: allow internal cron calls (shared secret), service-role calls, OR authenticated admin users.
     const authHeader = req.headers.get("Authorization") || "";
     const bearer = authHeader.replace(/^Bearer\s+/i, "").trim();
     const isServiceRoleCall = !!bearer && bearer === SUPABASE_SERVICE_ROLE_KEY;
+    const CRON_SECRET = Deno.env.get("SCRAPE_CRON_SECRET") || "";
+    const cronHeader = (req.headers.get("x-cron-secret") || "").trim();
+    const isCronCall = !!CRON_SECRET && !!cronHeader && cronHeader === CRON_SECRET;
 
-    if (!isServiceRoleCall) {
+    if (!isServiceRoleCall && !isCronCall) {
       if (!bearer) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
