@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.bid-studio-ai]
 verify_jwt = false
+
+[functions.scrape-rfps]
+verify_jwt = false
