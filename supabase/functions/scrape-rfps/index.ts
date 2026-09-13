@@ -100,13 +100,28 @@ interface ScrapeSource {
   consecutive_failures: number;
 }
 
+interface PortalResult {
+  portal: string;
+  url: string;
+  rfps_extracted?: number;
+  rfps_found: number;
+  skipped_expired: number;
+  deduped: number;
+  non_africa: number;
+  open?: number;
+  closing_soon?: number;
+  expired?: number;
+  null_deadline?: number;
+  error?: string;
+}
+
 async function scrapePortal(
   target: ScrapeSource,
   firecrawlKey: string,
   lovableKey: string,
   supabase: ReturnType<typeof createClient>,
   todayISO: string
-): Promise<{ portal: string; url: string; rfps_found: number; skipped_expired: number; deduped: number; non_africa: number; error?: string }> {
+): Promise<PortalResult> {
   console.log(`Scraping: ${target.name} - ${target.url}`);
 
   const scrapeRes = await fetch(`${FIRECRAWL_API}/scrape`, {
