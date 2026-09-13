@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const FIRECRAWL_API = "https://api.firecrawl.dev/v1";
 const BATCH_SIZE = 10;
-const MIN_DAYS_UNTIL_DEADLINE = 7;
+const CLOSING_SOON_DAYS = 7;
 const PORTAL_TIMEOUT_MS = 90_000;
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
@@ -34,12 +34,16 @@ function extractDomain(url: string): string {
   }
 }
 
-function isDeadlineValid(deadlineStr: string | null): boolean {
-  if (!deadlineStr) return true;
+// Nothing is discarded at ingest for being near or past its deadline.
+// Status is derived at insert time; display-time filtering decides visibility.
+function deadlineStatus(deadlineStr: string | null): "open" | "closing_soon" | "expired" {
+  if (!deadlineStr) return "open";
   const d = new Date(deadlineStr);
-  if (isNaN(d.getTime())) return true;
+  if (isNaN(d.getTime())) return "open";
   const diffDays = (d.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-  return diffDays >= MIN_DAYS_UNTIL_DEADLINE;
+  if (diffDays < 0) return "expired";
+  if (diffDays < CLOSING_SOON_DAYS) return "closing_soon";
+  return "open";
 }
 
 function slugify(s: string): string {
