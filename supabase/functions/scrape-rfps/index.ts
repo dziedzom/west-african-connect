@@ -147,7 +147,11 @@ async function scrapePortal(
 CRITICAL RULES:
 1. Extract every distinct RFP/tender on the page. Do not invent fields.
 2. **TRANSLATE everything to English.** All extracted fields must be in English.
-3. **Deadlines**: Convert ALL dates to ISO 8601 (YYYY-MM-DD). Today is ${todayISO}. ONLY include RFPs whose deadline is at least ${MIN_DAYS_UNTIL_DEADLINE} days from today (or unknown). Skip already-expired ones.
+3. **Deadlines — STRICT, NO INFERENCE**: Today is ${todayISO}.
+   - Convert a deadline to ISO 8601 (YYYY-MM-DD) ONLY when a closing/submission/due date is explicitly visible in the supplied content for that specific opportunity.
+   - If no closing date is visible for an item, you MUST return null for the deadline field (omit it). NEVER infer, estimate, guess, approximate, derive from context, or copy a date from another item, a publication date, or today's date.
+   - A null deadline is a valid and expected outcome, NOT a failure. Returning null is always correct when the date is not shown. Fabricating a date is a critical error.
+   - Include EVERY opportunity you find regardless of how soon it closes, including ones closing today, in a few days, or already past. Do not filter or skip by date.
 4. For category, use: IT, Construction, Consulting, Agriculture, Energy, Health, Education, Transport, Marketing, Environment, Finance, Water, Legal, Mining, Pharma, Telecommunications, Other.
 5. For location, give the country name in English. Use "Africa" or a regional label (e.g. "Sub-Saharan Africa") if multi-country.
 6. For source_url, pick the most specific link from the links list; if none match, use the portal URL.
@@ -156,7 +160,7 @@ Return ONLY valid JSON via the function call.`,
         },
         {
           role: "user",
-          content: `Extract all current, non-expired RFP/tender opportunities from this procurement portal (${target.name}). Links found on page: ${JSON.stringify(links.slice(0, 40))}\n\nContent:\n${truncatedContent}`,
+          content: `Extract ALL RFP/tender opportunities from this procurement portal (${target.name}), regardless of deadline proximity. Only give a deadline when one is literally visible in the content below; otherwise return null. Links found on page: ${JSON.stringify(links.slice(0, 40))}\n\nContent:\n${truncatedContent}`,
         },
       ],
       tools: [
