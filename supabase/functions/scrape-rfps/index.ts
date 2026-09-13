@@ -436,15 +436,22 @@ serve(async (req) => {
 
     const todayISO = new Date().toISOString().split("T")[0];
     const results: PortalResult[] = [];
+    const runStartTs = Date.now();
+    const skippedForTime: string[] = [];
 
     for (const target of targets) {
       const startTs = Date.now();
+      // Never start a portal that could push the response past the gateway idle timeout.
+      if (Date.now() - runStartTs > TIME_BUDGET_MS) {
+        skippedForTime.push(target.name);
+        continue;
+      }
       try {
         const result = await withTimeout(
           scrapePortal(target, FIRECRAWL_API_KEY, LOVABLE_API_KEY, supabase, todayISO),
           PORTAL_TIMEOUT_MS
         );
-        results.push(result);
+        results.push({ ...result, duration_ms: Date.now() - startTs });
 
         // Update source health on success
         if (target.id !== "custom") {
