@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const FIRECRAWL_API = "https://api.firecrawl.dev/v1";
 const BATCH_SIZE = 10;
-const MIN_DAYS_UNTIL_DEADLINE = 7;
+const CLOSING_SOON_DAYS = 7;
 const PORTAL_TIMEOUT_MS = 90_000;
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
@@ -34,12 +34,16 @@ function extractDomain(url: string): string {
   }
 }
 
-function isDeadlineValid(deadlineStr: string | null): boolean {
-  if (!deadlineStr) return true;
+// Nothing is discarded at ingest for being near or past its deadline.
+// Status is derived at insert time; display-time filtering decides visibility.
+function deadlineStatus(deadlineStr: string | null): "open" | "closing_soon" | "expired" {
+  if (!deadlineStr) return "open";
   const d = new Date(deadlineStr);
-  if (isNaN(d.getTime())) return true;
+  if (isNaN(d.getTime())) return "open";
   const diffDays = (d.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-  return diffDays >= MIN_DAYS_UNTIL_DEADLINE;
+  if (diffDays < 0) return "expired";
+  if (diffDays < CLOSING_SOON_DAYS) return "closing_soon";
+  return "open";
 }
 
 function slugify(s: string): string {
@@ -96,13 +100,28 @@ interface ScrapeSource {
   consecutive_failures: number;
 }
 
+interface PortalResult {
+  portal: string;
+  url: string;
+  rfps_extracted?: number;
+  rfps_found: number;
+  skipped_expired: number;
+  deduped: number;
+  non_africa: number;
+  open?: number;
+  closing_soon?: number;
+  expired?: number;
+  null_deadline?: number;
+  error?: string;
+}
+
 async function scrapePortal(
   target: ScrapeSource,
   firecrawlKey: string,
   lovableKey: string,
   supabase: ReturnType<typeof createClient>,
   todayISO: string
-): Promise<{ portal: string; url: string; rfps_found: number; skipped_expired: number; deduped: number; non_africa: number; error?: string }> {
+): Promise<PortalResult> {
   console.log(`Scraping: ${target.name} - ${target.url}`);
 
   const scrapeRes = await fetch(`${FIRECRAWL_API}/scrape`, {
@@ -143,7 +162,11 @@ async function scrapePortal(
 CRITICAL RULES:
 1. Extract every distinct RFP/tender on the page. Do not invent fields.
 2. **TRANSLATE everything to English.** All extracted fields must be in English.
-3. **Deadlines**: Convert ALL dates to ISO 8601 (YYYY-MM-DD). Today is ${todayISO}. ONLY include RFPs whose deadline is at least ${MIN_DAYS_UNTIL_DEADLINE} days from today (or unknown). Skip already-expired ones.
+3. **Deadlines — STRICT, NO INFERENCE**: Today is ${todayISO}.
+   - Convert a deadline to ISO 8601 (YYYY-MM-DD) ONLY when a closing/submission/due date is explicitly visible in the supplied content for that specific opportunity.
+   - If no closing date is visible for an item, you MUST return null for the deadline field (omit it). NEVER infer, estimate, guess, approximate, derive from context, or copy a date from another item, a publication date, or today's date.
+   - A null deadline is a valid and expected outcome, NOT a failure. Returning null is always correct when the date is not shown. Fabricating a date is a critical error.
+   - Include EVERY opportunity you find regardless of how soon it closes, including ones closing today, in a few days, or already past. Do not filter or skip by date.
 4. For category, use: IT, Construction, Consulting, Agriculture, Energy, Health, Education, Transport, Marketing, Environment, Finance, Water, Legal, Mining, Pharma, Telecommunications, Other.
 5. For location, give the country name in English. Use "Africa" or a regional label (e.g. "Sub-Saharan Africa") if multi-country.
 6. For source_url, pick the most specific link from the links list; if none match, use the portal URL.
@@ -152,7 +175,7 @@ Return ONLY valid JSON via the function call.`,
         },
         {
           role: "user",
-          content: `Extract all current, non-expired RFP/tender opportunities from this procurement portal (${target.name}). Links found on page: ${JSON.stringify(links.slice(0, 40))}\n\nContent:\n${truncatedContent}`,
+          content: `Extract ALL RFP/tender opportunities from this procurement portal (${target.name}), regardless of deadline proximity. Only give a deadline when one is literally visible in the content below; otherwise return null. Links found on page: ${JSON.stringify(links.slice(0, 40))}\n\nContent:\n${truncatedContent}`,
         },
       ],
       tools: [
@@ -216,17 +239,18 @@ Return ONLY valid JSON via the function call.`,
   const rfps = extracted.rfps || [];
 
   let insertedCount = 0;
-  let skippedExpired = 0;
+  const skippedExpired = 0; // no longer used: nothing is skipped at ingest
   let dedupedCount = 0;
   let nonAfricaCount = 0;
+  let nullDeadlineCount = 0;
+  const statusCounts: Record<"open" | "closing_soon" | "expired", number> = { open: 0, closing_soon: 0, expired: 0 };
 
   for (const rfp of rfps) {
     if (!rfp.title || !rfp.source_url) continue;
 
-    if (!isDeadlineValid(rfp.deadline || null)) {
-      skippedExpired++;
-      continue;
-    }
+    const rowStatus = deadlineStatus(rfp.deadline || null);
+
+
 
     const africaRelevant = isAfricaRelevant(rfp, target.category);
     if (!africaRelevant) nonAfricaCount++;
@@ -264,7 +288,8 @@ Return ONLY valid JSON via the function call.`,
         organization: rfp.organization || null,
         source_url: rfp.source_url,
         portal: target.name,
-        status: "open",
+        status: rowStatus,
+        needs_review: !rfp.deadline,
         scraped_at: new Date().toISOString(),
         source_category: target.category,
         source_domain: sourceDomain,
@@ -275,12 +300,26 @@ Return ONLY valid JSON via the function call.`,
       { onConflict: "source_url" }
     );
 
-    if (!upsertError) insertedCount++;
-    else console.error(`Upsert error for "${rfp.title}":`, upsertError.message);
+    if (!upsertError) {
+      insertedCount++;
+      if (!rfp.deadline) nullDeadlineCount++;
+      else statusCounts[rowStatus]++;
+    } else console.error(`Upsert error for "${rfp.title}":`, upsertError.message);
   }
 
-  console.log(`${target.name}: inserted ${insertedCount}, deduped ${dedupedCount}, expired ${skippedExpired}, non-africa ${nonAfricaCount}`);
-  return { portal: target.name, url: target.url, rfps_found: insertedCount, skipped_expired: skippedExpired, deduped: dedupedCount, non_africa: nonAfricaCount };
+  console.log(`${target.name}: extracted ${rfps.length}, inserted ${insertedCount}, deduped ${dedupedCount}, non-africa ${nonAfricaCount}, open ${statusCounts.open}, closing_soon ${statusCounts.closing_soon}, expired ${statusCounts.expired}, null_deadline ${nullDeadlineCount}`);
+  return {
+    portal: target.name, url: target.url,
+    rfps_extracted: rfps.length,
+    rfps_found: insertedCount,
+    skipped_expired: skippedExpired,
+    deduped: dedupedCount,
+    non_africa: nonAfricaCount,
+    open: statusCounts.open,
+    closing_soon: statusCounts.closing_soon,
+    expired: statusCounts.expired,
+    null_deadline: nullDeadlineCount,
+  };
 }
 
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -391,7 +430,7 @@ serve(async (req) => {
     }
 
     const todayISO = new Date().toISOString().split("T")[0];
-    const results: Array<{ portal: string; url: string; rfps_found: number; skipped_expired: number; deduped: number; non_africa: number; error?: string }> = [];
+    const results: PortalResult[] = [];
 
     for (const target of targets) {
       const startTs = Date.now();
@@ -447,29 +486,47 @@ serve(async (req) => {
       await new Promise((r) => setTimeout(r, 2000));
     }
 
-    // Cleanup expired RFPs (last batch / single-batch only)
-    let cleanedCount = 0;
+    // Status maintenance (last batch / single-batch only): nothing is deleted.
+    // Past-deadline rows become 'expired'; rows now within 7 days become 'closing_soon'.
+    let expiredCount = 0;
+    let closingSoonCount = 0;
     const isLastBatch = batch === null || batch >= totalBatches - 1;
     if (isLastBatch) {
-      const { count } = await supabase
+      const nowIso = new Date().toISOString();
+      const soonIso = new Date(Date.now() + CLOSING_SOON_DAYS * 86400_000).toISOString();
+      const { count: expCount } = await supabase
         .from("scraped_rfps")
-        .delete({ count: "exact" })
-        .lt("deadline", new Date().toISOString())
-        .not("deadline", "is", null);
-      cleanedCount = count || 0;
+        .update({ status: "expired" }, { count: "exact" })
+        .neq("status", "expired")
+        .not("deadline", "is", null)
+        .lt("deadline", nowIso);
+      expiredCount = expCount || 0;
+
+      const { count: soonCount } = await supabase
+        .from("scraped_rfps")
+        .update({ status: "closing_soon" }, { count: "exact" })
+        .eq("status", "open")
+        .not("deadline", "is", null)
+        .gte("deadline", nowIso)
+        .lt("deadline", soonIso);
+      closingSoonCount = soonCount || 0;
     }
 
-    const totalFound = results.reduce((s, r) => s + r.rfps_found, 0);
-    const totalSkipped = results.reduce((s, r) => s + r.skipped_expired, 0);
-    const totalDeduped = results.reduce((s, r) => s + r.deduped, 0);
+    const sum = (k: keyof PortalResult) => results.reduce((s, r) => s + ((r[k] as number) || 0), 0);
 
     return new Response(JSON.stringify({
       success: true, batch, totalBatches,
       portals_processed: targets.length,
-      total_rfps_found: totalFound,
-      total_skipped_expired: totalSkipped,
-      total_deduped: totalDeduped,
-      cleaned_expired: cleanedCount,
+      total_rfps_extracted: sum("rfps_extracted"),
+      total_rfps_found: sum("rfps_found"),
+      total_skipped_expired: 0,
+      total_deduped: sum("deduped"),
+      total_open: sum("open"),
+      total_closing_soon: sum("closing_soon"),
+      total_expired: sum("expired"),
+      total_null_deadline: sum("null_deadline"),
+      transitioned_expired: expiredCount,
+      transitioned_closing_soon: closingSoonCount,
       results,
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: unknown) {
