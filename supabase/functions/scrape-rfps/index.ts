@@ -430,7 +430,7 @@ serve(async (req) => {
     }
 
     const todayISO = new Date().toISOString().split("T")[0];
-    const results: Array<{ portal: string; url: string; rfps_found: number; skipped_expired: number; deduped: number; non_africa: number; error?: string }> = [];
+    const results: PortalResult[] = [];
 
     for (const target of targets) {
       const startTs = Date.now();
@@ -486,29 +486,47 @@ serve(async (req) => {
       await new Promise((r) => setTimeout(r, 2000));
     }
 
-    // Cleanup expired RFPs (last batch / single-batch only)
-    let cleanedCount = 0;
+    // Status maintenance (last batch / single-batch only): nothing is deleted.
+    // Past-deadline rows become 'expired'; rows now within 7 days become 'closing_soon'.
+    let expiredCount = 0;
+    let closingSoonCount = 0;
     const isLastBatch = batch === null || batch >= totalBatches - 1;
     if (isLastBatch) {
-      const { count } = await supabase
+      const nowIso = new Date().toISOString();
+      const soonIso = new Date(Date.now() + CLOSING_SOON_DAYS * 86400_000).toISOString();
+      const { count: expCount } = await supabase
         .from("scraped_rfps")
-        .delete({ count: "exact" })
-        .lt("deadline", new Date().toISOString())
-        .not("deadline", "is", null);
-      cleanedCount = count || 0;
+        .update({ status: "expired" }, { count: "exact" })
+        .neq("status", "expired")
+        .not("deadline", "is", null)
+        .lt("deadline", nowIso);
+      expiredCount = expCount || 0;
+
+      const { count: soonCount } = await supabase
+        .from("scraped_rfps")
+        .update({ status: "closing_soon" }, { count: "exact" })
+        .eq("status", "open")
+        .not("deadline", "is", null)
+        .gte("deadline", nowIso)
+        .lt("deadline", soonIso);
+      closingSoonCount = soonCount || 0;
     }
 
-    const totalFound = results.reduce((s, r) => s + r.rfps_found, 0);
-    const totalSkipped = results.reduce((s, r) => s + r.skipped_expired, 0);
-    const totalDeduped = results.reduce((s, r) => s + r.deduped, 0);
+    const sum = (k: keyof PortalResult) => results.reduce((s, r) => s + ((r[k] as number) || 0), 0);
 
     return new Response(JSON.stringify({
       success: true, batch, totalBatches,
       portals_processed: targets.length,
-      total_rfps_found: totalFound,
-      total_skipped_expired: totalSkipped,
-      total_deduped: totalDeduped,
-      cleaned_expired: cleanedCount,
+      total_rfps_extracted: sum("rfps_extracted"),
+      total_rfps_found: sum("rfps_found"),
+      total_skipped_expired: 0,
+      total_deduped: sum("deduped"),
+      total_open: sum("open"),
+      total_closing_soon: sum("closing_soon"),
+      total_expired: sum("expired"),
+      total_null_deadline: sum("null_deadline"),
+      transitioned_expired: expiredCount,
+      transitioned_closing_soon: closingSoonCount,
       results,
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: unknown) {
