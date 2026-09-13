@@ -271,7 +271,8 @@ Return ONLY valid JSON via the function call.`,
         organization: rfp.organization || null,
         source_url: rfp.source_url,
         portal: target.name,
-        status: "open",
+        status: rowStatus,
+        needs_review: !rfp.deadline,
         scraped_at: new Date().toISOString(),
         source_category: target.category,
         source_domain: sourceDomain,
@@ -282,12 +283,26 @@ Return ONLY valid JSON via the function call.`,
       { onConflict: "source_url" }
     );
 
-    if (!upsertError) insertedCount++;
-    else console.error(`Upsert error for "${rfp.title}":`, upsertError.message);
+    if (!upsertError) {
+      insertedCount++;
+      if (!rfp.deadline) nullDeadlineCount++;
+      else statusCounts[rowStatus]++;
+    } else console.error(`Upsert error for "${rfp.title}":`, upsertError.message);
   }
 
-  console.log(`${target.name}: inserted ${insertedCount}, deduped ${dedupedCount}, expired ${skippedExpired}, non-africa ${nonAfricaCount}`);
-  return { portal: target.name, url: target.url, rfps_found: insertedCount, skipped_expired: skippedExpired, deduped: dedupedCount, non_africa: nonAfricaCount };
+  console.log(`${target.name}: extracted ${rfps.length}, inserted ${insertedCount}, deduped ${dedupedCount}, non-africa ${nonAfricaCount}, open ${statusCounts.open}, closing_soon ${statusCounts.closing_soon}, expired ${statusCounts.expired}, null_deadline ${nullDeadlineCount}`);
+  return {
+    portal: target.name, url: target.url,
+    rfps_extracted: rfps.length,
+    rfps_found: insertedCount,
+    skipped_expired: skippedExpired,
+    deduped: dedupedCount,
+    non_africa: nonAfricaCount,
+    open: statusCounts.open,
+    closing_soon: statusCounts.closing_soon,
+    expired: statusCounts.expired,
+    null_deadline: nullDeadlineCount,
+  };
 }
 
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
