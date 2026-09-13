@@ -468,7 +468,7 @@ serve(async (req) => {
       } catch (portalError: unknown) {
         const msg = portalError instanceof Error ? portalError.message : "Unknown error";
         console.error(`Error scraping ${target.name}:`, msg);
-        results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: msg });
+        results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, duration_ms: Date.now() - startTs, error: msg });
 
         if (target.id !== "custom") {
           const newFailures = (target.consecutive_failures || 0) + 1;
