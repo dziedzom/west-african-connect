@@ -239,9 +239,11 @@ Return ONLY valid JSON via the function call.`,
   const rfps = extracted.rfps || [];
 
   let insertedCount = 0;
-  let skippedExpired = 0;
+  const skippedExpired = 0; // no longer used: nothing is skipped at ingest
   let dedupedCount = 0;
   let nonAfricaCount = 0;
+  let nullDeadlineCount = 0;
+  const statusCounts: Record<"open" | "closing_soon" | "expired", number> = { open: 0, closing_soon: 0, expired: 0 };
 
   for (const rfp of rfps) {
     if (!rfp.title || !rfp.source_url) continue;
