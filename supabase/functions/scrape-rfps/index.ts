@@ -7,9 +7,13 @@ const corsHeaders = {
 };
 
 const FIRECRAWL_API = "https://api.firecrawl.dev/v1";
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 5;
 const CLOSING_SOON_DAYS = 7;
-const PORTAL_TIMEOUT_MS = 90_000;
+const PORTAL_TIMEOUT_MS = 60_000;
+// The gateway drops a request that has sent no bytes for 150s, so the whole
+// invocation must return well before that. Stop starting new portals past this.
+const TIME_BUDGET_MS = 115_000;
+const PORTAL_SLEEP_MS = 1_000;
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
 
@@ -112,6 +116,7 @@ interface PortalResult {
   closing_soon?: number;
   expired?: number;
   null_deadline?: number;
+  duration_ms?: number;
   error?: string;
 }
 
@@ -431,15 +436,22 @@ serve(async (req) => {
 
     const todayISO = new Date().toISOString().split("T")[0];
     const results: PortalResult[] = [];
+    const runStartTs = Date.now();
+    const skippedForTime: string[] = [];
 
     for (const target of targets) {
       const startTs = Date.now();
+      // Never start a portal that could push the response past the gateway idle timeout.
+      if (Date.now() - runStartTs > TIME_BUDGET_MS) {
+        skippedForTime.push(target.name);
+        continue;
+      }
       try {
         const result = await withTimeout(
           scrapePortal(target, FIRECRAWL_API_KEY, LOVABLE_API_KEY, supabase, todayISO),
           PORTAL_TIMEOUT_MS
         );
-        results.push(result);
+        results.push({ ...result, duration_ms: Date.now() - startTs });
 
         // Update source health on success
         if (target.id !== "custom") {
@@ -456,7 +468,7 @@ serve(async (req) => {
       } catch (portalError: unknown) {
         const msg = portalError instanceof Error ? portalError.message : "Unknown error";
         console.error(`Error scraping ${target.name}:`, msg);
-        results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: msg });
+        results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, duration_ms: Date.now() - startTs, error: msg });
 
         if (target.id !== "custom") {
           const newFailures = (target.consecutive_failures || 0) + 1;
@@ -483,7 +495,7 @@ serve(async (req) => {
       }
 
       console.log(`Portal ${target.name} took ${Date.now() - startTs}ms`);
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, PORTAL_SLEEP_MS));
     }
 
     // Status maintenance (last batch / single-batch only): nothing is deleted.
@@ -516,7 +528,10 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true, batch, totalBatches,
-      portals_processed: targets.length,
+      portals_processed: results.length,
+      portals_skipped_for_time: skippedForTime,
+      total_duration_ms: Date.now() - runStartTs,
+      slowest_portal_ms: results.reduce((m, r) => Math.max(m, r.duration_ms || 0), 0),
       total_rfps_extracted: sum("rfps_extracted"),
       total_rfps_found: sum("rfps_found"),
       total_skipped_expired: 0,
