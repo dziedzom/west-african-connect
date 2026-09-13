@@ -7,9 +7,13 @@ const corsHeaders = {
 };
 
 const FIRECRAWL_API = "https://api.firecrawl.dev/v1";
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 5;
 const CLOSING_SOON_DAYS = 7;
-const PORTAL_TIMEOUT_MS = 90_000;
+const PORTAL_TIMEOUT_MS = 60_000;
+// The gateway drops a request that has sent no bytes for 150s, so the whole
+// invocation must return well before that. Stop starting new portals past this.
+const TIME_BUDGET_MS = 115_000;
+const PORTAL_SLEEP_MS = 1_000;
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
 
@@ -112,6 +116,7 @@ interface PortalResult {
   closing_soon?: number;
   expired?: number;
   null_deadline?: number;
+  duration_ms?: number;
   error?: string;
 }
 
