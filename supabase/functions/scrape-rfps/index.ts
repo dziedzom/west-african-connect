@@ -495,7 +495,7 @@ serve(async (req) => {
       }
 
       console.log(`Portal ${target.name} took ${Date.now() - startTs}ms`);
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, PORTAL_SLEEP_MS));
     }
 
     // Status maintenance (last batch / single-batch only): nothing is deleted.
@@ -528,7 +528,10 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true, batch, totalBatches,
-      portals_processed: targets.length,
+      portals_processed: results.length,
+      portals_skipped_for_time: skippedForTime,
+      total_duration_ms: Date.now() - runStartTs,
+      slowest_portal_ms: results.reduce((m, r) => Math.max(m, r.duration_ms || 0), 0),
       total_rfps_extracted: sum("rfps_extracted"),
       total_rfps_found: sum("rfps_found"),
       total_skipped_expired: 0,
