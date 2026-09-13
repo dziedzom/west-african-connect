@@ -231,10 +231,9 @@ Return ONLY valid JSON via the function call.`,
   for (const rfp of rfps) {
     if (!rfp.title || !rfp.source_url) continue;
 
-    if (!isDeadlineValid(rfp.deadline || null)) {
-      skippedExpired++;
-      continue;
-    }
+    const rowStatus = deadlineStatus(rfp.deadline || null);
+
+
 
     const africaRelevant = isAfricaRelevant(rfp, target.category);
     if (!africaRelevant) nonAfricaCount++;
