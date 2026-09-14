@@ -187,6 +187,20 @@ const BidReviewer = () => {
             </Card>
           </div>
 
+          {/* Attachments not reviewed here — reminders only, never scored */}
+          {result.annexes_not_reviewed && result.annexes_not_reviewed.length > 0 && (
+            <Card className="bg-muted/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Attachments to submit separately (not scored)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {result.annexes_not_reviewed.map((a, i) => <li key={i}>• {a}</li>)}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Compliance Check */}
           <Card>
             <CardHeader><CardTitle className="text-base">Compliance Check</CardTitle></CardHeader>
