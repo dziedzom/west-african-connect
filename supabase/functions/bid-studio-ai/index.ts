@@ -42,13 +42,13 @@ ${v.rfp_text}`,
     system: `You are an expert bid writer specialising in African government and multilateral procurement. You write clear, compelling, compliant bid responses for SMEs competing for government contracts across Africa.`,
     user: `Using the RFP requirements and company information below, draft the following six bid sections. Write in formal procurement language. Be specific and compelling — avoid generic statements. Directly address the contracting authority's stated needs and evaluation criteria.
 
-LENGTH IS A HARD REQUIREMENT. Each section must reach at least its stated minimum word count. Short sections are treated as incomplete work. If you run out of company-specific detail, expand with substantive, relevant procurement content (delivery assumptions, quality assurance, risk mitigation, stakeholder engagement, value for money) rather than stopping early. Before returning, silently count the words in each section and expand any section that falls below its minimum.
+LENGTH IS A HARD REQUIREMENT. Each section must reach at least its stated minimum word count. Short sections are treated as incomplete work. If you run out of company-specific detail, expand with substantive, relevant procurement content (delivery assumptions, quality assurance, risk mitigation, stakeholder engagement, value for money) rather than stopping early. Before returning, silently count the words in each section and expand any section that falls below its minimum. Err on the longer end of every range rather than the shorter end.
 
 Today's date is ${v.today_date}. Use it for any dated statement, timeline or validity period. Never assume any other current date.
 
 Return a JSON object with exactly these fields:
 {
-  "executive_summary": "MINIMUM 300 words, target 300-400. Compelling opening that directly addresses the contracting authority's core need and summarises why this company should win",
+  "executive_summary": "MINIMUM 320 words, target 330-400. Compelling opening that directly addresses the contracting authority's core need and summarises why this company should win",
   "company_background": "MINIMUM 200 words, target 200-300. Professional company overview establishing credibility and relevant experience",
   "technical_approach": "MINIMUM 400 words, target 400-500. Detailed methodology responding directly to the technical requirements",
   "team_and_personnel": "MINIMUM 200 words, target 200-300. Presentation of the proposed team and their relevant qualifications",
