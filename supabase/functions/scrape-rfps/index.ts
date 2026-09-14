@@ -60,6 +60,13 @@ function extractDomain(url: string): string {
   }
 }
 
+// A date-only deadline means "closes at the end of that day", not midnight —
+// otherwise a tender closing today is stored as already expired.
+function normalizeDeadline(deadlineStr: string | null | undefined): string | null {
+  if (!deadlineStr) return null;
+  return /^\d{4}-\d{2}-\d{2}$/.test(deadlineStr) ? `${deadlineStr}T23:59:59Z` : deadlineStr;
+}
+
 // Nothing is discarded at ingest for being near or past its deadline.
 // Status is derived at insert time; display-time filtering decides visibility.
 function deadlineStatus(deadlineStr: string | null): "open" | "closing_soon" | "expired" {
@@ -104,7 +111,15 @@ function isAfricaRelevant(
 ): boolean {
   // Sources that are Africa-only by definition.
   if (sourceCategory === "african_government" || sourceCategory === "regional_body") return true;
-  if (sourceCategory === "aggregator" && (sourceUrl || "").toLowerCase().includes("africa")) return true;
+  // Africa-scoped aggregator feeds (e.g. .../global-africa-tenders.php). Only the
+  // hostname + path counts: a query string such as `?searchString=africa` is a
+  // keyword search on a global portal, not an Africa-only listing.
+  if (sourceCategory === "aggregator") {
+    try {
+      const u = new URL(sourceUrl || "");
+      if (`${u.hostname}${u.pathname}`.toLowerCase().includes("africa")) return true;
+    } catch { /* unparseable URL — fall through to content checks */ }
+  }
 
   const loc = (rfp.location || "").toLowerCase().trim();
 
@@ -466,7 +481,8 @@ Return ONLY valid JSON via the function call.`,
       }
     }
 
-    const rowStatus = deadlineStatus(rfp.deadline || null);
+    const rowDeadline = normalizeDeadline(rfp.deadline);
+    const rowStatus = deadlineStatus(rowDeadline);
 
 
 
@@ -501,16 +517,31 @@ Return ONLY valid JSON via the function call.`,
       continue;
     }
 
+    // Some portals (e.g. table-based government listings) give every item the same
+    // listing URL. Upserting on source_url would collapse them into a single row,
+    // so give each distinct opportunity its own URL fragment.
+    let rowSourceUrl = rfp.source_url;
+    const { data: sameUrl } = await supabase
+      .from("scraped_rfps")
+      .select("id, content_hash")
+      .eq("source_url", rowSourceUrl)
+      .maybeSingle();
+    if (sameUrl && (sameUrl as { content_hash: string | null }).content_hash !== contentHash) {
+      rowSourceUrl = `${rfp.source_url.split("#")[0]}#${contentHash.slice(0, 10)}`;
+    }
+
+
+
     const { error: upsertError } = await supabase.from("scraped_rfps").upsert(
       {
         title: rfp.title.substring(0, 500),
         description: rfp.description?.substring(0, 2000) || null,
-        deadline: rfp.deadline || null,
+        deadline: rowDeadline,
         category: rfp.category || null,
         budget: rfp.budget || null,
         location: rfp.location || null,
         organization: rfp.organization || null,
-        source_url: rfp.source_url,
+        source_url: rowSourceUrl,
         portal: target.name,
         status: rowStatus,
         needs_review: !rfp.deadline,
@@ -657,9 +688,10 @@ serve(async (req) => {
             );
             succeeded++;
             if (deadline) {
+              const normalized = normalizeDeadline(deadline);
               await supabase.from("scraped_rfps").update({
-                deadline,
-                status: deadlineStatus(deadline),
+                deadline: normalized,
+                status: deadlineStatus(normalized),
                 needs_review: false,
                 updated_at: new Date().toISOString(),
               }).eq("id", row.id);
