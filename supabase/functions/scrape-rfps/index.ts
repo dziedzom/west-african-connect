@@ -536,7 +536,7 @@ Return ONLY valid JSON via the function call.`,
       {
         title: rfp.title.substring(0, 500),
         description: rfp.description?.substring(0, 2000) || null,
-        deadline: rfp.deadline || null,
+        deadline: rowDeadline,
         category: rfp.category || null,
         budget: rfp.budget || null,
         location: rfp.location || null,
