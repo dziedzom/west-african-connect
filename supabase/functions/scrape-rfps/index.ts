@@ -394,10 +394,54 @@ Return ONLY valid JSON via the function call.`,
   let nullDeadlineCount = 0;
   const statusCounts: Record<"open" | "closing_soon" | "expired", number> = { open: 0, closing_soon: 0, expired: 0 };
 
+  // ---- Detail-page deep scraping (generic, config-driven) ----
+  const detailEnabled = !!target.follow_detail_pages;
+  const detailCap = Math.max(0, target.detail_max_per_run ?? 5);
+  // Reserve headroom so detail fetches never push the batch past the ceiling.
+  const detailDeadlineMs = runDeadlineMs - DETAIL_TIME_RESERVE_MS;
+  let detailAttempted = 0;
+  let detailSucceeded = 0;
+  let detailFailed = 0;
+  let detailRecovered = 0;
+  let detailSkippedForTime = 0;
+  let detailMs = 0;
+
   for (const rfp of rfps) {
     if (!rfp.title || !rfp.source_url) continue;
 
+    if (detailEnabled && !rfp.deadline && isDetailCandidate(target, rfp.source_url)) {
+      if (detailAttempted >= detailCap) {
+        detailSkippedForTime++;
+      } else if (Date.now() > detailDeadlineMs) {
+        detailSkippedForTime++;
+      } else {
+        detailAttempted++;
+        const startedAt = Date.now();
+        try {
+          const recovered = await withTimeout(
+            fetchDetailDeadline(rfp.source_url, firecrawlKey, lovableKey, todayISO),
+            DETAIL_TIMEOUT_MS,
+          );
+          detailSucceeded++;
+          if (recovered) {
+            rfp.deadline = recovered;
+            detailRecovered++;
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          // Credential failures must abort the portal; per-item misses must not.
+          if (msg.startsWith("AUTH_FAILURE")) throw e;
+          detailFailed++;
+          console.log(`${target.name}: detail fetch failed for ${rfp.source_url}: ${msg}`);
+        }
+        detailMs += Date.now() - startedAt;
+        await new Promise((r) => setTimeout(r, DETAIL_SLEEP_MS));
+      }
+    }
+
     const rowStatus = deadlineStatus(rfp.deadline || null);
+
+
 
 
 
