@@ -103,23 +103,27 @@ export async function sendScrapeAlert(
       emailError = "No admin email address available";
     } else {
       try {
-        const { error } = await supabase.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: EMAIL_TEMPLATE,
-            recipientEmail: adminEmail,
-            idempotencyKey: `${alert.key}-${Math.floor(Date.now() / 60_000)}`,
-            templateData: {
-              subject: alert.subject,
-              severity: alert.severity ?? "warning",
-              detail: alert.detail,
-              alertType: alert.type,
-              occurredAt: new Date().toISOString(),
-            },
+        const apiKey = Deno.env.get("LOVABLE_API_KEY");
+        if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+        const occurredAt = new Date().toISOString();
+        const { html, text } = renderAlertEmail(alert, occurredAt);
+        const res = await sendLovableEmail(
+          {
+            to: adminEmail,
+            from: { name: `${SITE_NAME} Alerts`, address: `alerts@${SENDER_DOMAIN}` },
+            sender_domain: SENDER_DOMAIN,
+            subject: `[${(alert.severity ?? "warning").toUpperCase()}] ${alert.subject}`,
+            html,
+            text,
+            purpose: "transactional",
+            label: alert.type,
+            idempotency_key: `${alert.key}-${Math.floor(Date.now() / 60_000)}`,
           },
-        });
-        if (error) {
+          { apiKey },
+        );
+        if (res?.success === false) {
           emailStatus = "failed";
-          emailError = (error as Error).message ?? String(error);
+          emailError = `send rejected: ${JSON.stringify(res)}`;
         } else {
           emailStatus = "sent";
         }
