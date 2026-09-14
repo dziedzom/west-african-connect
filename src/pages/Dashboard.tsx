@@ -178,8 +178,8 @@ const Dashboard = () => {
         if (insights && insights.length > 0) {
           const rfpIds = insights.map((i) => i.rfp_id);
           const { data: matchedRfpData } = await supabase
-            .from("rfps")
-            .select("id, title, category, org")
+            .from("scraped_rfps")
+            .select("id, title, category, organization")
             .in("id", rfpIds);
 
           if (matchedRfpData) {
@@ -188,7 +188,7 @@ const Dashboard = () => {
               insights
                 .map((i) => {
                   const r = rfpMap.get(i.rfp_id);
-                  return r ? { rfp_id: i.rfp_id, match_score: i.match_score, rfp_title: r.title, rfp_category: r.category, rfp_org: r.org } : null;
+                  return r ? { rfp_id: i.rfp_id, match_score: i.match_score, rfp_title: r.title, rfp_category: r.category ?? "Uncategorized", rfp_org: r.organization } : null;
                 })
                 .filter(Boolean) as TopMatch[]
             );
