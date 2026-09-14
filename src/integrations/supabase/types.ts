@@ -95,7 +95,7 @@ export type Database = {
             foreignKeyName: "ai_insights_rfp_id_fkey"
             columns: ["rfp_id"]
             isOneToOne: false
-            referencedRelation: "rfps"
+            referencedRelation: "scraped_rfps"
             referencedColumns: ["id"]
           },
         ]
@@ -416,7 +416,7 @@ export type Database = {
             foreignKeyName: "proposals_rfp_id_fkey"
             columns: ["rfp_id"]
             isOneToOne: false
-            referencedRelation: "rfps"
+            referencedRelation: "scraped_rfps"
             referencedColumns: ["id"]
           },
         ]
@@ -442,7 +442,7 @@ export type Database = {
         }
         Relationships: []
       }
-      rfps: {
+      rfps_deprecated_20260914: {
         Row: {
           budget: string | null
           category: string
