@@ -646,9 +646,10 @@ serve(async (req) => {
         continue;
       }
       try {
+        const runDeadlineMs = runStartTs + TIME_BUDGET_MS;
         const result = await withTimeout(
-          scrapePortal(target, FIRECRAWL_API_KEY, LOVABLE_API_KEY, supabase, todayISO),
-          PORTAL_TIMEOUT_MS
+          scrapePortal(target, FIRECRAWL_API_KEY, LOVABLE_API_KEY, supabase, todayISO, runDeadlineMs),
+          target.follow_detail_pages ? PORTAL_TIMEOUT_DETAIL_MS : PORTAL_TIMEOUT_MS
         );
         results.push({ ...result, duration_ms: Date.now() - startTs });
 
