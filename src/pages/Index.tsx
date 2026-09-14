@@ -131,9 +131,10 @@ const Index = () => {
               <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
                 <Shield className="h-5 w-5 text-accent" />
               </div>
-              <h3 className="text-lg font-display font-semibold text-foreground mb-2">Vetted Companies</h3>
+              <h3 className="text-lg font-display font-semibold text-foreground mb-2">Verified Companies</h3>
               <p className="text-xs text-muted-foreground font-body">
-                Every company is verified for capability, track record, and compliance.
+                Companies submit registration and tax documents, and our team reviews each one by hand before the
+                verified badge is granted.
               </p>
             </div>
 

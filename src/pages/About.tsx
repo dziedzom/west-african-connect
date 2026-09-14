@@ -31,7 +31,7 @@ MiddlBrand was born from a simple observation: qualified African companies consi
           <h2 className="text-2xl font-display font-bold text-foreground">How We Match & Facilitate</h2>
           <div className="rounded-2xl border border-border bg-card p-6 space-y-4 text-muted-foreground font-body text-sm">
             <p><strong className="text-foreground font-display">1. Source</strong> — Our team monitors government portals, development agencies, and private sector procurement across Africa to identify tenders, RFPs and contracts.</p>
-            <p><strong className="text-foreground font-display">2. Match</strong> — We analyze each opportunity against our directory of vetted companies, considering expertise, location, capacity, and track record.</p>
+            <p><strong className="text-foreground font-display">2. Match</strong> — We analyze each opportunity against our directory of companies, considering expertise, location, capacity, and track record. Companies that submit registration and tax documents for manual review carry a verified badge.</p>
             <p><strong className="text-foreground font-display">3. Notify</strong> — Matched companies receive curated alerts with full tender details, requirements, and our guidance on submission best practices.</p>
             <p><strong className="text-foreground font-display">4. Facilitate</strong> — We support bid preparation, provide market intelligence, and make direct introductions where appropriate.</p>
             <p><strong className="text-foreground font-display">5. Commission</strong> — Start with a free plan to browse opportunities. Upgrade to Pro for AI-powered matching and bidding tools. A 3.5% success fee applies when you win.</p>

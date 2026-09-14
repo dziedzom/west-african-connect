@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle, Brain, Zap } from "lucide-react";
+import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle, Brain, Zap, ShieldCheck } from "lucide-react";
+import VerificationBadge from "@/components/VerificationBadge";
+import { useVerification } from "@/hooks/useVerification";
 import { supabase } from "@/integrations/supabase/client";
 import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
@@ -70,6 +72,7 @@ const DashboardSkeleton = () => (
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const { status: verificationStatus } = useVerification();
   const [loading, setLoading] = useState(true);
   const [rfps, setRfps] = useState<RFP[]>([]);
   const [totalRfps, setTotalRfps] = useState(0);
@@ -237,9 +240,17 @@ const Dashboard = () => {
                 <LayoutDashboard className="h-5 w-5 text-accent" />
                 <h1 className="text-3xl font-display font-bold text-foreground">Dashboard</h1>
               </div>
-              <p className="text-sm text-muted-foreground font-body">{user?.email}</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-sm text-muted-foreground font-body">{user?.email}</p>
+                <Link to="/verification" aria-label="Company verification status">
+                  <VerificationBadge status={verificationStatus} />
+                </Link>
+              </div>
             </div>
             <div className="flex gap-2 flex-wrap">
+              <Button asChild variant="outline" size="sm" className="rounded-full">
+                <Link to="/verification"><ShieldCheck className="h-4 w-4 mr-1" /> Verification</Link>
+              </Button>
               <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link to="/proposals"><FileEdit className="h-4 w-4 mr-1" /> Proposals</Link>
               </Button>

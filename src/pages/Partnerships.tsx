@@ -7,6 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowRight, ArrowLeft, Upload, CheckCircle2, X } from "lucide-react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import SEO from "@/components/SEO";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useVerification } from "@/hooks/useVerification";
 
 // ── Formspree Configuration ──────────────────────────────────────────
 // Paste your Formspree form ID below (e.g. "xyzabcde")
@@ -39,6 +42,8 @@ const productionBTL = [
 
 const Partnerships = () => {
   const revealRef = useScrollReveal();
+  const { user } = useAuth();
+  const { isVerified, status: verificationStatus, loading: verificationLoading } = useVerification();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -70,6 +75,7 @@ const Partnerships = () => {
   };
 
   const handleSubmit = async () => {
+    if (!isVerified) return;
     if (!FORMSPREE_ID) {
       console.warn("FORMSPREE_ID is not configured. Simulating submission.");
       setSubmitting(true);
@@ -342,13 +348,33 @@ const Partnerships = () => {
             ) : (
               <Button
                 onClick={handleSubmit}
-                disabled={!canAdvance() || submitting}
+                disabled={!canAdvance() || submitting || verificationLoading || !isVerified}
                 className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-body text-sm gap-2 px-6"
               >
                 {submitting ? "Submitting…" : "Submit Application"} <ArrowRight className="h-4 w-4" />
               </Button>
             )}
           </div>
+
+          {step === STEPS.length - 1 && !verificationLoading && !isVerified && (
+            <div className="mt-8 rounded-xl border border-border bg-muted/40 p-6 reveal">
+              <p className="font-display text-sm font-bold text-foreground">
+                Verified companies only
+              </p>
+              <p className="mt-2 font-body text-sm text-muted-foreground">
+                {!user
+                  ? "Joint venture partners are verified businesses. Sign in and complete company verification to submit an application."
+                  : verificationStatus === "pending"
+                  ? "Your company verification is with our review team. You can submit as soon as it is approved."
+                  : "Joint venture partners are verified businesses. Complete company verification — registration details plus two documents — to submit an application."}
+              </p>
+              <Button asChild variant="outline" className="mt-4 rounded-full font-body text-sm">
+                <Link to={user ? "/verification" : "/auth"}>
+                  {user ? "Go to verification" : "Sign in"}
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
