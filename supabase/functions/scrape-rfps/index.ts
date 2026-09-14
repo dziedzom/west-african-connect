@@ -373,7 +373,6 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Temporary fault-injection hook used to verify credential-failure alerting.
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_KEY_BREAK_TEST") ||
       Deno.env.get("FIRECRAWL_API_KEY");
     if (!FIRECRAWL_API_KEY) throw new Error("FIRECRAWL_API_KEY is not configured");
