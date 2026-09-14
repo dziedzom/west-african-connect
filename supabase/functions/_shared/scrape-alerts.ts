@@ -4,6 +4,7 @@
 // Throttling prevents the same failure from emailing on every batch.
 
 // deno-lint-ignore-file no-explicit-any
+import { sendLovableEmail } from "npm:@lovable.dev/email-js@0.3.0";
 type SupabaseClient = any;
 
 export type AlertType = "auth_failure" | "source_auto_disabled" | "heartbeat_stale" | "test";
