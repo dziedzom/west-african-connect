@@ -1,11 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.3";
+import {
+  authorizeAiRequest,
+  corsHeadersFor,
+  isAuthorizationFailure,
+  recordAiUsage,
+  type UsageFeature,
+} from "../_shared/entitlements.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const corsHeaders = corsHeadersFor();
 
 const PROMPTS: Record<string, (vars: Record<string, string>) => { system: string; user: string }> = {
   analyser: (v) => ({
@@ -235,27 +237,8 @@ serve(async (req) => {
       });
     }
 
-    // Increment usage counter
-    const counterMap: Record<string, string> = {
-      analyser: "rfps_analysed",
-      writer: "bids_generated",
-      reviewer: "bids_reviewed",
-      checklist: "checklists_created",
-    };
-    const col = counterMap[tool];
-    if (col) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select(col)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (profile) {
-        await supabase
-          .from("profiles")
-          .update({ [col]: ((profile as any)[col] || 0) + 1 })
-          .eq("user_id", user.id);
-      }
-    }
+    // Increment usage counter server-side (service role) and verify the write.
+    await recordAiUsage(auth, feature);
 
     return new Response(JSON.stringify({ result: parsed }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
