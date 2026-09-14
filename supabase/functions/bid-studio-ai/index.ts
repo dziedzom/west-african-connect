@@ -82,7 +82,8 @@ Review the bid response against the RFP requirements and return a JSON object:
   },
   "strengths": ["specific things the bid does well — minimum 3"],
   "weaknesses": ["specific things that need improvement — minimum 3"],
-  "missing_elements": ["requirements from the RFP not addressed in the bid"],
+  "missing_elements": ["requirements from the RFP not addressed in the NARRATIVE bid text — never list annexes or attachments here"],
+  "annexes_not_reviewed": ["annexes/attachments the RFP requires that are submitted separately and could not be reviewed here — neutral reminders, not scored"],
   "compliance_check": [
     {
       "requirement": "requirement text from RFP",

@@ -25,6 +25,7 @@ interface ReviewResult {
   strengths: string[];
   weaknesses: string[];
   missing_elements: string[];
+  annexes_not_reviewed?: string[];
   compliance_check: { requirement: string; addressed: boolean; comment: string }[];
   specific_improvements: { section: string; issue: string; suggestion: string }[];
   competitive_assessment: string;
