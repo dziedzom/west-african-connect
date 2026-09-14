@@ -23,18 +23,34 @@ const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more ro
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
 
-const AFRICAN_COUNTRIES = new Set([
-  "algeria","angola","benin","botswana","burkina faso","burundi","cameroon","cape verde",
+const AFRICAN_COUNTRIES = [
+  "algeria","angola","benin","botswana","burkina faso","burundi","cameroon","cape verde","cabo verde",
   "central african republic","chad","comoros","congo","dr congo","democratic republic of the congo",
   "côte d'ivoire","cote d'ivoire","ivory coast","djibouti","egypt","equatorial guinea","eritrea","eswatini",
   "swaziland","ethiopia","gabon","gambia","ghana","guinea","guinea-bissau","kenya","lesotho",
   "liberia","libya","madagascar","malawi","mali","mauritania","mauritius","morocco","mozambique",
   "namibia","niger","nigeria","rwanda","são tomé and príncipe","sao tome and principe","senegal","seychelles",
   "sierra leone","somalia","south africa","south sudan","sudan","tanzania","togo","tunisia",
-  "uganda","zambia","zimbabwe","africa","sub-saharan africa","sub saharan africa","east africa","west africa","north africa","southern africa","central africa",
+  "uganda","zambia","zimbabwe","africa","sahel",
+];
+
+const AFRICA_KEYWORDS = ["africa","african","sadc","ecowas","eac","comesa","igad","au commission","african union","afdb","afreximbank","uemoa","waemu","eccas"];
+
+// Locations that carry no geographic signal — fall through to keyword matching.
+const GENERIC_LOCATIONS = new Set([
+  "","null","none","unknown","global","worldwide","world wide","multiple","multiple countries",
+  "various","various countries","other","n/a","na","unspecified","home based","home-based",
+  "remote","international","multi-country","tbd",
 ]);
 
-const AFRICA_KEYWORDS = ["africa","african","sadc","ecowas","eac","comesa","au commission","african union","afdb","afreximbank"];
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Word-boundary matchers: a bare `includes()` check leaked badly
+// (e.g. "eac" matched "peace"/"each", "mali" matched "malicious").
+const AFRICA_COUNTRY_RE = new RegExp(`(?:^|[^a-z])(?:${AFRICAN_COUNTRIES.map(escapeRe).join("|")})(?:[^a-z]|$)`, "i");
+const AFRICA_KEYWORD_RE = new RegExp(`(?:^|[^a-z])(?:${AFRICA_KEYWORDS.map(escapeRe).join("|")})(?:[^a-z]|$)`, "i");
 
 function extractDomain(url: string): string {
   try {
@@ -76,26 +92,32 @@ async function buildContentHash(rfp: { title?: string; organization?: string | n
   return await sha256Hex(parts);
 }
 
-function isAfricaRelevant(rfp: {
-  location?: string | null;
-  organization?: string | null;
-  description?: string | null;
-  title?: string | null;
-}, sourceCategory: string | null): boolean {
+function isAfricaRelevant(
+  rfp: {
+    location?: string | null;
+    organization?: string | null;
+    description?: string | null;
+    title?: string | null;
+  },
+  sourceCategory: string | null,
+  sourceUrl?: string | null,
+): boolean {
+  // Sources that are Africa-only by definition.
   if (sourceCategory === "african_government" || sourceCategory === "regional_body") return true;
+  if (sourceCategory === "aggregator" && (sourceUrl || "").toLowerCase().includes("africa")) return true;
 
   const loc = (rfp.location || "").toLowerCase().trim();
-  if (loc && AFRICAN_COUNTRIES.has(loc)) return true;
-  for (const c of AFRICAN_COUNTRIES) {
-    if (loc.includes(c)) return true;
+
+  // An explicit location is authoritative: a tender located in the United States
+  // is not Africa-relevant just because "Africa" appears somewhere in its text
+  // (e.g. a keyword-filtered SAM.gov search page).
+  if (!GENERIC_LOCATIONS.has(loc)) {
+    return AFRICA_COUNTRY_RE.test(loc);
   }
 
-  const haystack = `${rfp.organization || ""} ${rfp.title || ""} ${rfp.description || ""}`.toLowerCase();
-  if (AFRICA_KEYWORDS.some((k) => haystack.includes(k))) return true;
-  for (const c of AFRICAN_COUNTRIES) {
-    if (haystack.includes(c)) return true;
-  }
-  return false;
+  // No usable location — fall back to text signals.
+  const haystack = `${rfp.organization || ""} ${rfp.title || ""} ${rfp.description || ""}`;
+  return AFRICA_KEYWORD_RE.test(haystack) || AFRICA_COUNTRY_RE.test(haystack);
 }
 
 interface ScrapeSource {
@@ -450,8 +472,12 @@ Return ONLY valid JSON via the function call.`,
 
 
 
-    const africaRelevant = isAfricaRelevant(rfp, target.category);
-    if (!africaRelevant) nonAfricaCount++;
+    // Africa relevance is enforced at ingest: non-relevant tenders are not saved at all.
+    const africaRelevant = isAfricaRelevant(rfp, target.category, target.url);
+    if (!africaRelevant) {
+      nonAfricaCount++;
+      continue;
+    }
 
     const contentHash = await buildContentHash(rfp);
     const sourceDomain = extractDomain(rfp.source_url) || target.domain;
