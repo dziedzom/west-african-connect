@@ -566,7 +566,7 @@ serve(async (req) => {
 
     const sum = (k: keyof PortalResult) => results.reduce((s, r) => s + ((r[k] as number) || 0), 0);
 
-    return new Response(JSON.stringify({
+    const payload = {
       success: true, batch, totalBatches,
       portals_processed: results.length,
       portals_skipped_for_time: skippedForTime,
