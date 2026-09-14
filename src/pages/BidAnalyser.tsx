@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { invokeAi } from "@/lib/invokeAi";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,12 +31,15 @@ interface AnalysisResult {
 }
 
 const BidAnalyser = () => {
+  const location = useLocation();
+  const savedAnalysis = (location.state as { savedAnalysis?: AnalysisResult } | null)?.savedAnalysis ?? null;
   const { isPro } = useSubscription();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [rfpText, setRfpText, resetRfpText] = usePersistentState<string>("bid-analyser:rfpText", "");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(savedAnalysis);
   const [error, setError] = useState("");
+  const [saved, setSaved] = useState(!!savedAnalysis);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfExtracting, setPdfExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,7 +130,25 @@ const BidAnalyser = () => {
       setError(fnError || "Our AI assistant is busy right now — please try again in a moment.");
     } else {
       setResult(data.result);
+      await saveAnalysis(data.result);
     }
+  };
+
+  // Persist the analysis so it survives a refresh and appears in history.
+  const saveAnalysis = async (analysis: AnalysisResult) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const title = [analysis.contracting_authority, analysis.country].filter(Boolean).join(" — ")
+      || analysis.summary?.slice(0, 80)
+      || "Untitled RFP analysis";
+    const { error: saveError } = await supabase.from("bid_analyses").insert({
+      user_id: user.id,
+      title,
+      source_text: rfpText.slice(0, 40000),
+      analysis_data: analysis as unknown as Record<string, unknown>,
+    });
+    if (saveError) console.error("Failed to save analysis:", saveError);
+    else setSaved(true);
   };
 
   return (
@@ -137,7 +158,12 @@ const BidAnalyser = () => {
           <h1 className="text-2xl font-display font-bold">🔍 RFP Analyser</h1>
           <p className="text-muted-foreground mt-1">Paste an RFP and get a structured intelligence brief in seconds</p>
         </div>
-        <SaveStatusIndicator />
+        <div className="flex items-center gap-3">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/bid-studio/history">Past analyses</Link>
+          </Button>
+          <SaveStatusIndicator />
+        </div>
       </div>
 
       {!result && (
@@ -317,8 +343,14 @@ const BidAnalyser = () => {
             <CardContent><p className="text-sm">{result.win_strategy}</p></CardContent>
           </Card>
 
+          {saved && (
+            <p className="text-xs text-muted-foreground">
+              Saved to your history — find it again under <Link to="/bid-studio/history" className="underline">Past analyses</Link>.
+            </p>
+          )}
+
           <div className="flex gap-4">
-            <Button variant="outline" onClick={() => { setResult(null); resetRfpText(); setPdfFile(null); }}>Analyse Another</Button>
+            <Button variant="outline" onClick={() => { setResult(null); setSaved(false); resetRfpText(); setPdfFile(null); }}>Analyse Another</Button>
             <Button asChild>
               <Link to="/bid-studio/writer" state={{ rfpText }}>Start Bid Writer <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
