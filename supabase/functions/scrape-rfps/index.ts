@@ -92,26 +92,32 @@ async function buildContentHash(rfp: { title?: string; organization?: string | n
   return await sha256Hex(parts);
 }
 
-function isAfricaRelevant(rfp: {
-  location?: string | null;
-  organization?: string | null;
-  description?: string | null;
-  title?: string | null;
-}, sourceCategory: string | null): boolean {
+function isAfricaRelevant(
+  rfp: {
+    location?: string | null;
+    organization?: string | null;
+    description?: string | null;
+    title?: string | null;
+  },
+  sourceCategory: string | null,
+  sourceUrl?: string | null,
+): boolean {
+  // Sources that are Africa-only by definition.
   if (sourceCategory === "african_government" || sourceCategory === "regional_body") return true;
+  if (sourceCategory === "aggregator" && (sourceUrl || "").toLowerCase().includes("africa")) return true;
 
   const loc = (rfp.location || "").toLowerCase().trim();
-  if (loc && AFRICAN_COUNTRIES.has(loc)) return true;
-  for (const c of AFRICAN_COUNTRIES) {
-    if (loc.includes(c)) return true;
+
+  // An explicit location is authoritative: a tender located in the United States
+  // is not Africa-relevant just because "Africa" appears somewhere in its text
+  // (e.g. a keyword-filtered SAM.gov search page).
+  if (!GENERIC_LOCATIONS.has(loc)) {
+    return AFRICA_COUNTRY_RE.test(loc);
   }
 
-  const haystack = `${rfp.organization || ""} ${rfp.title || ""} ${rfp.description || ""}`.toLowerCase();
-  if (AFRICA_KEYWORDS.some((k) => haystack.includes(k))) return true;
-  for (const c of AFRICAN_COUNTRIES) {
-    if (haystack.includes(c)) return true;
-  }
-  return false;
+  // No usable location — fall back to text signals.
+  const haystack = `${rfp.organization || ""} ${rfp.title || ""} ${rfp.description || ""}`;
+  return AFRICA_KEYWORD_RE.test(haystack) || AFRICA_COUNTRY_RE.test(haystack);
 }
 
 interface ScrapeSource {
