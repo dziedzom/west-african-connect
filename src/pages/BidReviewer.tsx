@@ -25,6 +25,7 @@ interface ReviewResult {
   strengths: string[];
   weaknesses: string[];
   missing_elements: string[];
+  annexes_not_reviewed?: string[];
   compliance_check: { requirement: string; addressed: boolean; comment: string }[];
   specific_improvements: { section: string; issue: string; suggestion: string }[];
   competitive_assessment: string;
@@ -132,6 +133,9 @@ const BidReviewer = () => {
             <div>
               <label className="text-sm font-medium mb-1 block">Paste your complete bid draft</label>
               <Textarea className="min-h-[200px]" placeholder="Paste your bid draft here..." value={bidDraft} onChange={(e) => setBidDraft(e.target.value)} />
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Paste your narrative bid text only. Separate attachments — bid security, financial proposal or price schedule, audited accounts, tax clearance, registration certificates, CVs and signed forms — are not scored here, and their absence will not reduce your score. Include any of that text if you want it reviewed.
+              </p>
             </div>
             <Button onClick={handleReview} disabled={!rfpText.trim() || !bidDraft.trim() || loading} className="w-full">
               {loading ? "Evaluating your bid against RFP requirements..." : "Review My Bid"}
@@ -182,6 +186,20 @@ const BidReviewer = () => {
               <CardContent><ul className="space-y-1 text-sm">{result.missing_elements?.map((m, i) => <li key={i} className="flex gap-1"><XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />{m}</li>)}</ul></CardContent>
             </Card>
           </div>
+
+          {/* Attachments not reviewed here — reminders only, never scored */}
+          {result.annexes_not_reviewed && result.annexes_not_reviewed.length > 0 && (
+            <Card className="bg-muted/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Attachments to submit separately (not scored)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {result.annexes_not_reviewed.map((a, i) => <li key={i}>• {a}</li>)}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Compliance Check */}
           <Card>

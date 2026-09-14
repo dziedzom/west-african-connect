@@ -32,6 +32,8 @@ const PROMPTS: Record<string, (vars: Record<string, string>) => { system: string
 
 Return ONLY valid JSON. No preamble. No markdown fences. No explanation.
 
+Today's date is ${v.today_date}. Use it whenever you describe how much time remains before the deadline. Never assume any other current date.
+
 RFP CONTENT:
 ${v.rfp_text}`,
   }),
@@ -40,17 +42,21 @@ ${v.rfp_text}`,
     system: `You are an expert bid writer specialising in African government and multilateral procurement. You write clear, compelling, compliant bid responses for SMEs competing for government contracts across Africa.`,
     user: `Using the RFP requirements and company information below, draft the following six bid sections. Write in formal procurement language. Be specific and compelling — avoid generic statements. Directly address the contracting authority's stated needs and evaluation criteria.
 
+LENGTH IS A HARD REQUIREMENT. Each section must reach at least its stated minimum word count. Short sections are treated as incomplete work. If you run out of company-specific detail, expand with substantive, relevant procurement content (delivery assumptions, quality assurance, risk mitigation, stakeholder engagement, value for money) rather than stopping early. Before returning, silently count the words in each section and expand any section that falls below its minimum. Err on the longer end of every range rather than the shorter end.
+
+Today's date is ${v.today_date}. Use it for any dated statement, timeline or validity period. Never assume any other current date.
+
 Return a JSON object with exactly these fields:
 {
-  "executive_summary": "300-400 word compelling opening that directly addresses the contracting authority's core need and summarises why this company should win",
-  "company_background": "200-300 word professional company overview establishing credibility and relevant experience",
-  "technical_approach": "400-500 word detailed methodology responding directly to the technical requirements",
-  "team_and_personnel": "200-300 word presentation of the proposed team and their relevant qualifications",
-  "relevant_experience": "200-300 word section connecting past projects directly to this opportunity",
-  "compliance_statement": "100-150 word formal confirmation of compliance with key requirements"
+  "executive_summary": "MINIMUM 320 words, target 330-400. Compelling opening that directly addresses the contracting authority's core need and summarises why this company should win",
+  "company_background": "MINIMUM 200 words, target 200-300. Professional company overview establishing credibility and relevant experience",
+  "technical_approach": "MINIMUM 400 words, target 400-500. Detailed methodology responding directly to the technical requirements",
+  "team_and_personnel": "MINIMUM 200 words, target 200-300. Presentation of the proposed team and their relevant qualifications",
+  "relevant_experience": "MINIMUM 200 words, target 200-300. Section connecting past projects directly to this opportunity",
+  "compliance_statement": "MINIMUM 100 words, target 100-150. Formal confirmation of compliance with key requirements"
 }
 
-Return ONLY valid JSON. No preamble. No markdown fences.
+Return ONLY valid JSON with exactly those six keys and no others (do not add word counts or notes). No preamble. No markdown fences.
 
 RFP: ${v.rfp_text}
 COMPANY INFORMATION: ${v.company_info}`,
@@ -58,7 +64,11 @@ COMPANY INFORMATION: ${v.company_info}`,
 
   reviewer: (v) => ({
     system: `You are a senior procurement evaluator with 20 years experience evaluating bids for African government agencies and multilateral organisations. You are rigorous, fair, and specific in your feedback.`,
-    user: `Review the bid response against the RFP requirements and return a JSON object:
+    user: `SCORING SCOPE — READ FIRST. You are reviewing only the narrative bid text pasted below. Attachments and annexes (bid security/bid bond, financial proposal or price schedule, audited accounts, tax clearance, registration certificates, CVs, signed forms) are submitted as separate documents and are NOT included in this text. Do NOT deduct marks, lower any category score, or list an item as a weakness or missing element merely because such an annex is absent from the pasted text. Assume the bidder will submit the required annexes separately. Score every category strictly on the quality, compliance and completeness of the narrative content actually provided. List annexes the RFP requires but which are not reviewable here in "annexes_not_reviewed" as neutral reminders only — they must not influence any score.
+
+Today's date is ${v.today_date}. Use it for any statement about remaining time. Never assume any other current date.
+
+Review the bid response against the RFP requirements and return a JSON object:
 {
   "overall_score": number between 0 and 100,
   "grade": "A, B, C, D, or F",
@@ -72,7 +82,8 @@ COMPANY INFORMATION: ${v.company_info}`,
   },
   "strengths": ["specific things the bid does well — minimum 3"],
   "weaknesses": ["specific things that need improvement — minimum 3"],
-  "missing_elements": ["requirements from the RFP not addressed in the bid"],
+  "missing_elements": ["requirements from the RFP not addressed in the NARRATIVE bid text — never list annexes or attachments here"],
+  "annexes_not_reviewed": ["annexes/attachments the RFP requires that are submitted separately and could not be reviewed here — neutral reminders, not scored"],
   "compliance_check": [
     {
       "requirement": "requirement text from RFP",
@@ -181,7 +192,10 @@ serve(async (req) => {
       });
     }
 
-    const prompt = PROMPTS[tool](variables || {});
+    // Always supply the real current date server-side so prompts never rely on
+    // the model's training-cutoff assumptions (or a client-supplied value).
+    const serverToday = new Date().toISOString().slice(0, 10);
+    const prompt = PROMPTS[tool]({ ...(variables || {}), today_date: serverToday });
 
     // TODO: Switch to Claude claude-opus-4-5 when ANTHROPIC_API_KEY is added
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
