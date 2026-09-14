@@ -7,6 +7,7 @@ import {
   limitReachedResponse,
   recordAiUsage,
 } from "../_shared/entitlements.ts";
+import { snapshotPrediction } from "../_shared/tracker.ts";
 
 const corsHeaders = corsHeadersFor();
 

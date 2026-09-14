@@ -6,6 +6,7 @@ import {
   recordAiUsage,
   type UsageFeature,
 } from "../_shared/entitlements.ts";
+import { snapshotPrediction } from "../_shared/tracker.ts";
 
 const corsHeaders = corsHeadersFor();
 
