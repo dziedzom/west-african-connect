@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { invokeAi } from "@/lib/invokeAi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -140,6 +141,19 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         </div>
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-20 w-full" />
+      </div>
+    );
+  }
+
+  if (profileIncomplete) {
+    return (
+      <div className="rounded-lg border border-accent/30 bg-accent/5 p-4 space-y-3 text-center">
+        <Brain className="h-5 w-5 mx-auto text-accent" />
+        <p className="text-sm font-display font-semibold text-foreground">Complete your company profile first</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">{profileIncomplete.message}</p>
+        <Button asChild size="sm">
+          <Link to="/profile">Complete my profile</Link>
+        </Button>
       </div>
     );
   }
