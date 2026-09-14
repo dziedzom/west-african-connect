@@ -96,6 +96,7 @@ const BidReviewer = () => {
     // TODO: Switch to Claude claude-opus-4-5 when ANTHROPIC_API_KEY is added
     const { result: data, error: fnError } = await invokeAi<{ result: any }>("bid-studio-ai", {
       tool: "reviewer",
+      rfp_id: rfpId || undefined,
       variables: { rfp_text: rfpText, bid_draft: bidDraft },
     });
 

@@ -10,7 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
-import WonContractModal from "@/components/WonContractModal";
+import OutcomeControl from "@/components/OutcomeControl";
+import { useOpportunityTracker } from "@/hooks/useOpportunityTracker";
 import type { RFP } from "@/types/rfp";
 
 interface AIInsight {
@@ -262,7 +263,9 @@ const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
   const { user } = useAuth();
   const { isPro } = useSubscription();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const [wonOpen, setWonOpen] = useState(false);
+  const { byRfp, saving, setStage, reportOutcome, reload } = useOpportunityTracker();
+
+  const trackerRow = rfp ? byRfp(rfp.id) : null;
 
   if (!rfp) return null;
 
@@ -305,32 +308,33 @@ const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
               <LockedInsightsPanel onUpgrade={() => setUpgradeOpen(true)} />
             )}
 
-            <div className="flex gap-2 mt-2">
-              {isPro && (
-                <Button
-                  className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-                  onClick={() => setWonOpen(true)}
-                >
-                  <Trophy className="h-4 w-4 mr-1" /> I Won This Contract
-                </Button>
-              )}
+            {user ? (
+              <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-2">
+                <p className="text-xs font-display font-semibold text-foreground">Where are you with this?</p>
+                <OutcomeControl
+                  rfpId={rfp.id}
+                  rfpTitle={rfp.title}
+                  deadline={rfp.deadline ?? null}
+                  row={trackerRow}
+                  busy={saving === rfp.id}
+                  onStage={setStage}
+                  onOutcome={reportOutcome}
+                  onChanged={reload}
+                />
+              </div>
+            ) : (
               <Button
-                className={`${isPro ? "flex-1" : "w-full"} bg-accent text-accent-foreground hover:bg-accent/90 font-semibold`}
-                onClick={() => {
-                  if (!isPro) {
-                    setUpgradeOpen(true);
-                  }
-                }}
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
+                onClick={() => setUpgradeOpen(true)}
               >
-                {isPro ? "I'm Bidding" : "Express Interest"}
+                Express Interest
               </Button>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
 
       <UpgradeModal open={upgradeOpen} onOpenChange={setUpgradeOpen} feature="AI Insights" />
-      {rfp && <WonContractModal open={wonOpen} onOpenChange={setWonOpen} rfpId={rfp.id} rfpTitle={rfp.title} />}
     </>
   );
 };

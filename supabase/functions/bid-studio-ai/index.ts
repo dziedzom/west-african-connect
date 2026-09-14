@@ -6,6 +6,7 @@ import {
   recordAiUsage,
   type UsageFeature,
 } from "../_shared/entitlements.ts";
+import { snapshotPrediction } from "../_shared/tracker.ts";
 
 const corsHeaders = corsHeadersFor();
 
@@ -253,6 +254,27 @@ serve(async (req) => {
 
     // Increment usage counter server-side (service role) and verify the write.
     await recordAiUsage(auth, feature);
+
+    // When the caller tied this run to a live opportunity, record the stage and
+    // (for reviews) snapshot the scores that were shown at the time.
+    const linkedRfpId = typeof body?.rfp_id === "string" && body.rfp_id ? body.rfp_id : null;
+    if (linkedRfpId) {
+      const wp = parsed?.win_probability;
+      await snapshotPrediction(
+        auth.admin,
+        auth.userId,
+        linkedRfpId,
+        tool === "reviewer"
+          ? {
+              predicted_review_score: Number.isFinite(parsed?.overall_score) ? Math.round(parsed.overall_score) : null,
+              predicted_review_grade: typeof parsed?.grade === "string" ? parsed.grade : null,
+              predicted_win_probability: Number.isFinite(wp?.percentage) ? wp.percentage : null,
+              predicted_win_confidence: typeof wp?.confidence === "string" ? wp.confidence : null,
+            }
+          : {},
+        "preparing",
+      );
+    }
 
     return new Response(JSON.stringify({ result: parsed }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -369,6 +369,92 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunity_tracker: {
+        Row: {
+          contract_currency: string | null
+          contract_value: number | null
+          created_at: string
+          id: string
+          insight_id: string | null
+          last_nudge_at: string | null
+          nudge_count: number
+          outcome_note: string | null
+          outcome_reported_at: string | null
+          outcome_source: string | null
+          predicted_match_at: string | null
+          predicted_match_score: number | null
+          predicted_review_grade: string | null
+          predicted_review_score: number | null
+          predicted_win_confidence: string | null
+          predicted_win_probability: number | null
+          prediction_snapshot_at: string | null
+          review_id: string | null
+          rfp_id: string
+          snooze_until: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contract_currency?: string | null
+          contract_value?: number | null
+          created_at?: string
+          id?: string
+          insight_id?: string | null
+          last_nudge_at?: string | null
+          nudge_count?: number
+          outcome_note?: string | null
+          outcome_reported_at?: string | null
+          outcome_source?: string | null
+          predicted_match_at?: string | null
+          predicted_match_score?: number | null
+          predicted_review_grade?: string | null
+          predicted_review_score?: number | null
+          predicted_win_confidence?: string | null
+          predicted_win_probability?: number | null
+          prediction_snapshot_at?: string | null
+          review_id?: string | null
+          rfp_id: string
+          snooze_until?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contract_currency?: string | null
+          contract_value?: number | null
+          created_at?: string
+          id?: string
+          insight_id?: string | null
+          last_nudge_at?: string | null
+          nudge_count?: number
+          outcome_note?: string | null
+          outcome_reported_at?: string | null
+          outcome_source?: string | null
+          predicted_match_at?: string | null
+          predicted_match_score?: number | null
+          predicted_review_grade?: string | null
+          predicted_review_score?: number | null
+          predicted_win_confidence?: string | null
+          predicted_win_probability?: number | null
+          prediction_snapshot_at?: string | null
+          review_id?: string | null
+          rfp_id?: string
+          snooze_until?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_tracker_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_rfps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partnership_applications: {
         Row: {
           capabilities: string
@@ -1001,10 +1087,12 @@ export type Database = {
           id: string
           invoice_sent: boolean
           invoice_sent_at: string | null
+          needs_fx_review: boolean
           notes: string | null
           rfp_id: string | null
           rfp_title: string
           success_fee: number | null
+          tracker_id: string | null
           updated_at: string
           user_id: string
         }
@@ -1018,10 +1106,12 @@ export type Database = {
           id?: string
           invoice_sent?: boolean
           invoice_sent_at?: string | null
+          needs_fx_review?: boolean
           notes?: string | null
           rfp_id?: string | null
           rfp_title: string
           success_fee?: number | null
+          tracker_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1035,14 +1125,24 @@ export type Database = {
           id?: string
           invoice_sent?: boolean
           invoice_sent_at?: string | null
+          needs_fx_review?: boolean
           notes?: string | null
           rfp_id?: string | null
           rfp_title?: string
           success_fee?: number | null
+          tracker_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "won_contracts_tracker_id_fkey"
+            columns: ["tracker_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_tracker"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

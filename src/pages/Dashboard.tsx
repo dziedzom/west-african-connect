@@ -12,6 +12,8 @@ import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
+import OutcomeLoopPanels from "@/components/OutcomeLoopPanels";
+import { useOpportunityTracker } from "@/hooks/useOpportunityTracker";
 
 
 interface ScrapedRFP {
@@ -84,6 +86,8 @@ const Dashboard = () => {
   const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
   const [proposalCounts, setProposalCounts] = useState<Record<string, number>>({ draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 });
   const [topMatches, setTopMatches] = useState<TopMatch[]>([]);
+  const { rows: trackerRows } = useOpportunityTracker();
+  const trackedCount = trackerRows.length;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -214,18 +218,11 @@ const Dashboard = () => {
 
   if (loading) return <DashboardSkeleton />;
 
-  const savedCount = (() => {
-    try {
-      const stored = localStorage.getItem("savedRfps");
-      return stored ? JSON.parse(stored).length : 0;
-    } catch { return 0; }
-  })();
-
   const stats = [
     { label: "Active Tenders", value: totalRfps + scrapedCount, icon: FileText, accent: true },
     { label: "Matched", value: matchedRfps.length, icon: TrendingUp, accent: false },
     { label: "Applications", value: appCount, icon: Briefcase, accent: false },
-    { label: "Saved", value: savedCount, icon: Heart, accent: false },
+    { label: "Tracked", value: trackedCount, icon: Heart, accent: false },
   ];
 
   return (
@@ -299,6 +296,9 @@ const Dashboard = () => {
               </span>
             )}
           </div>
+
+          {/* Outcome loop: outcomes to confirm, pipeline, success fees */}
+          {user && <OutcomeLoopPanels />}
 
           {/* Proposal Pipeline */}
           {user && (
