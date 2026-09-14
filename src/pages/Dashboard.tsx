@@ -13,6 +13,7 @@ import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
 import OutcomeLoopPanels from "@/components/OutcomeLoopPanels";
+import { useOpportunityTracker } from "@/hooks/useOpportunityTracker";
 
 
 interface ScrapedRFP {
@@ -85,6 +86,8 @@ const Dashboard = () => {
   const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
   const [proposalCounts, setProposalCounts] = useState<Record<string, number>>({ draft: 0, submitted: 0, under_review: 0, won: 0, lost: 0 });
   const [topMatches, setTopMatches] = useState<TopMatch[]>([]);
+  const { rows: trackerRows } = useOpportunityTracker();
+  const trackedCount = trackerRows.length;
 
   useEffect(() => {
     const fetchData = async () => {
