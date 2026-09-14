@@ -120,7 +120,6 @@ Deno.serve(async (req) => {
         rfp_title: rfp.title,
         contract_value: contractValue,
         currency,
-        success_fee: successFee,
         agreement_confirmed: body?.agreement_confirmed === true,
         notes: note,
       };
