@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { invokeAi } from "@/lib/invokeAi";
 import { useLocation, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
