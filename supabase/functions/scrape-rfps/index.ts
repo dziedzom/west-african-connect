@@ -583,10 +583,41 @@ serve(async (req) => {
       transitioned_expired: expiredCount,
       transitioned_closing_soon: closingSoonCount,
       results,
-    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    };
+
+    // Run history: the real outcome of this invocation, independent of pg_cron status.
+    const failedResults = results.filter((r) => r.error);
+    const authFailed = failedResults.some((r) => (r.error || "").includes("AUTH_FAILURE"));
+    await supabase.from("scrape_run_log").insert({
+      invoked_by: req.headers.get("x-cron-secret") ? "cron" : "manual",
+      batch,
+      batch_size: batchSize,
+      http_status: 200,
+      ok: true,
+      portals_processed: results.length,
+      portals_failed: failedResults.length,
+      rows_saved: payload.total_rfps_found,
+      duration_ms: payload.total_duration_ms,
+      auth_failure: authFailed,
+      error_summary: failedResults.map((r) => `${r.portal}: ${r.error}`).join(" | ").slice(0, 2000) || null,
+      response_body: payload,
+    }).then(() => {}, () => {});
+
+    return new Response(JSON.stringify(payload),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("scrape-rfps error:", message);
+    try {
+      const logger = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      await logger.from("scrape_run_log").insert({
+        invoked_by: req.headers.get("x-cron-secret") ? "cron" : "manual",
+        http_status: 500,
+        ok: false,
+        auth_failure: message.includes("AUTH_FAILURE"),
+        error_summary: message.slice(0, 2000),
+      });
+    } catch { /* logging must never mask the original failure */ }
     return new Response(JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
