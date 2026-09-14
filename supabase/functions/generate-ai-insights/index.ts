@@ -94,9 +94,9 @@ serve(async (req) => {
 Title: ${rfp.title}
 Description: ${rfp.description}
 Category: ${rfp.category}
-Organization: ${rfp.org || "N/A"}
+Organization: ${rfp.organization || "N/A"}
 Location: ${rfp.location || "N/A"}
-Budget: ${rfp.budget || rfp.value || "N/A"}
+Budget: ${rfp.budget || "N/A"}
 Deadline: ${rfp.deadline || "N/A"}
 
 ## Company Profile
