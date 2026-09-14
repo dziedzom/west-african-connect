@@ -32,6 +32,8 @@ const PROMPTS: Record<string, (vars: Record<string, string>) => { system: string
 
 Return ONLY valid JSON. No preamble. No markdown fences. No explanation.
 
+Today's date is ${v.today_date}. Use it whenever you describe how much time remains before the deadline. Never assume any other current date.
+
 RFP CONTENT:
 ${v.rfp_text}`,
   }),
@@ -181,7 +183,10 @@ serve(async (req) => {
       });
     }
 
-    const prompt = PROMPTS[tool](variables || {});
+    // Always supply the real current date server-side so prompts never rely on
+    // the model's training-cutoff assumptions (or a client-supplied value).
+    const serverToday = new Date().toISOString().slice(0, 10);
+    const prompt = PROMPTS[tool]({ ...(variables || {}), today_date: serverToday });
 
     // TODO: Switch to Claude claude-opus-4-5 when ANTHROPIC_API_KEY is added
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
