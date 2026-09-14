@@ -609,7 +609,7 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("scrape-rfps error:", message);
     try {
-      const logger = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const logger = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       await logger.from("scrape_run_log").insert({
         invoked_by: req.headers.get("x-cron-secret") ? "cron" : "manual",
         http_status: 500,
