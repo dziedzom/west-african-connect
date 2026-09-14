@@ -10,6 +10,7 @@ import { Users, FileText, Activity, Mail, DollarSign, TrendingUp, CheckCircle, P
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import AdminOutcomesTab from "@/components/AdminOutcomesTab";
 
 interface Profile {
   id: string;
@@ -224,6 +225,7 @@ const AdminDashboard = () => {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="proposals">Proposals</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
+          <TabsTrigger value="outcomes">Outcomes</TabsTrigger>
           <TabsTrigger value="bid-studio">Bid Studio</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
@@ -457,6 +459,10 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="outcomes">
+          <AdminOutcomesTab />
         </TabsContent>
 
         <TabsContent value="bid-studio">
