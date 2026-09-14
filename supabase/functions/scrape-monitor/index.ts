@@ -129,13 +129,13 @@ serve(async (req) => {
 
       const problems: string[] = [];
       if (!okRuns || okRuns.length === 0) {
-        problems.push(`No scrape run returned HTTP 200 in the last ${HEARTBEAT_WINDOW_HOURS} hours.`);
+        problems.push(`No scrape run returned HTTP 200 in the last ${windowHours} hours.`);
       }
       if (successfulSources.length === 0) {
-        problems.push(`No source recorded a success in the last ${HEARTBEAT_WINDOW_HOURS} hours.`);
+        problems.push(`No source recorded a success in the last ${windowHours} hours.`);
       }
       if (!newRowCount || newRowCount === 0) {
-        problems.push(`No new listings were written in the last ${HEARTBEAT_WINDOW_HOURS} hours.`);
+        problems.push(`No new listings were written in the last ${windowHours} hours.`);
       }
 
       let alert = null;
@@ -160,7 +160,7 @@ serve(async (req) => {
             problems.join("\n"),
             "",
             `Last successful source run: ${lastSuccess}`,
-            `Sources with no success in ${HEARTBEAT_WINDOW_HOURS}h: ${freshness.length - successfulSources.length} of ${freshness.length}`,
+            `Sources with no success in ${windowHours}h: ${freshness.length - successfulSources.length} of ${freshness.length}`,
             `Sources stale over ${STALE_HOURS}h: ${staleCount}`,
             `Auto-disabled sources: ${disabledCount}`,
             `New listings in window: ${newRowCount ?? 0}`,
@@ -173,7 +173,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         success: true,
         action: "heartbeat",
-        window_hours: HEARTBEAT_WINDOW_HOURS,
+        window_hours: windowHours,
         healthy: problems.length === 0,
         problems,
         runs_ok_in_window: okRuns?.length ?? 0,
