@@ -23,18 +23,34 @@ const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more ro
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
 
-const AFRICAN_COUNTRIES = new Set([
-  "algeria","angola","benin","botswana","burkina faso","burundi","cameroon","cape verde",
+const AFRICAN_COUNTRIES = [
+  "algeria","angola","benin","botswana","burkina faso","burundi","cameroon","cape verde","cabo verde",
   "central african republic","chad","comoros","congo","dr congo","democratic republic of the congo",
   "côte d'ivoire","cote d'ivoire","ivory coast","djibouti","egypt","equatorial guinea","eritrea","eswatini",
   "swaziland","ethiopia","gabon","gambia","ghana","guinea","guinea-bissau","kenya","lesotho",
   "liberia","libya","madagascar","malawi","mali","mauritania","mauritius","morocco","mozambique",
   "namibia","niger","nigeria","rwanda","são tomé and príncipe","sao tome and principe","senegal","seychelles",
   "sierra leone","somalia","south africa","south sudan","sudan","tanzania","togo","tunisia",
-  "uganda","zambia","zimbabwe","africa","sub-saharan africa","sub saharan africa","east africa","west africa","north africa","southern africa","central africa",
+  "uganda","zambia","zimbabwe","africa","sahel",
+];
+
+const AFRICA_KEYWORDS = ["africa","african","sadc","ecowas","eac","comesa","igad","au commission","african union","afdb","afreximbank","uemoa","waemu","eccas"];
+
+// Locations that carry no geographic signal — fall through to keyword matching.
+const GENERIC_LOCATIONS = new Set([
+  "","null","none","unknown","global","worldwide","world wide","multiple","multiple countries",
+  "various","various countries","other","n/a","na","unspecified","home based","home-based",
+  "remote","international","multi-country","tbd",
 ]);
 
-const AFRICA_KEYWORDS = ["africa","african","sadc","ecowas","eac","comesa","au commission","african union","afdb","afreximbank"];
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Word-boundary matchers: a bare `includes()` check leaked badly
+// (e.g. "eac" matched "peace"/"each", "mali" matched "malicious").
+const AFRICA_COUNTRY_RE = new RegExp(`(?:^|[^a-z])(?:${AFRICAN_COUNTRIES.map(escapeRe).join("|")})(?:[^a-z]|$)`, "i");
+const AFRICA_KEYWORD_RE = new RegExp(`(?:^|[^a-z])(?:${AFRICA_KEYWORDS.map(escapeRe).join("|")})(?:[^a-z]|$)`, "i");
 
 function extractDomain(url: string): string {
   try {
