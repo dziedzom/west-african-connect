@@ -15,6 +15,11 @@ const PORTAL_TIMEOUT_MS = 60_000;
 // invocation must return well before that. Stop starting new portals past this.
 const TIME_BUDGET_MS = 115_000;
 const PORTAL_SLEEP_MS = 1_000;
+// Detail-page deep scraping guards.
+const DETAIL_TIMEOUT_MS = 25_000;      // per detail page (fetch + extraction)
+const DETAIL_SLEEP_MS = 1_500;         // spacing to respect Firecrawl per-minute limits
+const DETAIL_TIME_RESERVE_MS = 20_000; // headroom kept for saving rows + cleanup
+const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more room
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
 
