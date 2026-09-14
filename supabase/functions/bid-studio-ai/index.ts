@@ -56,7 +56,7 @@ Return a JSON object with exactly these fields:
   "compliance_statement": "MINIMUM 100 words, target 100-150. Formal confirmation of compliance with key requirements"
 }
 
-Return ONLY valid JSON. No preamble. No markdown fences.
+Return ONLY valid JSON with exactly those six keys and no others (do not add word counts or notes). No preamble. No markdown fences.
 
 RFP: ${v.rfp_text}
 COMPANY INFORMATION: ${v.company_info}`,
