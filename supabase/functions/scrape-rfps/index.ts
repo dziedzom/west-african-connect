@@ -688,9 +688,10 @@ serve(async (req) => {
             );
             succeeded++;
             if (deadline) {
+              const normalized = normalizeDeadline(deadline);
               await supabase.from("scraped_rfps").update({
-                deadline,
-                status: deadlineStatus(deadline),
+                deadline: normalized,
+                status: deadlineStatus(normalized),
                 needs_review: false,
                 updated_at: new Date().toISOString(),
               }).eq("id", row.id);
