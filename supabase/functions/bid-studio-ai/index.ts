@@ -42,14 +42,18 @@ ${v.rfp_text}`,
     system: `You are an expert bid writer specialising in African government and multilateral procurement. You write clear, compelling, compliant bid responses for SMEs competing for government contracts across Africa.`,
     user: `Using the RFP requirements and company information below, draft the following six bid sections. Write in formal procurement language. Be specific and compelling — avoid generic statements. Directly address the contracting authority's stated needs and evaluation criteria.
 
+LENGTH IS A HARD REQUIREMENT. Each section must reach at least its stated minimum word count. Short sections are treated as incomplete work. If you run out of company-specific detail, expand with substantive, relevant procurement content (delivery assumptions, quality assurance, risk mitigation, stakeholder engagement, value for money) rather than stopping early. Before returning, silently count the words in each section and expand any section that falls below its minimum.
+
+Today's date is ${v.today_date}. Use it for any dated statement, timeline or validity period. Never assume any other current date.
+
 Return a JSON object with exactly these fields:
 {
-  "executive_summary": "300-400 word compelling opening that directly addresses the contracting authority's core need and summarises why this company should win",
-  "company_background": "200-300 word professional company overview establishing credibility and relevant experience",
-  "technical_approach": "400-500 word detailed methodology responding directly to the technical requirements",
-  "team_and_personnel": "200-300 word presentation of the proposed team and their relevant qualifications",
-  "relevant_experience": "200-300 word section connecting past projects directly to this opportunity",
-  "compliance_statement": "100-150 word formal confirmation of compliance with key requirements"
+  "executive_summary": "MINIMUM 300 words, target 300-400. Compelling opening that directly addresses the contracting authority's core need and summarises why this company should win",
+  "company_background": "MINIMUM 200 words, target 200-300. Professional company overview establishing credibility and relevant experience",
+  "technical_approach": "MINIMUM 400 words, target 400-500. Detailed methodology responding directly to the technical requirements",
+  "team_and_personnel": "MINIMUM 200 words, target 200-300. Presentation of the proposed team and their relevant qualifications",
+  "relevant_experience": "MINIMUM 200 words, target 200-300. Section connecting past projects directly to this opportunity",
+  "compliance_statement": "MINIMUM 100 words, target 100-150. Formal confirmation of compliance with key requirements"
 }
 
 Return ONLY valid JSON. No preamble. No markdown fences.
