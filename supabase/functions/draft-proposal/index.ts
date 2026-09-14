@@ -120,6 +120,8 @@ Write a complete, ready-to-submit proposal draft.`,
     const draft = aiData.choices?.[0]?.message?.content;
     if (!draft) throw new Error("No content in AI response");
 
+    await recordAiUsage(auth, "proposals_drafted");
+
     return new Response(JSON.stringify({
       title: `Proposal: ${rfp.title}`,
       content: draft,

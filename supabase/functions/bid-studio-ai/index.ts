@@ -144,41 +144,32 @@ Return ONLY valid JSON. No preamble. No markdown fences.`,
   }),
 };
 
+const COUNTER_BY_TOOL: Record<string, UsageFeature> = {
+  analyser: "rfps_analysed",
+  writer: "bids_generated",
+  reviewer: "bids_reviewed",
+  checklist: "checklists_created",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { tool, variables } = await req.json();
-    if (!tool || !PROMPTS[tool]) {
+    const body = await req.json();
+    const { tool, variables } = body ?? {};
+    if (!tool || !PROMPTS[tool] || !COUNTER_BY_TOOL[tool]) {
       return new Response(JSON.stringify({ error: "Invalid tool" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const feature = COUNTER_BY_TOOL[tool];
+
+    // Server-side subscription + allowance check (Pro or active trial only).
+    const auth = await authorizeAiRequest(req, feature, corsHeaders);
+    if (isAuthorizationFailure(auth)) return auth.response;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
