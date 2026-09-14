@@ -245,6 +245,16 @@ Return ONLY valid JSON via the function call.`,
     if (aiRes.status === 429) {
       return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "AI rate limited" };
     }
+    if (detectAuthFailure(aiRes.status, errText)) {
+      await sendScrapeAlert(supabase, {
+        type: "auth_failure",
+        key: `ai-gateway-auth-${aiRes.status}`,
+        severity: "critical",
+        subject: `Scraper credential failure: AI gateway returned ${aiRes.status}`,
+        detail: `The AI extraction call for "${target.name}" was rejected with HTTP ${aiRes.status}.\n\nResponse: ${errText.slice(0, 500)}\n\nNo opportunities can be extracted until this is fixed.`,
+      });
+      throw new Error(`AUTH_FAILURE AI gateway ${aiRes.status}: ${errText.slice(0, 500)}`);
+    }
     throw new Error(`AI gateway error (${aiRes.status}): ${errText.slice(0, 500)}`);
   }
 
