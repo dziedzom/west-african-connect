@@ -70,8 +70,7 @@ const BidChecklist = () => {
     setResult(null);
 
     // TODO: Switch to Claude claude-opus-4-5 when ANTHROPIC_API_KEY is added
-    const { data, error: fnError } = await supabase.functions.invoke("bid-studio-ai", {
-      body: {
+    const { result: data, error: fnError } = await invokeAi<{ result: any }>("bid-studio-ai", {
         tool: "checklist",
         variables: {
           today_date: format(new Date(), "yyyy-MM-dd"),

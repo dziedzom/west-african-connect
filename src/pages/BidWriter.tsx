@@ -90,13 +90,14 @@ const BidWriter = () => {
     const companyInfo = JSON.stringify({ companyName, years, employees, pastProjects, certifications, advantage, teamMembers });
 
     // TODO: Switch to Claude claude-opus-4-5 when ANTHROPIC_API_KEY is added
-    const { data, error: fnError } = await supabase.functions.invoke("bid-studio-ai", {
-      body: { tool: "writer", variables: { rfp_text: rfpText, company_info: companyInfo } },
+    const { result: data, error: fnError } = await invokeAi<{ result: any }>("bid-studio-ai", {
+      tool: "writer",
+      variables: { rfp_text: rfpText, company_info: companyInfo },
     });
 
     setLoading(false);
-    if (fnError || data?.error) {
-      setError(data?.error || "Our AI assistant is busy right now — please try again in a moment.");
+    if (fnError || !data) {
+      setError(fnError || "Our AI assistant is busy right now — please try again in a moment.");
     } else {
       setSections(data.result);
     }

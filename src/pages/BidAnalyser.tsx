@@ -116,13 +116,14 @@ const BidAnalyser = () => {
     setResult(null);
 
     // TODO: Switch to Claude claude-opus-4-5 when ANTHROPIC_API_KEY is added
-    const { data, error: fnError } = await supabase.functions.invoke("bid-studio-ai", {
-      body: { tool: "analyser", variables: { rfp_text: rfpText } },
+    const { result: data, error: fnError } = await invokeAi<{ result: any }>("bid-studio-ai", {
+      tool: "analyser",
+      variables: { rfp_text: rfpText },
     });
 
     setLoading(false);
-    if (fnError || data?.error) {
-      setError(data?.error || "Our AI assistant is busy right now — please try again in a moment.");
+    if (fnError || !data) {
+      setError(fnError || "Our AI assistant is busy right now — please try again in a moment.");
     } else {
       setResult(data.result);
     }
