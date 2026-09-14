@@ -472,8 +472,12 @@ Return ONLY valid JSON via the function call.`,
 
 
 
-    const africaRelevant = isAfricaRelevant(rfp, target.category);
-    if (!africaRelevant) nonAfricaCount++;
+    // Africa relevance is enforced at ingest: non-relevant tenders are not saved at all.
+    const africaRelevant = isAfricaRelevant(rfp, target.category, target.url);
+    if (!africaRelevant) {
+      nonAfricaCount++;
+      continue;
+    }
 
     const contentHash = await buildContentHash(rfp);
     const sourceDomain = extractDomain(rfp.source_url) || target.domain;
