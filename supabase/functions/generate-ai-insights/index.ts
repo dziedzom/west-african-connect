@@ -41,7 +41,7 @@ serve(async (req) => {
 
     // Fetch RFP details
     const { data: rfp } = await supabase
-      .from("rfps")
+      .from("scraped_rfps")
       .select("*")
       .eq("id", rfp_id)
       .single();

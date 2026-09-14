@@ -26,7 +26,7 @@ serve(async (req) => {
     if (!rfp_id) throw new Error("rfp_id is required");
 
     // Fetch RFP details
-    const { data: rfp } = await supabase.from("rfps").select("*").eq("id", rfp_id).single();
+    const { data: rfp } = await supabase.from("scraped_rfps").select("*").eq("id", rfp_id).single();
     if (!rfp) throw new Error("RFP not found");
 
     // Fetch user profile
