@@ -1,17 +1,15 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Heart, CalendarDays } from "lucide-react";
 import type { RFP } from "@/types/rfp";
+import { useOpportunityTracker } from "@/hooks/useOpportunityTracker";
 
 const SavedRFPsList = () => {
   const [rfps, setRfps] = useState<RFP[]>([]);
-  const [savedIds, setSavedIds] = useState<Set<string>>(() => {
-    const stored = localStorage.getItem("savedRfps");
-    return new Set(stored ? JSON.parse(stored) : []);
-  });
   const [loading, setLoading] = useState(true);
+  const { rows, byRfp, setStage, removeRow, saving } = useOpportunityTracker();
 
   useEffect(() => {
     const fetchRfps = async () => {
@@ -34,14 +32,9 @@ const SavedRFPsList = () => {
     fetchRfps();
   }, []);
 
-  const toggleSave = (id: string) => {
-    setSavedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      localStorage.setItem("savedRfps", JSON.stringify([...next]));
-      return next;
-    });
+  const toggleSave = async (id: string) => {
+    if (byRfp(id)) await removeRow(id);
+    else await setStage(id, "interested");
   };
 
   if (loading) {
@@ -66,7 +59,7 @@ const SavedRFPsList = () => {
   return (
     <ul className="space-y-2">
       {rfps.map((rfp) => {
-        const isSaved = savedIds.has(rfp.id);
+        const isSaved = !!rows.find((r) => r.rfp_id === rfp.id);
         return (
           <li
             key={rfp.id}
@@ -86,8 +79,9 @@ const SavedRFPsList = () => {
             </div>
             <button
               onClick={() => toggleSave(rfp.id)}
+              disabled={saving === rfp.id}
               className="group/heart shrink-0 p-2 rounded-full transition-all hover:bg-accent/10"
-              aria-label={isSaved ? "Unsave RFP" : "Save RFP"}
+              aria-label={isSaved ? "Remove from your pipeline" : "Track this opportunity"}
             >
               <Heart
                 className={`h-4 w-4 transition-all duration-200 ${
