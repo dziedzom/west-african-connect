@@ -185,6 +185,7 @@ const ScrapeAgent = () => {
             </div>
           </div>
 
+          <ScrapeFreshnessPanel />
           <SourceCoveragePanel />
 
           {/* Controls */}
