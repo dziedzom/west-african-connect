@@ -103,6 +103,9 @@ interface ScrapeSource {
   enabled: boolean;
   auto_disabled_until: string | null;
   consecutive_failures: number;
+  follow_detail_pages?: boolean;
+  detail_link_pattern?: string | null;
+  detail_max_per_run?: number | null;
 }
 
 interface PortalResult {
@@ -118,7 +121,117 @@ interface PortalResult {
   expired?: number;
   null_deadline?: number;
   duration_ms?: number;
+  detail_attempted?: number;
+  detail_succeeded?: number;
+  detail_failed?: number;
+  detail_deadlines_recovered?: number;
+  detail_skipped_for_time?: number;
+  detail_ms?: number;
   error?: string;
+}
+
+/**
+ * Generic detail-page deep scrape: fetch one opportunity's own page and ask the
+ * model for the closing date only. Source-agnostic — behaviour is driven purely
+ * by the scrape_sources config columns.
+ */
+async function fetchDetailDeadline(
+  detailUrl: string,
+  firecrawlKey: string,
+  lovableKey: string,
+  todayISO: string,
+): Promise<string | null> {
+  const res = await fetch(`${FIRECRAWL_API}/scrape`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${lovableKey}`,
+      "X-Connection-Api-Key": firecrawlKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      url: detailUrl,
+      formats: ["markdown"],
+      onlyMainContent: true,
+      waitFor: 2000,
+    }),
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    if (detectAuthFailure(res.status, text)) {
+      // Bubble up: a credential failure must not be swallowed as a per-item miss.
+      throw new Error(`AUTH_FAILURE Firecrawl ${res.status}: ${text.slice(0, 300)}`);
+    }
+    throw new Error(`detail fetch failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+
+  let data: any = {};
+  try { data = JSON.parse(text); } catch { data = {}; }
+  const markdown: string = data.data?.markdown || data.markdown || "";
+  if (!markdown || markdown.length < 80) throw new Error("detail page content too short");
+
+  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content: `You read a single procurement opportunity page and report its closing date. Today is ${todayISO}.
+STRICT, NO INFERENCE: return the closing/submission/due/bid-deadline date as ISO 8601 (YYYY-MM-DD) ONLY when it is explicitly written on this page for this opportunity. If no closing date is visible, return null. NEVER infer, estimate, guess, derive from context, or use a publication date or today's date. Null is a valid and expected outcome, not a failure.`,
+        },
+        { role: "user", content: `Page content:\n${markdown.substring(0, 12000)}` },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "report_deadline",
+            description: "Report the explicitly visible closing date, or null.",
+            parameters: {
+              type: "object",
+              properties: { deadline: { type: ["string", "null"] } },
+              required: ["deadline"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "report_deadline" } },
+    }),
+  });
+
+  if (!aiRes.ok) {
+    const errText = await aiRes.text();
+    if (detectAuthFailure(aiRes.status, errText)) {
+      throw new Error(`AUTH_FAILURE AI gateway ${aiRes.status}: ${errText.slice(0, 300)}`);
+    }
+    throw new Error(`detail AI error (${aiRes.status})`);
+  }
+
+  const aiData = await aiRes.json();
+  const args = aiData.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+  if (!args) return null;
+  let parsed: { deadline?: string | null } = {};
+  try { parsed = JSON.parse(args); } catch { return null; }
+  const d = parsed.deadline;
+  if (!d || typeof d !== "string" || !/^\d{4}-\d{2}-\d{2}/.test(d)) return null;
+  if (Number.isNaN(new Date(d).getTime())) return null;
+  return d.substring(0, 10);
+}
+
+function isDetailCandidate(target: ScrapeSource, candidateUrl: string): boolean {
+  if (!candidateUrl || !/^https?:\/\//i.test(candidateUrl)) return false;
+  // Never re-fetch the listing page itself.
+  if (candidateUrl.replace(/\/+$/, "") === target.url.replace(/\/+$/, "")) return false;
+  const pattern = (target.detail_link_pattern || "").trim();
+  if (!pattern) return true;
+  try {
+    return new RegExp(pattern, "i").test(candidateUrl);
+  } catch {
+    return candidateUrl.toLowerCase().includes(pattern.toLowerCase());
+  }
 }
 
 async function scrapePortal(
@@ -126,7 +239,8 @@ async function scrapePortal(
   firecrawlKey: string,
   lovableKey: string,
   supabase: ReturnType<typeof createClient>,
-  todayISO: string
+  todayISO: string,
+  runDeadlineMs: number = Date.now() + TIME_BUDGET_MS
 ): Promise<PortalResult> {
   console.log(`Scraping: ${target.name} - ${target.url}`);
 
