@@ -104,7 +104,15 @@ function isAfricaRelevant(
 ): boolean {
   // Sources that are Africa-only by definition.
   if (sourceCategory === "african_government" || sourceCategory === "regional_body") return true;
-  if (sourceCategory === "aggregator" && (sourceUrl || "").toLowerCase().includes("africa")) return true;
+  // Africa-scoped aggregator feeds (e.g. .../global-africa-tenders.php). Only the
+  // hostname + path counts: a query string such as `?searchString=africa` is a
+  // keyword search on a global portal, not an Africa-only listing.
+  if (sourceCategory === "aggregator") {
+    try {
+      const u = new URL(sourceUrl || "");
+      if (`${u.hostname}${u.pathname}`.toLowerCase().includes("africa")) return true;
+    } catch { /* unparseable URL — fall through to content checks */ }
+  }
 
   const loc = (rfp.location || "").toLowerCase().trim();
 
