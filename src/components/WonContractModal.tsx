@@ -10,16 +10,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-const CURRENCIES = ["USD", "NGN", "KES", "GHS", "ZAR", "ETB", "TZS", "UGX", "RWF"];
+const CURRENCIES = ["USD", "NGN", "KES", "GHS", "ZAR", "ETB", "TZS", "UGX", "RWF", "XOF", "MAD", "EGP", "EUR", "GBP"];
 
 interface WonContractModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rfpId: string;
   rfpTitle: string;
+  onRecorded?: () => void;
 }
 
-const WonContractModal = ({ open, onOpenChange, rfpId, rfpTitle }: WonContractModalProps) => {
+const WonContractModal = ({ open, onOpenChange, rfpId, rfpTitle, onRecorded }: WonContractModalProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [contractValue, setContractValue] = useState("");
@@ -28,29 +29,41 @@ const WonContractModal = ({ open, onOpenChange, rfpId, rfpTitle }: WonContractMo
   const [submitting, setSubmitting] = useState(false);
 
   const numericValue = parseFloat(contractValue) || 0;
+  // Shown for transparency only — the fee is recalculated server-side.
   const successFee = useMemo(() => Math.min(Math.round(numericValue * 0.035 * 100) / 100, 5000), [numericValue]);
 
   const handleSubmit = async () => {
     if (!user || !agreed || numericValue <= 0) return;
     setSubmitting(true);
 
-    const { error } = await supabase.from("won_contracts").insert({
-      user_id: user.id,
-      rfp_id: rfpId,
-      rfp_title: rfpTitle,
-      contract_value: numericValue,
-      currency,
-      agreement_confirmed: true,
+    const { data, error } = await supabase.functions.invoke("record-outcome", {
+      body: {
+        action: "set_status",
+        rfp_id: rfpId,
+        status: "won",
+        contract_value: numericValue,
+        currency,
+        agreement_confirmed: true,
+      },
     });
 
-    if (error) {
-      toast({ title: "Error", description: "Failed to submit. Please try again.", variant: "destructive" });
+    const failure = error || (data as any)?.error;
+    if (failure) {
+      toast({
+        title: "Couldn't record your win",
+        description: (data as any)?.error || "Please try again in a moment.",
+        variant: "destructive",
+      });
     } else {
-      toast({ title: "Congratulations! 🎉", description: "Your won contract has been recorded. An invoice will be sent shortly." });
+      toast({
+        title: "Congratulations! 🎉",
+        description: `Recorded. Success fee: USD $${Number((data as any)?.success_fee ?? successFee).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. An invoice will follow.`,
+      });
       onOpenChange(false);
       setContractValue("");
       setCurrency("USD");
       setAgreed(false);
+      onRecorded?.();
     }
     setSubmitting(false);
   };
@@ -107,12 +120,19 @@ const WonContractModal = ({ open, onOpenChange, rfpId, rfpTitle }: WonContractMo
 
           {numericValue > 0 && (
             <div className="rounded-lg border border-accent/20 bg-accent/5 p-3 text-center">
-              <p className="text-xs text-muted-foreground">MiddlBrand success fee: 3.5%</p>
+              <p className="text-xs text-muted-foreground">
+                MiddlBrand success fee: 3.5% of {currency} {numericValue.toLocaleString()}
+              </p>
               <p className="text-2xl font-display font-bold text-accent mt-1">
                 USD ${successFee.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               {successFee >= 5000 && (
                 <p className="text-[10px] text-muted-foreground mt-0.5">Capped at $5,000</p>
+              )}
+              {currency !== "USD" && (
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Converted at invoicing — we'll confirm the rate with you.
+                </p>
               )}
             </div>
           )}
