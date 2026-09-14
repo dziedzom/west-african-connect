@@ -4,6 +4,7 @@ import {
   authorizeAiRequest,
   corsHeadersFor,
   isAuthorizationFailure,
+  limitReachedResponse,
   recordAiUsage,
 } from "../_shared/entitlements.ts";
 
@@ -15,8 +16,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization")!;
 
-    // Server-side subscription + allowance check (Pro or active trial only).
-    const auth = await authorizeAiRequest(req, "insights_generated", corsHeaders);
+    // Server-side subscription check (Pro or active trial only). The monthly
+    // allowance is enforced further down, so a cached insight stays readable.
+    const auth = await authorizeAiRequest(req, "insights_generated", corsHeaders, {
+      enforceLimit: false,
+    });
     if (isAuthorizationFailure(auth)) return auth.response;
     const user = { id: auth.userId };
 
@@ -42,6 +46,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Generating a new insight spends allowance.
+    const overLimit = limitReachedResponse(auth, "insights_generated", corsHeaders);
+    if (overLimit) return overLimit;
 
     // Fetch RFP details
     const { data: rfp } = await supabase
