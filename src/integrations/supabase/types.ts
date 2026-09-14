@@ -322,7 +322,9 @@ export type Database = {
           email: string | null
           expertise: string | null
           id: string
+          insights_generated: number
           location: string | null
+          proposals_drafted: number
           rfps_analysed: number | null
           subscription_amount: number | null
           subscription_end: string | null
@@ -330,6 +332,7 @@ export type Database = {
           subscription_start: string | null
           subscription_tier: string
           updated_at: string
+          usage_period_start: string
           user_id: string
           website: string | null
         }
@@ -343,7 +346,9 @@ export type Database = {
           email?: string | null
           expertise?: string | null
           id?: string
+          insights_generated?: number
           location?: string | null
+          proposals_drafted?: number
           rfps_analysed?: number | null
           subscription_amount?: number | null
           subscription_end?: string | null
@@ -351,6 +356,7 @@ export type Database = {
           subscription_start?: string | null
           subscription_tier?: string
           updated_at?: string
+          usage_period_start?: string
           user_id: string
           website?: string | null
         }
@@ -364,7 +370,9 @@ export type Database = {
           email?: string | null
           expertise?: string | null
           id?: string
+          insights_generated?: number
           location?: string | null
+          proposals_drafted?: number
           rfps_analysed?: number | null
           subscription_amount?: number | null
           subscription_end?: string | null
@@ -372,6 +380,7 @@ export type Database = {
           subscription_start?: string | null
           subscription_tier?: string
           updated_at?: string
+          usage_period_start?: string
           user_id?: string
           website?: string | null
         }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { invokeAi } from "@/lib/invokeAi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -70,21 +71,19 @@ const BidChecklist = () => {
     setResult(null);
 
     // TODO: Switch to Claude claude-opus-4-5 when ANTHROPIC_API_KEY is added
-    const { data, error: fnError } = await supabase.functions.invoke("bid-studio-ai", {
-      body: {
-        tool: "checklist",
-        variables: {
-          today_date: format(new Date(), "yyyy-MM-dd"),
-          deadline: format(deadline, "yyyy-MM-dd"),
-          documents,
-          country,
-        },
+    const { result: data, error: fnError } = await invokeAi<{ result: any }>("bid-studio-ai", {
+      tool: "checklist",
+      variables: {
+        today_date: format(new Date(), "yyyy-MM-dd"),
+        deadline: format(deadline, "yyyy-MM-dd"),
+        documents,
+        country,
       },
     });
 
     setLoading(false);
-    if (fnError || data?.error) {
-      setError(data?.error || "Our AI assistant is busy right now — please try again in a moment.");
+    if (fnError || !data) {
+      setError(fnError || "Our AI assistant is busy right now — please try again in a moment.");
     } else {
       setResult(data.result);
     }

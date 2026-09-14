@@ -38,8 +38,11 @@ export const useSubscription = (): SubscriptionInfo => {
         .maybeSingle();
 
       if (data) {
-        const isActive = data.subscription_tier === "pro" && 
-          (!data.subscription_end || new Date(data.subscription_end) > new Date());
+        // Matches the server-side check in supabase/functions/_shared/entitlements.ts:
+        // the plan stays valid through the end of the subscription_end day.
+        const isActive = data.subscription_tier === "pro" &&
+          (!data.subscription_end ||
+            new Date(`${data.subscription_end}T23:59:59.999Z`).getTime() >= Date.now());
         setInfo({
           tier: isActive ? "pro" : "free",
           plan: data.subscription_plan as "monthly" | "annual" | null,

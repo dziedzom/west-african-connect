@@ -1,26 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  authorizeAiRequest,
+  corsHeadersFor,
+  isAuthorizationFailure,
+  limitReachedResponse,
+  recordAiUsage,
+} from "../_shared/entitlements.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const corsHeaders = corsHeadersFor();
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing authorization header");
+    const authHeader = req.headers.get("Authorization")!;
+
+    // Server-side subscription check (Pro or active trial only). The monthly
+    // allowance is enforced further down, so a cached insight stays readable.
+    const auth = await authorizeAiRequest(req, "insights_generated", corsHeaders, {
+      enforceLimit: false,
+    });
+    if (isAuthorizationFailure(auth)) return auth.response;
+    const user = { id: auth.userId };
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } },
     });
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) throw new Error("Unauthorized");
 
     const { rfp_id } = await req.json();
     if (!rfp_id) throw new Error("rfp_id is required");
@@ -38,6 +46,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Generating a new insight spends allowance.
+    const overLimit = limitReachedResponse(auth, "insights_generated", corsHeaders);
+    if (overLimit) return overLimit;
 
     // Fetch RFP details
     const { data: rfp } = await supabase
@@ -180,6 +192,8 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
     });
 
     if (insertError) throw insertError;
+
+    await recordAiUsage(auth, "insights_generated");
 
     return new Response(JSON.stringify({
       status: "created",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { invokeAi } from "@/lib/invokeAi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,7 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
   const [insight, setInsight] = useState<AIInsight | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [insightError, setInsightError] = useState("");
 
   useEffect(() => {
     const fetchOrGenerate = async () => {
@@ -96,10 +98,11 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
       setLoading(false);
       setGenerating(true);
       try {
-        const { data: result, error } = await supabase.functions.invoke("generate-ai-insights", {
-          body: { rfp_id: rfpId },
-        });
-        if (error) throw error;
+        const { result, error } = await invokeAi<any>("generate-ai-insights", { rfp_id: rfpId });
+        if (error) {
+          setInsightError(error);
+          return;
+        }
         if (result?.status === "created") {
           setInsight({
             match_score: result.match_score,
@@ -138,7 +141,7 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
     return (
       <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4 text-center">
         <Brain className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
-        <p className="text-xs text-muted-foreground">No AI insights available yet for this RFP.</p>
+        <p className="text-xs text-muted-foreground">{insightError || "No AI insights available yet for this RFP."}</p>
       </div>
     );
   }
