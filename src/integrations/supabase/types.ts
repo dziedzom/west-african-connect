@@ -487,6 +487,96 @@ export type Database = {
         }
         Relationships: []
       }
+      scrape_alert_log: {
+        Row: {
+          alert_key: string
+          alert_type: string
+          created_at: string
+          detail: string | null
+          email_error: string | null
+          email_status: string
+          email_to: string | null
+          id: string
+          severity: string
+          subject: string
+        }
+        Insert: {
+          alert_key: string
+          alert_type: string
+          created_at?: string
+          detail?: string | null
+          email_error?: string | null
+          email_status?: string
+          email_to?: string | null
+          id?: string
+          severity?: string
+          subject: string
+        }
+        Update: {
+          alert_key?: string
+          alert_type?: string
+          created_at?: string
+          detail?: string | null
+          email_error?: string | null
+          email_status?: string
+          email_to?: string | null
+          id?: string
+          severity?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      scrape_run_log: {
+        Row: {
+          auth_failure: boolean
+          batch: number | null
+          batch_size: number | null
+          created_at: string
+          duration_ms: number | null
+          error_summary: string | null
+          http_status: number | null
+          id: string
+          invoked_by: string
+          ok: boolean
+          portals_failed: number | null
+          portals_processed: number | null
+          response_body: Json | null
+          rows_saved: number | null
+        }
+        Insert: {
+          auth_failure?: boolean
+          batch?: number | null
+          batch_size?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          error_summary?: string | null
+          http_status?: number | null
+          id?: string
+          invoked_by?: string
+          ok?: boolean
+          portals_failed?: number | null
+          portals_processed?: number | null
+          response_body?: Json | null
+          rows_saved?: number | null
+        }
+        Update: {
+          auth_failure?: boolean
+          batch?: number | null
+          batch_size?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          error_summary?: string | null
+          http_status?: number | null
+          id?: string
+          invoked_by?: string
+          ok?: boolean
+          portals_failed?: number | null
+          portals_processed?: number | null
+          response_body?: Json | null
+          rows_saved?: number | null
+        }
+        Relationships: []
+      }
       scrape_sources: {
         Row: {
           auto_disabled_until: string | null

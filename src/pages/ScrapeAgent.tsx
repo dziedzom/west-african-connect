@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
 import Layout from "@/components/Layout";
 import SourceCoveragePanel from "@/components/SourceCoveragePanel";
+import ScrapeFreshnessPanel from "@/components/ScrapeFreshnessPanel";
 
 const DEFAULT_PORTALS = [
   { name: "UNGM", label: "UN Global Marketplace", url: "https://www.ungm.org/Public/Notice" },
@@ -184,6 +185,7 @@ const ScrapeAgent = () => {
             </div>
           </div>
 
+          <ScrapeFreshnessPanel />
           <SourceCoveragePanel />
 
           {/* Controls */}

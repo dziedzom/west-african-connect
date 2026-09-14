@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendScrapeAlert, detectAuthFailure } from "../_shared/scrape-alerts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -146,9 +147,22 @@ async function scrapePortal(
     }),
   });
 
-  const scrapeData = await scrapeRes.json();
+  const scrapeText = await scrapeRes.text();
+  let scrapeData: any = {};
+  try { scrapeData = JSON.parse(scrapeText); } catch { scrapeData = {}; }
   if (!scrapeRes.ok) {
-    throw new Error(`Firecrawl error: ${JSON.stringify(scrapeData).slice(0, 500)}`);
+    const snippet = scrapeText.slice(0, 500);
+    if (detectAuthFailure(scrapeRes.status, scrapeText)) {
+      await sendScrapeAlert(supabase, {
+        type: "auth_failure",
+        key: `firecrawl-auth-${scrapeRes.status}`,
+        severity: "critical",
+        subject: `Scraper credential failure: Firecrawl returned ${scrapeRes.status}`,
+        detail: `Firecrawl rejected the scrape request for "${target.name}" (${target.url}) with HTTP ${scrapeRes.status}.\n\nResponse: ${snippet}\n\nNo pages can be scraped until this credential is fixed.`,
+      });
+      throw new Error(`AUTH_FAILURE Firecrawl ${scrapeRes.status}: ${snippet}`);
+    }
+    throw new Error(`Firecrawl error: ${snippet}`);
   }
 
   const markdown = scrapeData.data?.markdown || scrapeData.markdown || "";
@@ -231,6 +245,16 @@ Return ONLY valid JSON via the function call.`,
     const errText = await aiRes.text();
     if (aiRes.status === 429) {
       return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "AI rate limited" };
+    }
+    if (detectAuthFailure(aiRes.status, errText)) {
+      await sendScrapeAlert(supabase, {
+        type: "auth_failure",
+        key: `ai-gateway-auth-${aiRes.status}`,
+        severity: "critical",
+        subject: `Scraper credential failure: AI gateway returned ${aiRes.status}`,
+        detail: `The AI extraction call for "${target.name}" was rejected with HTTP ${aiRes.status}.\n\nResponse: ${errText.slice(0, 500)}\n\nNo opportunities can be extracted until this is fixed.`,
+      });
+      throw new Error(`AUTH_FAILURE AI gateway ${aiRes.status}: ${errText.slice(0, 500)}`);
     }
     throw new Error(`AI gateway error (${aiRes.status}): ${errText.slice(0, 500)}`);
   }
@@ -497,6 +521,16 @@ serve(async (req) => {
             status: autoDisable ? "auto_disabled" : "failed",
             error_message: msg.slice(0, 500),
           }).then(() => {}, () => {});
+
+          if (autoDisable) {
+            await sendScrapeAlert(supabase, {
+              type: "source_auto_disabled",
+              key: `auto-disabled-${target.id}`,
+              severity: "critical",
+              subject: `Source auto-disabled: ${target.name}`,
+              detail: `"${target.name}" (${target.url}) has been switched off after ${newFailures} consecutive failures and stays off until ${autoDisable}.\n\nReason (last error): ${msg.slice(0, 500)}`,
+            });
+          }
         }
       }
 
@@ -532,7 +566,7 @@ serve(async (req) => {
 
     const sum = (k: keyof PortalResult) => results.reduce((s, r) => s + ((r[k] as number) || 0), 0);
 
-    return new Response(JSON.stringify({
+    const payload = {
       success: true, batch, totalBatches,
       portals_processed: results.length,
       portals_skipped_for_time: skippedForTime,
@@ -549,10 +583,41 @@ serve(async (req) => {
       transitioned_expired: expiredCount,
       transitioned_closing_soon: closingSoonCount,
       results,
-    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    };
+
+    // Run history: the real outcome of this invocation, independent of pg_cron status.
+    const failedResults = results.filter((r) => r.error);
+    const authFailed = failedResults.some((r) => (r.error || "").includes("AUTH_FAILURE"));
+    await supabase.from("scrape_run_log").insert({
+      invoked_by: req.headers.get("x-cron-secret") ? "cron" : "manual",
+      batch,
+      batch_size: batchSize,
+      http_status: 200,
+      ok: true,
+      portals_processed: results.length,
+      portals_failed: failedResults.length,
+      rows_saved: payload.total_rfps_found,
+      duration_ms: payload.total_duration_ms,
+      auth_failure: authFailed,
+      error_summary: failedResults.map((r) => `${r.portal}: ${r.error}`).join(" | ").slice(0, 2000) || null,
+      response_body: payload,
+    }).then(() => {}, () => {});
+
+    return new Response(JSON.stringify(payload),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("scrape-rfps error:", message);
+    try {
+      const logger = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      await logger.from("scrape_run_log").insert({
+        invoked_by: req.headers.get("x-cron-secret") ? "cron" : "manual",
+        http_status: 500,
+        ok: false,
+        auth_failure: message.includes("AUTH_FAILURE"),
+        error_summary: message.slice(0, 2000),
+      });
+    } catch { /* logging must never mask the original failure */ }
     return new Response(JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
