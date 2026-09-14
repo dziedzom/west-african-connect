@@ -109,7 +109,9 @@ export async function authorizeAiRequest(
   req: Request,
   feature: UsageFeature,
   cors: Record<string, string> = corsHeadersFor(),
+  options: { enforceLimit?: boolean } = {},
 ): Promise<AuthorizedRequest | AuthorizationFailure> {
+  const enforceLimit = options.enforceLimit !== false;
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     return { response: json({ error: "Please sign in to use this feature." }, 401, cors) };
@@ -187,23 +189,39 @@ export async function authorizeAiRequest(
   }
 
   const limit = PLAN_LIMITS[tier][feature];
-  if (used >= limit) {
-    return {
-      response: json(
-        {
-          error: `You have used all ${limit} ${FEATURE_LABEL[feature]} included this month. Your allowance resets at the start of your next usage month.`,
-          code: "limit_reached",
-          feature,
-          limit,
-          used,
-        },
-        429,
-        cors,
-      ),
-    };
+  const ctx: AuthorizedRequest = { userId: user.id, admin, tier, limit, used };
+  if (enforceLimit) {
+    const overLimit = limitReachedResponse(ctx, feature, cors);
+    if (overLimit) return { response: overLimit };
   }
 
-  return { userId: user.id, admin, tier, limit, used };
+  return ctx;
+}
+
+/**
+ * Returns a ready-to-send 429 when the caller has exhausted the allowance for
+ * `feature`, or null when they still have headroom. Use this when a request may
+ * be served from cache without spending an AI call (check the cache first, then
+ * enforce the limit only for calls that will actually hit the model).
+ */
+export function limitReachedResponse(
+  ctx: AuthorizedRequest,
+  feature: UsageFeature,
+  cors: Record<string, string> = corsHeadersFor(),
+): Response | null {
+  const limit = PLAN_LIMITS[ctx.tier][feature];
+  if (ctx.used < limit) return null;
+  return json(
+    {
+      error: `You have used all ${limit} ${FEATURE_LABEL[feature]} included this month. Your allowance resets at the start of your next usage month.`,
+      code: "limit_reached",
+      feature,
+      limit,
+      used: ctx.used,
+    },
+    429,
+    cors,
+  );
 }
 
 export const isAuthorizationFailure = (
