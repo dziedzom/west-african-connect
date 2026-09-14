@@ -598,6 +598,67 @@ serve(async (req) => {
     const priorityFilter: number | null = typeof body.priority === "number" ? body.priority : null;
     const batch: number | null = typeof body.batch === "number" ? body.batch : null;
     const batchSize: number = body.batch_size || BATCH_SIZE;
+
+    // Backfill mode: re-run detail-page extraction over rows that were saved
+    // without a deadline, for sources configured to follow detail pages.
+    if (body.backfill_details === true) {
+      const bfStart = Date.now();
+      const { data: bfSources } = await supabase
+        .from("scrape_sources")
+        .select("*")
+        .eq("follow_detail_pages", true);
+      let bfTargets = (bfSources as ScrapeSource[]) || [];
+      if (portalFilter.length > 0) bfTargets = bfTargets.filter((s) => portalFilter.includes(s.name));
+
+      const perSource: Array<Record<string, unknown>> = [];
+      for (const target of bfTargets) {
+        const cap = Math.max(0, target.detail_max_per_run ?? 5);
+        const { data: rows } = await supabase
+          .from("scraped_rfps")
+          .select("id, source_url")
+          .eq("portal", target.name)
+          .is("deadline", null)
+          .limit(cap);
+        let attempted = 0, succeeded = 0, failed = 0, recovered = 0, skippedTime = 0;
+        for (const row of (rows as Array<{ id: string; source_url: string }>) || []) {
+          if (Date.now() - bfStart > TIME_BUDGET_MS - DETAIL_TIME_RESERVE_MS) { skippedTime++; continue; }
+          if (!isDetailCandidate(target, row.source_url)) continue;
+          attempted++;
+          try {
+            const deadline = await withTimeout(
+              fetchDetailDeadline(row.source_url, FIRECRAWL_API_KEY, LOVABLE_API_KEY, new Date().toISOString().split("T")[0]),
+              DETAIL_TIMEOUT_MS,
+            );
+            succeeded++;
+            if (deadline) {
+              await supabase.from("scraped_rfps").update({
+                deadline,
+                status: deadlineStatus(deadline),
+                needs_review: false,
+                updated_at: new Date().toISOString(),
+              }).eq("id", row.id);
+              recovered++;
+            }
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            if (msg.startsWith("AUTH_FAILURE")) throw e;
+            failed++;
+            console.log(`${target.name}: backfill detail fetch failed for ${row.source_url}: ${msg}`);
+          }
+          await new Promise((r) => setTimeout(r, DETAIL_SLEEP_MS));
+        }
+        perSource.push({
+          portal: target.name, detail_attempted: attempted, detail_succeeded: succeeded,
+          detail_failed: failed, detail_deadlines_recovered: recovered, detail_skipped_for_time: skippedTime,
+        });
+      }
+
+      return new Response(JSON.stringify({
+        success: true, mode: "backfill_details",
+        total_duration_ms: Date.now() - bfStart,
+        sources: perSource,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const includeDisabled: boolean = !!body.include_disabled;
 
     // Load source catalog from DB
