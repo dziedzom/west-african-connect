@@ -63,13 +63,13 @@ serve(async (req) => {
 
     const { data: recentRows } = await supabase
       .from("scraped_rfps")
-      .select("source_name")
+      .select("portal")
       .gte("created_at", sevenDaysAgo)
       .limit(20000);
 
     const rowsBySource = new Map<string, number>();
-    for (const r of (recentRows ?? []) as Array<{ source_name: string | null }>) {
-      const key = r.source_name ?? "unknown";
+    for (const r of (recentRows ?? []) as Array<{ portal: string | null }>) {
+      const key = r.portal ?? "unknown";
       rowsBySource.set(key, (rowsBySource.get(key) ?? 0) + 1);
     }
 
