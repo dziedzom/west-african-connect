@@ -481,7 +481,8 @@ Return ONLY valid JSON via the function call.`,
       }
     }
 
-    const rowStatus = deadlineStatus(rfp.deadline || null);
+    const rowDeadline = normalizeDeadline(rfp.deadline);
+    const rowStatus = deadlineStatus(rowDeadline);
 
 
 
