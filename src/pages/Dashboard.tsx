@@ -12,6 +12,7 @@ import type { RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
+import OutcomeLoopPanels from "@/components/OutcomeLoopPanels";
 
 
 interface ScrapedRFP {
@@ -299,6 +300,9 @@ const Dashboard = () => {
               </span>
             )}
           </div>
+
+          {/* Outcome loop: outcomes to confirm, pipeline, success fees */}
+          {user && <OutcomeLoopPanels />}
 
           {/* Proposal Pipeline */}
           {user && (
