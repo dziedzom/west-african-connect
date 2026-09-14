@@ -64,7 +64,11 @@ COMPANY INFORMATION: ${v.company_info}`,
 
   reviewer: (v) => ({
     system: `You are a senior procurement evaluator with 20 years experience evaluating bids for African government agencies and multilateral organisations. You are rigorous, fair, and specific in your feedback.`,
-    user: `Review the bid response against the RFP requirements and return a JSON object:
+    user: `SCORING SCOPE — READ FIRST. You are reviewing only the narrative bid text pasted below. Attachments and annexes (bid security/bid bond, financial proposal or price schedule, audited accounts, tax clearance, registration certificates, CVs, signed forms) are submitted as separate documents and are NOT included in this text. Do NOT deduct marks, lower any category score, or list an item as a weakness or missing element merely because such an annex is absent from the pasted text. Assume the bidder will submit the required annexes separately. Score every category strictly on the quality, compliance and completeness of the narrative content actually provided. List annexes the RFP requires but which are not reviewable here in "annexes_not_reviewed" as neutral reminders only — they must not influence any score.
+
+Today's date is ${v.today_date}. Use it for any statement about remaining time. Never assume any other current date.
+
+Review the bid response against the RFP requirements and return a JSON object:
 {
   "overall_score": number between 0 and 100,
   "grade": "A, B, C, D, or F",
