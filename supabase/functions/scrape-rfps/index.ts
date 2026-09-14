@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const FIRECRAWL_API = "https://api.firecrawl.dev/v1";
+const FIRECRAWL_API = "https://connector-gateway.lovable.dev/firecrawl/v1";
 const BATCH_SIZE = 5;
 const CLOSING_SOON_DAYS = 7;
 const PORTAL_TIMEOUT_MS = 60_000;
@@ -131,7 +131,13 @@ async function scrapePortal(
 
   const scrapeRes = await fetch(`${FIRECRAWL_API}/scrape`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${firecrawlKey}`, "Content-Type": "application/json" },
+    headers: {
+      // Gateway-backed Firecrawl connection: the connector key is a connection
+      // key for the Lovable gateway, not a Firecrawl API key.
+      Authorization: `Bearer ${lovableKey}`,
+      "X-Connection-Api-Key": firecrawlKey,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       url: target.url,
       formats: ["markdown", "links"],
