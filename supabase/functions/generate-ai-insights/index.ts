@@ -198,16 +198,21 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
     const analysis = JSON.parse(toolCall.function.arguments);
     const score = Math.min(100, Math.max(0, Math.round(analysis.match_score)));
 
-    const { error: insertError } = await supabase.from("ai_insights").insert({
-      rfp_id,
-      user_id: user.id,
-      match_score: score,
-      winning_strategy_summary: analysis.winning_strategy_summary,
-      gap_analysis: analysis.gap_analysis,
-      key_requirements: analysis.key_requirements ?? [],
-      risk_flags: analysis.risk_flags ?? [],
-      missing_qualifications: analysis.missing_qualifications ?? [],
-    });
+    // Upsert on (user_id, rfp_id): overlapping requests can race past the
+    // "already exists" check above, and the unique index makes a plain insert
+    // fail. Conflict resolution keeps a single row per user per opportunity.
+    const { error: insertError } = await supabase
+      .from("ai_insights")
+      .upsert({
+        rfp_id,
+        user_id: user.id,
+        match_score: score,
+        winning_strategy_summary: analysis.winning_strategy_summary,
+        gap_analysis: analysis.gap_analysis,
+        key_requirements: analysis.key_requirements ?? [],
+        risk_flags: analysis.risk_flags ?? [],
+        missing_qualifications: analysis.missing_qualifications ?? [],
+      }, { onConflict: "user_id,rfp_id" });
 
     if (insertError) throw insertError;
 
