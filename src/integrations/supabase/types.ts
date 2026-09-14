@@ -583,8 +583,11 @@ export type Database = {
           category: Database["public"]["Enums"]["scrape_source_category"]
           consecutive_failures: number
           created_at: string
+          detail_link_pattern: string | null
+          detail_max_per_run: number
           domain: string
           enabled: boolean
+          follow_detail_pages: boolean
           id: string
           last_error: string | null
           last_run_at: string | null
@@ -602,8 +605,11 @@ export type Database = {
           category?: Database["public"]["Enums"]["scrape_source_category"]
           consecutive_failures?: number
           created_at?: string
+          detail_link_pattern?: string | null
+          detail_max_per_run?: number
           domain: string
           enabled?: boolean
+          follow_detail_pages?: boolean
           id?: string
           last_error?: string | null
           last_run_at?: string | null
@@ -621,8 +627,11 @@ export type Database = {
           category?: Database["public"]["Enums"]["scrape_source_category"]
           consecutive_failures?: number
           created_at?: string
+          detail_link_pattern?: string | null
+          detail_max_per_run?: number
           domain?: string
           enabled?: boolean
+          follow_detail_pages?: boolean
           id?: string
           last_error?: string | null
           last_run_at?: string | null

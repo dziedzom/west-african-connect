@@ -15,6 +15,11 @@ const PORTAL_TIMEOUT_MS = 60_000;
 // invocation must return well before that. Stop starting new portals past this.
 const TIME_BUDGET_MS = 115_000;
 const PORTAL_SLEEP_MS = 1_000;
+// Detail-page deep scraping guards.
+const DETAIL_TIMEOUT_MS = 25_000;      // per detail page (fetch + extraction)
+const DETAIL_SLEEP_MS = 1_500;         // spacing to respect Firecrawl per-minute limits
+const DETAIL_TIME_RESERVE_MS = 20_000; // headroom kept for saving rows + cleanup
+const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more room
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
 
@@ -103,6 +108,9 @@ interface ScrapeSource {
   enabled: boolean;
   auto_disabled_until: string | null;
   consecutive_failures: number;
+  follow_detail_pages?: boolean;
+  detail_link_pattern?: string | null;
+  detail_max_per_run?: number | null;
 }
 
 interface PortalResult {
@@ -118,7 +126,117 @@ interface PortalResult {
   expired?: number;
   null_deadline?: number;
   duration_ms?: number;
+  detail_attempted?: number;
+  detail_succeeded?: number;
+  detail_failed?: number;
+  detail_deadlines_recovered?: number;
+  detail_skipped_for_time?: number;
+  detail_ms?: number;
   error?: string;
+}
+
+/**
+ * Generic detail-page deep scrape: fetch one opportunity's own page and ask the
+ * model for the closing date only. Source-agnostic — behaviour is driven purely
+ * by the scrape_sources config columns.
+ */
+async function fetchDetailDeadline(
+  detailUrl: string,
+  firecrawlKey: string,
+  lovableKey: string,
+  todayISO: string,
+): Promise<string | null> {
+  const res = await fetch(`${FIRECRAWL_API}/scrape`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${lovableKey}`,
+      "X-Connection-Api-Key": firecrawlKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      url: detailUrl,
+      formats: ["markdown"],
+      onlyMainContent: true,
+      waitFor: 2000,
+    }),
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    if (detectAuthFailure(res.status, text)) {
+      // Bubble up: a credential failure must not be swallowed as a per-item miss.
+      throw new Error(`AUTH_FAILURE Firecrawl ${res.status}: ${text.slice(0, 300)}`);
+    }
+    throw new Error(`detail fetch failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+
+  let data: any = {};
+  try { data = JSON.parse(text); } catch { data = {}; }
+  const markdown: string = data.data?.markdown || data.markdown || "";
+  if (!markdown || markdown.length < 80) throw new Error("detail page content too short");
+
+  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content: `You read a single procurement opportunity page and report its closing date. Today is ${todayISO}.
+STRICT, NO INFERENCE: return the closing/submission/due/bid-deadline date as ISO 8601 (YYYY-MM-DD) ONLY when it is explicitly written on this page for this opportunity. If no closing date is visible, return null. NEVER infer, estimate, guess, derive from context, or use a publication date or today's date. Null is a valid and expected outcome, not a failure.`,
+        },
+        { role: "user", content: `Page content:\n${markdown.substring(0, 12000)}` },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "report_deadline",
+            description: "Report the explicitly visible closing date, or null.",
+            parameters: {
+              type: "object",
+              properties: { deadline: { type: ["string", "null"] } },
+              required: ["deadline"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "report_deadline" } },
+    }),
+  });
+
+  if (!aiRes.ok) {
+    const errText = await aiRes.text();
+    if (detectAuthFailure(aiRes.status, errText)) {
+      throw new Error(`AUTH_FAILURE AI gateway ${aiRes.status}: ${errText.slice(0, 300)}`);
+    }
+    throw new Error(`detail AI error (${aiRes.status})`);
+  }
+
+  const aiData = await aiRes.json();
+  const args = aiData.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+  if (!args) return null;
+  let parsed: { deadline?: string | null } = {};
+  try { parsed = JSON.parse(args); } catch { return null; }
+  const d = parsed.deadline;
+  if (!d || typeof d !== "string" || !/^\d{4}-\d{2}-\d{2}/.test(d)) return null;
+  if (Number.isNaN(new Date(d).getTime())) return null;
+  return d.substring(0, 10);
+}
+
+function isDetailCandidate(target: ScrapeSource, candidateUrl: string): boolean {
+  if (!candidateUrl || !/^https?:\/\//i.test(candidateUrl)) return false;
+  // Never re-fetch the listing page itself.
+  if (candidateUrl.replace(/\/+$/, "") === target.url.replace(/\/+$/, "")) return false;
+  const pattern = (target.detail_link_pattern || "").trim();
+  if (!pattern) return true;
+  try {
+    return new RegExp(pattern, "i").test(candidateUrl);
+  } catch {
+    return candidateUrl.toLowerCase().includes(pattern.toLowerCase());
+  }
 }
 
 async function scrapePortal(
@@ -126,7 +244,8 @@ async function scrapePortal(
   firecrawlKey: string,
   lovableKey: string,
   supabase: ReturnType<typeof createClient>,
-  todayISO: string
+  todayISO: string,
+  runDeadlineMs: number = Date.now() + TIME_BUDGET_MS
 ): Promise<PortalResult> {
   console.log(`Scraping: ${target.name} - ${target.url}`);
 
@@ -280,10 +399,54 @@ Return ONLY valid JSON via the function call.`,
   let nullDeadlineCount = 0;
   const statusCounts: Record<"open" | "closing_soon" | "expired", number> = { open: 0, closing_soon: 0, expired: 0 };
 
+  // ---- Detail-page deep scraping (generic, config-driven) ----
+  const detailEnabled = !!target.follow_detail_pages;
+  const detailCap = Math.max(0, target.detail_max_per_run ?? 5);
+  // Reserve headroom so detail fetches never push the batch past the ceiling.
+  const detailDeadlineMs = runDeadlineMs - DETAIL_TIME_RESERVE_MS;
+  let detailAttempted = 0;
+  let detailSucceeded = 0;
+  let detailFailed = 0;
+  let detailRecovered = 0;
+  let detailSkippedForTime = 0;
+  let detailMs = 0;
+
   for (const rfp of rfps) {
     if (!rfp.title || !rfp.source_url) continue;
 
+    if (detailEnabled && !rfp.deadline && isDetailCandidate(target, rfp.source_url)) {
+      if (detailAttempted >= detailCap) {
+        detailSkippedForTime++;
+      } else if (Date.now() > detailDeadlineMs) {
+        detailSkippedForTime++;
+      } else {
+        detailAttempted++;
+        const startedAt = Date.now();
+        try {
+          const recovered = await withTimeout(
+            fetchDetailDeadline(rfp.source_url, firecrawlKey, lovableKey, todayISO),
+            DETAIL_TIMEOUT_MS,
+          );
+          detailSucceeded++;
+          if (recovered) {
+            rfp.deadline = recovered;
+            detailRecovered++;
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          // Credential failures must abort the portal; per-item misses must not.
+          if (msg.startsWith("AUTH_FAILURE")) throw e;
+          detailFailed++;
+          console.log(`${target.name}: detail fetch failed for ${rfp.source_url}: ${msg}`);
+        }
+        detailMs += Date.now() - startedAt;
+        await new Promise((r) => setTimeout(r, DETAIL_SLEEP_MS));
+      }
+    }
+
     const rowStatus = deadlineStatus(rfp.deadline || null);
+
+
 
 
 
@@ -342,7 +505,7 @@ Return ONLY valid JSON via the function call.`,
     } else console.error(`Upsert error for "${rfp.title}":`, upsertError.message);
   }
 
-  console.log(`${target.name}: extracted ${rfps.length}, inserted ${insertedCount}, deduped ${dedupedCount}, non-africa ${nonAfricaCount}, open ${statusCounts.open}, closing_soon ${statusCounts.closing_soon}, expired ${statusCounts.expired}, null_deadline ${nullDeadlineCount}`);
+  console.log(`${target.name}: extracted ${rfps.length}, inserted ${insertedCount}, deduped ${dedupedCount}, non-africa ${nonAfricaCount}, open ${statusCounts.open}, closing_soon ${statusCounts.closing_soon}, expired ${statusCounts.expired}, null_deadline ${nullDeadlineCount}, detail attempted ${detailAttempted}, detail ok ${detailSucceeded}, detail failed ${detailFailed}, deadlines recovered ${detailRecovered}, detail ms ${detailMs}`);
   return {
     portal: target.name, url: target.url,
     rfps_extracted: rfps.length,
@@ -354,6 +517,12 @@ Return ONLY valid JSON via the function call.`,
     closing_soon: statusCounts.closing_soon,
     expired: statusCounts.expired,
     null_deadline: nullDeadlineCount,
+    detail_attempted: detailAttempted,
+    detail_succeeded: detailSucceeded,
+    detail_failed: detailFailed,
+    detail_deadlines_recovered: detailRecovered,
+    detail_skipped_for_time: detailSkippedForTime,
+    detail_ms: detailMs,
   };
 }
 
@@ -429,6 +598,67 @@ serve(async (req) => {
     const priorityFilter: number | null = typeof body.priority === "number" ? body.priority : null;
     const batch: number | null = typeof body.batch === "number" ? body.batch : null;
     const batchSize: number = body.batch_size || BATCH_SIZE;
+
+    // Backfill mode: re-run detail-page extraction over rows that were saved
+    // without a deadline, for sources configured to follow detail pages.
+    if (body.backfill_details === true) {
+      const bfStart = Date.now();
+      const { data: bfSources } = await supabase
+        .from("scrape_sources")
+        .select("*")
+        .eq("follow_detail_pages", true);
+      let bfTargets = (bfSources as ScrapeSource[]) || [];
+      if (portalFilter.length > 0) bfTargets = bfTargets.filter((s) => portalFilter.includes(s.name));
+
+      const perSource: Array<Record<string, unknown>> = [];
+      for (const target of bfTargets) {
+        const cap = Math.max(0, target.detail_max_per_run ?? 5);
+        const { data: rows } = await supabase
+          .from("scraped_rfps")
+          .select("id, source_url")
+          .eq("portal", target.name)
+          .is("deadline", null)
+          .limit(cap);
+        let attempted = 0, succeeded = 0, failed = 0, recovered = 0, skippedTime = 0;
+        for (const row of (rows as Array<{ id: string; source_url: string }>) || []) {
+          if (Date.now() - bfStart > TIME_BUDGET_MS - DETAIL_TIME_RESERVE_MS) { skippedTime++; continue; }
+          if (!isDetailCandidate(target, row.source_url)) continue;
+          attempted++;
+          try {
+            const deadline = await withTimeout(
+              fetchDetailDeadline(row.source_url, FIRECRAWL_API_KEY, LOVABLE_API_KEY, new Date().toISOString().split("T")[0]),
+              DETAIL_TIMEOUT_MS,
+            );
+            succeeded++;
+            if (deadline) {
+              await supabase.from("scraped_rfps").update({
+                deadline,
+                status: deadlineStatus(deadline),
+                needs_review: false,
+                updated_at: new Date().toISOString(),
+              }).eq("id", row.id);
+              recovered++;
+            }
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            if (msg.startsWith("AUTH_FAILURE")) throw e;
+            failed++;
+            console.log(`${target.name}: backfill detail fetch failed for ${row.source_url}: ${msg}`);
+          }
+          await new Promise((r) => setTimeout(r, DETAIL_SLEEP_MS));
+        }
+        perSource.push({
+          portal: target.name, detail_attempted: attempted, detail_succeeded: succeeded,
+          detail_failed: failed, detail_deadlines_recovered: recovered, detail_skipped_for_time: skippedTime,
+        });
+      }
+
+      return new Response(JSON.stringify({
+        success: true, mode: "backfill_details",
+        total_duration_ms: Date.now() - bfStart,
+        sources: perSource,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const includeDisabled: boolean = !!body.include_disabled;
 
     // Load source catalog from DB
@@ -477,9 +707,10 @@ serve(async (req) => {
         continue;
       }
       try {
+        const runDeadlineMs = runStartTs + TIME_BUDGET_MS;
         const result = await withTimeout(
-          scrapePortal(target, FIRECRAWL_API_KEY, LOVABLE_API_KEY, supabase, todayISO),
-          PORTAL_TIMEOUT_MS
+          scrapePortal(target, FIRECRAWL_API_KEY, LOVABLE_API_KEY, supabase, todayISO, runDeadlineMs),
+          target.follow_detail_pages ? PORTAL_TIMEOUT_DETAIL_MS : PORTAL_TIMEOUT_MS
         );
         results.push({ ...result, duration_ms: Date.now() - startTs });
 
@@ -580,6 +811,12 @@ serve(async (req) => {
       total_closing_soon: sum("closing_soon"),
       total_expired: sum("expired"),
       total_null_deadline: sum("null_deadline"),
+      detail_fetches_attempted: sum("detail_attempted"),
+      detail_fetches_succeeded: sum("detail_succeeded"),
+      detail_fetches_failed: sum("detail_failed"),
+      detail_deadlines_recovered: sum("detail_deadlines_recovered"),
+      detail_skipped_for_time: sum("detail_skipped_for_time"),
+      detail_total_ms: sum("detail_ms"),
       transitioned_expired: expiredCount,
       transitioned_closing_soon: closingSoonCount,
       results,
