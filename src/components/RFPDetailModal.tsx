@@ -10,7 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
-import WonContractModal from "@/components/WonContractModal";
+import OutcomeControl from "@/components/OutcomeControl";
+import { useOpportunityTracker } from "@/hooks/useOpportunityTracker";
 import type { RFP } from "@/types/rfp";
 
 interface AIInsight {
@@ -262,7 +263,9 @@ const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
   const { user } = useAuth();
   const { isPro } = useSubscription();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const [wonOpen, setWonOpen] = useState(false);
+  const { byRfp, saving, setStage, reportOutcome, reload } = useOpportunityTracker();
+
+  const trackerRow = rfp ? byRfp(rfp.id) : null;
 
   if (!rfp) return null;
 
