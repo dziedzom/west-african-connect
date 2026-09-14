@@ -52,8 +52,13 @@ serve(async (req) => {
     const action: string = body.action || "freshness";
 
     const nowMs = Date.now();
+    // Optional override so the heartbeat can be exercised against a deliberately
+    // narrow (stale) window during verification.
+    const windowHours: number = Number(body.window_hours) > 0
+      ? Number(body.window_hours)
+      : HEARTBEAT_WINDOW_HOURS;
     const sevenDaysAgo = new Date(nowMs - 7 * 86400_000).toISOString();
-    const windowStart = new Date(nowMs - HEARTBEAT_WINDOW_HOURS * 3600_000).toISOString();
+    const windowStart = new Date(nowMs - windowHours * 3600_000).toISOString();
 
     const { data: sources } = await supabase
       .from("scrape_sources")
