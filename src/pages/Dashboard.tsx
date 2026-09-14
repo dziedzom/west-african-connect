@@ -215,18 +215,11 @@ const Dashboard = () => {
 
   if (loading) return <DashboardSkeleton />;
 
-  const savedCount = (() => {
-    try {
-      const stored = localStorage.getItem("savedRfps");
-      return stored ? JSON.parse(stored).length : 0;
-    } catch { return 0; }
-  })();
-
   const stats = [
     { label: "Active Tenders", value: totalRfps + scrapedCount, icon: FileText, accent: true },
     { label: "Matched", value: matchedRfps.length, icon: TrendingUp, accent: false },
     { label: "Applications", value: appCount, icon: Briefcase, accent: false },
-    { label: "Saved", value: savedCount, icon: Heart, accent: false },
+    { label: "Tracked", value: trackedCount, icon: Heart, accent: false },
   ];
 
   return (
