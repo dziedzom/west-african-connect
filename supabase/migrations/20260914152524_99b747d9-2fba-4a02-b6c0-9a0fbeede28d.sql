@@ -1,0 +1,1 @@
+DROP POLICY "Admins update verifications" ON public.company_verifications;
