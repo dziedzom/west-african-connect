@@ -75,6 +75,7 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [insightError, setInsightError] = useState("");
+  const [profileIncomplete, setProfileIncomplete] = useState<{ message: string } | null>(null);
 
   useEffect(() => {
     const fetchOrGenerate = async () => {
