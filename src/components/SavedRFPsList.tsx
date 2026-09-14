@@ -16,11 +16,19 @@ const SavedRFPsList = () => {
   useEffect(() => {
     const fetchRfps = async () => {
       const { data } = await supabase
-        .from("rfps")
+        .from("scraped_rfps")
         .select("*")
-        .order("created_at", { ascending: false })
+        .in("status", ["open", "closing_soon"])
+        .order("scraped_at", { ascending: false })
         .limit(6);
-      setRfps((data as RFP[]) || []);
+      setRfps(
+        ((data || []).map((r) => ({
+          ...r,
+          category: r.category ?? "Uncategorized",
+          org: r.organization,
+          value: r.budget,
+        })) as unknown as RFP[]) || []
+      );
       setLoading(false);
     };
     fetchRfps();
