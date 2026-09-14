@@ -509,6 +509,21 @@ Return ONLY valid JSON via the function call.`,
       continue;
     }
 
+    // Some portals (e.g. table-based government listings) give every item the same
+    // listing URL. Upserting on source_url would collapse them into a single row,
+    // so give each distinct opportunity its own URL fragment.
+    let rowSourceUrl = rfp.source_url;
+    const { data: sameUrl } = await supabase
+      .from("scraped_rfps")
+      .select("id, content_hash")
+      .eq("source_url", rowSourceUrl)
+      .maybeSingle();
+    if (sameUrl && (sameUrl as { content_hash: string | null }).content_hash !== contentHash) {
+      rowSourceUrl = `${rfp.source_url.split("#")[0]}#${contentHash.slice(0, 10)}`;
+    }
+
+
+
     const { error: upsertError } = await supabase.from("scraped_rfps").upsert(
       {
         title: rfp.title.substring(0, 500),
