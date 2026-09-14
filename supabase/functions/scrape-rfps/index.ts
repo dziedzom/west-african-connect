@@ -60,6 +60,13 @@ function extractDomain(url: string): string {
   }
 }
 
+// A date-only deadline means "closes at the end of that day", not midnight —
+// otherwise a tender closing today is stored as already expired.
+function normalizeDeadline(deadlineStr: string | null | undefined): string | null {
+  if (!deadlineStr) return null;
+  return /^\d{4}-\d{2}-\d{2}$/.test(deadlineStr) ? `${deadlineStr}T23:59:59Z` : deadlineStr;
+}
+
 // Nothing is discarded at ingest for being near or past its deadline.
 // Status is derived at insert time; display-time filtering decides visibility.
 function deadlineStatus(deadlineStr: string | null): "open" | "closing_soon" | "expired" {
