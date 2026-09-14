@@ -66,7 +66,15 @@ Deno.serve(async (req) => {
   }
 
   // --- Parse body ---
-  let body: { title?: string; description?: string; budget?: string; source_url?: string };
+  let body: {
+    title?: string;
+    description?: string;
+    budget?: string;
+    source_url?: string;
+    deadline?: string;
+    location?: string;
+    organization?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -76,7 +84,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { title, description, budget, source_url } = body;
+  const { title, description, budget, source_url, deadline, location, organization } = body;
 
   if (!title || !description) {
     return new Response(
@@ -91,20 +99,43 @@ Deno.serve(async (req) => {
   // --- Expertise match check ---
   const expertiseResult = checkExpertiseMatch(description);
 
-  // --- Insert into rfps table ---
+  // --- Insert into the live opportunities table ---
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+  // Normalize deadline to end-of-day and derive status the same way the scraper does
+  let normalizedDeadline: string | null = null;
+  if (deadline && /^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
+    normalizedDeadline = `${deadline}T23:59:59Z`;
+  } else if (deadline) {
+    const parsed = new Date(deadline);
+    normalizedDeadline = isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  }
+
+  let status = "open";
+  if (normalizedDeadline) {
+    const days = (new Date(normalizedDeadline).getTime() - Date.now()) / 86_400_000;
+    status = days < 0 ? "expired" : days <= 7 ? "closing_soon" : "open";
+  }
+
   const { data, error } = await supabase
-    .from("rfps")
+    .from("scraped_rfps")
     .insert({
       title,
       description,
       budget: budget ?? null,
       category: "agent_sourced",
-      org: source_url ?? null,
-      status: "open",
+      organization: organization ?? null,
+      location: location ?? null,
+      deadline: normalizedDeadline,
+      status,
+      source_url: source_url ?? `agent://${crypto.randomUUID()}`,
+      portal: "Agent API",
+      source_category: "other",
+      africa_relevant: true,
+      needs_review: !normalizedDeadline,
+      scraped_at: new Date().toISOString(),
     })
     .select()
     .single();

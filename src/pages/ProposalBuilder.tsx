@@ -64,8 +64,21 @@ const ProposalBuilder = () => {
   useEffect(() => {
     if (!user) return;
     const fetchRfps = async () => {
-      const { data } = await supabase.from("rfps").select("*").eq("status", "open");
-      setRfps((data as RFP[]) || []);
+      const { data } = await supabase
+        .from("scraped_rfps")
+        .select("*")
+        .in("status", ["open", "closing_soon"])
+        .not("deadline", "is", null)
+        .order("deadline", { ascending: true })
+        .limit(200);
+      setRfps(
+        ((data || []).map((r) => ({
+          ...r,
+          category: r.category ?? "Uncategorized",
+          org: r.organization,
+          value: r.budget,
+        })) as unknown as RFP[]) || []
+      );
     };
     Promise.all([fetchProposals(), fetchRfps()]);
   }, [user]);

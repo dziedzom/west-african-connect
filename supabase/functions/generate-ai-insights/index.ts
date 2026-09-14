@@ -41,7 +41,7 @@ serve(async (req) => {
 
     // Fetch RFP details
     const { data: rfp } = await supabase
-      .from("rfps")
+      .from("scraped_rfps")
       .select("*")
       .eq("id", rfp_id)
       .single();
@@ -94,9 +94,9 @@ serve(async (req) => {
 Title: ${rfp.title}
 Description: ${rfp.description}
 Category: ${rfp.category}
-Organization: ${rfp.org || "N/A"}
+Organization: ${rfp.organization || "N/A"}
 Location: ${rfp.location || "N/A"}
-Budget: ${rfp.budget || rfp.value || "N/A"}
+Budget: ${rfp.budget || "N/A"}
 Deadline: ${rfp.deadline || "N/A"}
 
 ## Company Profile

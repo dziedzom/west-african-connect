@@ -89,14 +89,20 @@ const Dashboard = () => {
       const restBase = `https://${projectId}.supabase.co/rest/v1`;
       const headers = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` };
 
-      // Fetch local RFPs and scraped RFPs in parallel
-      const [rfpRes, scrapedRes] = await Promise.all([
-        fetch(`${restBase}/rfps?select=*&order=created_at.desc`, { headers }),
+      // Fetch live opportunities (all live rows for counts, newest 20 for the feed)
+      const [liveRes, scrapedRes] = await Promise.all([
+        fetch(`${restBase}/scraped_rfps?select=*&status=in.(open,closing_soon)&order=deadline.asc`, { headers }),
         fetch(`${restBase}/scraped_rfps?select=*&order=scraped_at.desc&limit=20`, { headers }),
       ]);
 
-      // Process local RFPs
-      const rfpList: RFP[] = rfpRes.ok ? await rfpRes.json() : [];
+      // Process live opportunities
+      const liveRaw = liveRes.ok ? await liveRes.json() : [];
+      const rfpList: RFP[] = (liveRaw as ScrapedRFP[]).map((r) => ({
+        ...r,
+        category: r.category ?? "Uncategorized",
+        org: r.organization,
+        value: r.budget,
+      })) as unknown as RFP[];
       setTotalRfps(rfpList.length);
       setRfps(rfpList);
       setMatchedRfps(rfpList.slice(0, 5));
@@ -178,8 +184,8 @@ const Dashboard = () => {
         if (insights && insights.length > 0) {
           const rfpIds = insights.map((i) => i.rfp_id);
           const { data: matchedRfpData } = await supabase
-            .from("rfps")
-            .select("id, title, category, org")
+            .from("scraped_rfps")
+            .select("id, title, category, organization")
             .in("id", rfpIds);
 
           if (matchedRfpData) {
@@ -188,7 +194,7 @@ const Dashboard = () => {
               insights
                 .map((i) => {
                   const r = rfpMap.get(i.rfp_id);
-                  return r ? { rfp_id: i.rfp_id, match_score: i.match_score, rfp_title: r.title, rfp_category: r.category, rfp_org: r.org } : null;
+                  return r ? { rfp_id: i.rfp_id, match_score: i.match_score, rfp_title: r.title, rfp_category: r.category ?? "Uncategorized", rfp_org: r.organization } : null;
                 })
                 .filter(Boolean) as TopMatch[]
             );
