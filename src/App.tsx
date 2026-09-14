@@ -31,6 +31,8 @@ import BidWriter from "./pages/BidWriter";
 import BidReviewer from "./pages/BidReviewer";
 import BidChecklist from "./pages/BidChecklist";
 import IndexingStatus from "./pages/IndexingStatus";
+import CompanyVerification from "./pages/CompanyVerification";
+import AdminVerifications from "./pages/AdminVerifications";
 
 const queryClient = new QueryClient();
 
@@ -76,7 +78,9 @@ const App = () => (
               <Route path="/scrape" element={<AdminRoute><ScrapeAgent /></AdminRoute>} />
               <Route path="/indexing" element={<AdminRoute><IndexingStatus /></AdminRoute>} />
               <Route path="/proposals" element={<ProtectedRoute><ProposalBuilder /></ProtectedRoute>} />
+              <Route path="/verification" element={<ProtectedRoute><CompanyVerification /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/admin/verifications" element={<AdminRoute><AdminVerifications /></AdminRoute>} />
               <Route path="/bid-studio" element={<ProtectedRoute><BidStudio /></ProtectedRoute>} />
               <Route path="/bid-studio/analyser" element={<ProtectedRoute><BidAnalyser /></ProtectedRoute>} />
               <Route path="/bid-studio/writer" element={<ProtectedRoute><BidWriter /></ProtectedRoute>} />

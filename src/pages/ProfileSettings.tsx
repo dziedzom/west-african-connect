@@ -10,6 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
 import { Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+import VerificationBadge from "@/components/VerificationBadge";
+import { useVerification } from "@/hooks/useVerification";
 
 const expertiseOptions = ["Pharmaceuticals", "Transport & Logistics", "Construction", "IT & Tech", "Agriculture", "Energy", "Consulting", "Manufacturing"];
 const locationOptions = ["Ghana", "Nigeria", "Senegal", "Côte d'Ivoire", "Cameroon", "Togo", "Benin", "Other"];
@@ -17,6 +20,7 @@ const locationOptions = ["Ghana", "Nigeria", "Senegal", "Côte d'Ivoire", "Camer
 const ProfileSettings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { status: verificationStatus, record: verification } = useVerification();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [companyName, setCompanyName] = useState("");
@@ -86,10 +90,32 @@ const ProfileSettings = () => {
     <SEO title="Profile Settings" path="/profile" description="Edit your MiddlBrand company profile, expertise, and contact information." />
     <section className="py-12 bg-background min-h-screen">
       <div className="container max-w-2xl">
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex flex-wrap items-center gap-3 mb-8">
           <Settings className="h-5 w-5 text-accent" />
           <h1 className="text-3xl font-display font-bold text-foreground">Company Profile</h1>
+          <VerificationBadge status={verificationStatus} />
         </div>
+
+        <div className="mb-8 rounded-2xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-bold text-foreground">Company verification</h2>
+          <p className="mt-1 font-body text-sm text-muted-foreground">
+            {verificationStatus === "verified"
+              ? `Verified${verification?.verified_until ? ` — valid until ${verification.verified_until}` : ""}. Renew before it expires to keep your badge.`
+              : verificationStatus === "pending"
+              ? "Your submission is with our review team. We review within 48 hours."
+              : verificationStatus === "rejected"
+              ? `Not approved: ${verification?.rejection_reason ?? "see the verification page"}. You can correct and resubmit.`
+              : verificationStatus === "expired"
+              ? "Your verification has expired. Resubmit your documents to renew it."
+              : "Submit your registration details and documents so we can verify your company. Reviewed manually by our team."}
+          </p>
+          <Button asChild variant="outline" className="mt-4 rounded-full font-semibold">
+            <Link to="/verification">
+              {verificationStatus === "unverified" ? "Start verification" : "View verification"}
+            </Link>
+          </Button>
+        </div>
+
 
         <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-border bg-card p-8">
           <div className="grid sm:grid-cols-2 gap-4">

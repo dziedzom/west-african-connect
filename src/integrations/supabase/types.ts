@@ -226,6 +226,104 @@ export type Database = {
           },
         ]
       }
+      company_verification_documents: {
+        Row: {
+          doc_type: Database["public"]["Enums"]["verification_doc_type"]
+          file_name: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploaded_at: string
+          user_id: string
+          verification_id: string
+        }
+        Insert: {
+          doc_type: Database["public"]["Enums"]["verification_doc_type"]
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_at?: string
+          user_id: string
+          verification_id: string
+        }
+        Update: {
+          doc_type?: Database["public"]["Enums"]["verification_doc_type"]
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_at?: string
+          user_id?: string
+          verification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_verification_documents_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "company_verifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          legal_name: string | null
+          registration_country: string | null
+          registration_number: string | null
+          rejection_reason: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["verification_status"]
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+          verified_until: string | null
+          year_founded: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          legal_name?: string | null
+          registration_country?: string | null
+          registration_number?: string | null
+          rejection_reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+          verified_until?: string | null
+          year_founded?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          legal_name?: string | null
+          registration_country?: string | null
+          registration_number?: string | null
+          rejection_reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          verified_until?: string | null
+          year_founded?: number | null
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -386,6 +484,8 @@ export type Database = {
           updated_at: string
           usage_period_start: string
           user_id: string
+          verification_status: Database["public"]["Enums"]["verification_status"]
+          verified_at: string | null
           website: string | null
         }
         Insert: {
@@ -410,6 +510,8 @@ export type Database = {
           updated_at?: string
           usage_period_start?: string
           user_id: string
+          verification_status?: Database["public"]["Enums"]["verification_status"]
+          verified_at?: string | null
           website?: string | null
         }
         Update: {
@@ -434,6 +536,8 @@ export type Database = {
           updated_at?: string
           usage_period_start?: string
           user_id?: string
+          verification_status?: Database["public"]["Enums"]["verification_status"]
+          verified_at?: string | null
           website?: string | null
         }
         Relationships: []
@@ -1024,6 +1128,19 @@ export type Database = {
         | "regional_body"
         | "aggregator"
         | "other"
+      verification_doc_type:
+        | "certificate_of_incorporation"
+        | "tax_clearance"
+        | "business_licence"
+        | "vat_or_tin"
+        | "bank_letter"
+        | "other"
+      verification_status:
+        | "unverified"
+        | "pending"
+        | "verified"
+        | "rejected"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1166,6 +1283,21 @@ export const Constants = {
         "regional_body",
         "aggregator",
         "other",
+      ],
+      verification_doc_type: [
+        "certificate_of_incorporation",
+        "tax_clearance",
+        "business_licence",
+        "vat_or_tin",
+        "bank_letter",
+        "other",
+      ],
+      verification_status: [
+        "unverified",
+        "pending",
+        "verified",
+        "rejected",
+        "expired",
       ],
     },
   },

@@ -5,6 +5,8 @@ project_id = "tjuunlzlspznabgldvjr"
     verify_jwt = false
   [functions.bid-studio-ai]
     verify_jwt = false
+  [functions.company-verification]
+    verify_jwt = false
   [functions.draft-proposal]
     verify_jwt = false
   [functions.generate-ai-insights]
