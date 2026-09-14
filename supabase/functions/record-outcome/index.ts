@@ -104,6 +104,19 @@ Deno.serve(async (req) => {
     let successFee: number | null = null;
     let wonContractId: string | null = null;
 
+    if (status !== "won") {
+      // A corrected outcome must not leave a fee record behind — unless we have
+      // already invoiced it, in which case admin resolves it manually.
+      const { error: cleanupError } = await admin
+        .from("won_contracts")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("rfp_id", rfpId)
+        .eq("invoice_sent", false)
+        .eq("fee_paid", false);
+      if (cleanupError) console.error("record-outcome: fee cleanup failed", cleanupError);
+    }
+
     if (status === "won") {
       const { data: existingContract } = await admin
         .from("won_contracts")
