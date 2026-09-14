@@ -201,7 +201,7 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
     // Upsert on (user_id, rfp_id): overlapping requests can race past the
     // "already exists" check above, and the unique index makes a plain insert
     // fail. Conflict resolution keeps a single row per user per opportunity.
-    const { error: insertError } = await supabase
+    const { data: insightRow, error: insertError } = await supabase
       .from("ai_insights")
       .upsert({
         rfp_id,
@@ -212,11 +212,19 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
         key_requirements: analysis.key_requirements ?? [],
         risk_flags: analysis.risk_flags ?? [],
         missing_qualifications: analysis.missing_qualifications ?? [],
-      }, { onConflict: "user_id,rfp_id" });
+      }, { onConflict: "user_id,rfp_id" })
+      .select("id")
+      .maybeSingle();
 
     if (insertError) throw insertError;
 
     await recordAiUsage(auth, "insights_generated");
+
+    // Snapshot the score that was shown, so accuracy is measurable later.
+    await snapshotPrediction(auth.admin, user.id, rfp_id, {
+      predicted_match_score: score,
+      insight_id: insightRow?.id ?? null,
+    }, "interested");
 
     return new Response(JSON.stringify({
       status: "created",
