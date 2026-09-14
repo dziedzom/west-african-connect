@@ -146,9 +146,22 @@ async function scrapePortal(
     }),
   });
 
-  const scrapeData = await scrapeRes.json();
+  const scrapeText = await scrapeRes.text();
+  let scrapeData: any = {};
+  try { scrapeData = JSON.parse(scrapeText); } catch { scrapeData = {}; }
   if (!scrapeRes.ok) {
-    throw new Error(`Firecrawl error: ${JSON.stringify(scrapeData).slice(0, 500)}`);
+    const snippet = scrapeText.slice(0, 500);
+    if (detectAuthFailure(scrapeRes.status, scrapeText)) {
+      await sendScrapeAlert(supabase, {
+        type: "auth_failure",
+        key: `firecrawl-auth-${scrapeRes.status}`,
+        severity: "critical",
+        subject: `Scraper credential failure: Firecrawl returned ${scrapeRes.status}`,
+        detail: `Firecrawl rejected the scrape request for "${target.name}" (${target.url}) with HTTP ${scrapeRes.status}.\n\nResponse: ${snippet}\n\nNo pages can be scraped until this credential is fixed.`,
+      });
+      throw new Error(`AUTH_FAILURE Firecrawl ${scrapeRes.status}: ${snippet}`);
+    }
+    throw new Error(`Firecrawl error: ${snippet}`);
   }
 
   const markdown = scrapeData.data?.markdown || scrapeData.markdown || "";
