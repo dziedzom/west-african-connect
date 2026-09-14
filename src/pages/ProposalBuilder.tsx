@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { invokeAi } from "@/lib/invokeAi";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,11 +149,8 @@ const ProposalBuilder = () => {
     }
     setAiDrafting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("draft-proposal", {
-        body: { rfp_id: rfpId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const { result: data, error } = await invokeAi<any>("draft-proposal", { rfp_id: rfpId });
+      if (error) throw new Error(error);
       if (data?.title) setTitle(data.title);
       if (data?.content) setContent(data.content);
       toast({ title: "AI draft generated!", description: "Review and edit before submitting." });
