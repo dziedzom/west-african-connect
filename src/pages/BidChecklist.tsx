@@ -71,19 +71,18 @@ const BidChecklist = () => {
 
     // TODO: Switch to Claude claude-opus-4-5 when ANTHROPIC_API_KEY is added
     const { result: data, error: fnError } = await invokeAi<{ result: any }>("bid-studio-ai", {
-        tool: "checklist",
-        variables: {
-          today_date: format(new Date(), "yyyy-MM-dd"),
-          deadline: format(deadline, "yyyy-MM-dd"),
-          documents,
-          country,
-        },
+      tool: "checklist",
+      variables: {
+        today_date: format(new Date(), "yyyy-MM-dd"),
+        deadline: format(deadline, "yyyy-MM-dd"),
+        documents,
+        country,
       },
     });
 
     setLoading(false);
-    if (fnError || data?.error) {
-      setError(data?.error || "Our AI assistant is busy right now — please try again in a moment.");
+    if (fnError || !data) {
+      setError(fnError || "Our AI assistant is busy right now — please try again in a moment.");
     } else {
       setResult(data.result);
     }
