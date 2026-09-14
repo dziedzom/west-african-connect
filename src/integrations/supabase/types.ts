@@ -100,6 +100,47 @@ export type Database = {
           },
         ]
       }
+      bid_analyses: {
+        Row: {
+          analysis_data: Json
+          created_at: string
+          id: string
+          rfp_id: string | null
+          source_text: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_data: Json
+          created_at?: string
+          id?: string
+          rfp_id?: string | null
+          source_text?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_data?: Json
+          created_at?: string
+          id?: string
+          rfp_id?: string | null
+          source_text?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_analyses_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_rfps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bid_drafts: {
         Row: {
           company_intake: Json | null
@@ -151,6 +192,7 @@ export type Database = {
           id: string
           overall_score: number | null
           review_data: Json | null
+          rfp_id: string | null
           rfp_title: string | null
           user_id: string
         }
@@ -160,6 +202,7 @@ export type Database = {
           id?: string
           overall_score?: number | null
           review_data?: Json | null
+          rfp_id?: string | null
           rfp_title?: string | null
           user_id: string
         }
@@ -169,10 +212,19 @@ export type Database = {
           id?: string
           overall_score?: number | null
           review_data?: Json | null
+          rfp_id?: string | null
           rfp_title?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "bid_reviews_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_rfps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_messages: {
         Row: {
@@ -732,6 +784,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      submission_checklists: {
+        Row: {
+          checked_items: Json
+          checklist_data: Json
+          country: string | null
+          created_at: string
+          deadline: string | null
+          documents: string | null
+          id: string
+          rfp_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checked_items?: Json
+          checklist_data: Json
+          country?: string | null
+          created_at?: string
+          deadline?: string | null
+          documents?: string | null
+          id?: string
+          rfp_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checked_items?: Json
+          checklist_data?: Json
+          country?: string | null
+          created_at?: string
+          deadline?: string | null
+          documents?: string | null
+          id?: string
+          rfp_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_checklists_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_rfps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_knowledge_base: {
         Row: {

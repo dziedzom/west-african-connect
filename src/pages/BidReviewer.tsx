@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { invokeAi } from "@/lib/invokeAi";
 import { useLocation, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, XCircle, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +57,19 @@ const BidReviewer = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ReviewResult | null>(null);
   const [error, setError] = useState("");
+  const [rfpId, setRfpId] = usePersistentState<string>("bid-reviewer:rfpId", (location.state as any)?.rfpId || "");
+  const [opportunities, setOpportunities] = useState<{ id: string; title: string }[]>([]);
+
+  // Live opportunities the review can be tied back to.
+  useEffect(() => {
+    supabase
+      .from("scraped_rfps")
+      .select("id, title")
+      .in("status", ["open", "closing_soon"])
+      .order("deadline", { ascending: true })
+      .limit(200)
+      .then(({ data }) => setOpportunities(data ?? []));
+  }, []);
 
   const handleRescore = () => {
     setResult(null);
@@ -97,9 +111,11 @@ const BidReviewer = () => {
       ].slice(-20));
       // Save review
       if (user) {
+        const linkedTitle = opportunities.find((o) => o.id === rfpId)?.title;
         await supabase.from("bid_reviews").insert({
           user_id: user.id,
-          rfp_title: rfpText.substring(0, 100),
+          rfp_id: rfpId || null,
+          rfp_title: linkedTitle ?? rfpText.substring(0, 100),
           overall_score: data.result.overall_score,
           grade: data.result.grade,
           review_data: data.result,
@@ -115,7 +131,12 @@ const BidReviewer = () => {
           <h1 className="text-2xl font-display font-bold">📋 Bid Reviewer</h1>
           <p className="text-muted-foreground mt-1">Score your bid before you submit</p>
         </div>
-        <SaveStatusIndicator />
+        <div className="flex items-center gap-3">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/bid-studio/history">Past reviews</Link>
+          </Button>
+          <SaveStatusIndicator />
+        </div>
       </div>
 
       {!result && (
@@ -125,6 +146,19 @@ const BidReviewer = () => {
               <Button type="button" variant="ghost" size="sm" onClick={() => { setRfpText(SAMPLE_RFP_TEXT); setBidDraft(SAMPLE_BID_DRAFT); setError(""); }}>
                 <Sparkles className="h-3.5 w-3.5 mr-1" /> Load sample RFP + draft
               </Button>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Link this review to a live opportunity (optional)</label>
+              <Select value={rfpId || "none"} onValueChange={(v) => setRfpId(v === "none" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Not linked to a listing" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Not linked to a listing</SelectItem>
+                  {opportunities.map((o) => (
+                    <SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1.5">Linking keeps this review attached to the listing in your history.</p>
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Paste original RFP requirements</label>

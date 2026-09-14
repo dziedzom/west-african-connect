@@ -25,6 +25,7 @@ import ScrapeAgent from "./pages/ScrapeAgent";
 import ProposalBuilder from "./pages/ProposalBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import BidStudio from "./pages/BidStudio";
+import BidHistory from "./pages/BidHistory";
 import BidAnalyser from "./pages/BidAnalyser";
 import BidWriter from "./pages/BidWriter";
 import BidReviewer from "./pages/BidReviewer";
@@ -81,6 +82,7 @@ const App = () => (
               <Route path="/bid-studio/writer" element={<ProtectedRoute><BidWriter /></ProtectedRoute>} />
               <Route path="/bid-studio/reviewer" element={<ProtectedRoute><BidReviewer /></ProtectedRoute>} />
               <Route path="/bid-studio/checklist" element={<ProtectedRoute><BidChecklist /></ProtectedRoute>} />
+              <Route path="/bid-studio/history" element={<ProtectedRoute><BidHistory /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

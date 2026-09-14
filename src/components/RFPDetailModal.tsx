@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { invokeAi } from "@/lib/invokeAi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,7 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [insightError, setInsightError] = useState("");
+  const [profileIncomplete, setProfileIncomplete] = useState<{ message: string } | null>(null);
 
   useEffect(() => {
     const fetchOrGenerate = async () => {
@@ -87,6 +89,8 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         .select("match_score, winning_strategy_summary, gap_analysis, key_requirements, risk_flags, missing_qualifications")
         .eq("rfp_id", rfpId)
         .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (data) {
@@ -101,6 +105,10 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         const { result, error } = await invokeAi<any>("generate-ai-insights", { rfp_id: rfpId });
         if (error) {
           setInsightError(error);
+          return;
+        }
+        if (result?.status === "profile_incomplete") {
+          setProfileIncomplete({ message: result.message });
           return;
         }
         if (result?.status === "created") {
@@ -133,6 +141,19 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         </div>
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-20 w-full" />
+      </div>
+    );
+  }
+
+  if (profileIncomplete) {
+    return (
+      <div className="rounded-lg border border-accent/30 bg-accent/5 p-4 space-y-3 text-center">
+        <Brain className="h-5 w-5 mx-auto text-accent" />
+        <p className="text-sm font-display font-semibold text-foreground">Complete your company profile first</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">{profileIncomplete.message}</p>
+        <Button asChild size="sm">
+          <Link to="/profile">Complete my profile</Link>
+        </Button>
       </div>
     );
   }

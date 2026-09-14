@@ -47,6 +47,33 @@ serve(async (req) => {
       });
     }
 
+    // Fetch user profile first — scoring a company we know nothing about
+    // produces a meaningless 0/100, so ask them to complete it instead.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("company_name, expertise, location, about")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const filled = (v: string | null | undefined) => !!(v && v.trim().length > 1);
+    const missingProfileFields = [
+      !filled(profile?.company_name) ? "company_name" : null,
+      !filled(profile?.expertise) ? "expertise" : null,
+      !filled(profile?.location) ? "location" : null,
+      !filled(profile?.about) ? "about" : null,
+    ].filter(Boolean) as string[];
+
+    // A match score needs, at minimum, who the company is and what it does.
+    if (!filled(profile?.company_name) || !filled(profile?.expertise)) {
+      return new Response(JSON.stringify({
+        status: "profile_incomplete",
+        missing_fields: missingProfileFields,
+        message: "Add your company name and areas of expertise to your profile so we can score how well this opportunity fits.",
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Generating a new insight spends allowance.
     const overLimit = limitReachedResponse(auth, "insights_generated", corsHeaders);
     if (overLimit) return overLimit;
@@ -60,13 +87,6 @@ serve(async (req) => {
 
     if (!rfp) throw new Error("RFP not found");
 
-    // Fetch user profile
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("company_name, expertise, location, about")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
     // Fetch user knowledge base
     const { data: knowledgeBase } = await supabase
       .from("user_knowledge_base")
@@ -74,9 +94,7 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .limit(20);
 
-    const profileSummary = profile
-      ? `Company: ${profile.company_name || "N/A"}\nExpertise: ${profile.expertise || "N/A"}\nLocation: ${profile.location || "N/A"}\nAbout: ${profile.about || "N/A"}`
-      : "No profile set up.";
+    const profileSummary = `Company: ${profile!.company_name}\nExpertise: ${profile!.expertise}\nLocation: ${profile!.location || "N/A"}\nAbout: ${profile!.about || "N/A"}`;
 
     const kbSummary = knowledgeBase && knowledgeBase.length > 0
       ? knowledgeBase.map(k => `[${k.category}] ${k.title}: ${k.content.slice(0, 300)}`).join("\n\n")
@@ -180,16 +198,21 @@ Evaluate match_score (0-100), provide a winning_strategy_summary (2-3 sentences 
     const analysis = JSON.parse(toolCall.function.arguments);
     const score = Math.min(100, Math.max(0, Math.round(analysis.match_score)));
 
-    const { error: insertError } = await supabase.from("ai_insights").insert({
-      rfp_id,
-      user_id: user.id,
-      match_score: score,
-      winning_strategy_summary: analysis.winning_strategy_summary,
-      gap_analysis: analysis.gap_analysis,
-      key_requirements: analysis.key_requirements ?? [],
-      risk_flags: analysis.risk_flags ?? [],
-      missing_qualifications: analysis.missing_qualifications ?? [],
-    });
+    // Upsert on (user_id, rfp_id): overlapping requests can race past the
+    // "already exists" check above, and the unique index makes a plain insert
+    // fail. Conflict resolution keeps a single row per user per opportunity.
+    const { error: insertError } = await supabase
+      .from("ai_insights")
+      .upsert({
+        rfp_id,
+        user_id: user.id,
+        match_score: score,
+        winning_strategy_summary: analysis.winning_strategy_summary,
+        gap_analysis: analysis.gap_analysis,
+        key_requirements: analysis.key_requirements ?? [],
+        risk_flags: analysis.risk_flags ?? [],
+        missing_qualifications: analysis.missing_qualifications ?? [],
+      }, { onConflict: "user_id,rfp_id" });
 
     if (insertError) throw insertError;
 

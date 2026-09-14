@@ -56,9 +56,14 @@ const BidStudio = () => {
 
   return (
     <div className="container py-12 space-y-8">
-      <div>
-        <h1 className="text-3xl font-display font-bold">Welcome to Bid Studio</h1>
-        <p className="text-muted-foreground mt-1">Your AI-powered bid writing assistant</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-display font-bold">Welcome to Bid Studio</h1>
+          <p className="text-muted-foreground mt-1">Your AI-powered bid writing assistant</p>
+        </div>
+        <Button asChild variant="outline">
+          <Link to="/bid-studio/history">View my history</Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { invokeAi } from "@/lib/invokeAi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,15 @@ interface ChecklistResult {
 
 const STORAGE_KEY = "bid-checklist-checks";
 
+interface SavedChecklist {
+  id: string;
+  checklist_data: ChecklistResult;
+  checked_items: Record<string, boolean>;
+}
+
 const BidChecklist = () => {
+  const location = useLocation();
+  const savedChecklist = (location.state as { savedChecklist?: SavedChecklist } | null)?.savedChecklist ?? null;
   const { isPro } = useSubscription();
   const [deadlineIso, setDeadlineIso] = usePersistentState<string | null>("bid-checklist:deadline", null);
   const deadline = deadlineIso ? new Date(deadlineIso) : undefined;
@@ -45,13 +54,29 @@ const BidChecklist = () => {
   const [documents, setDocuments] = usePersistentState<string>("bid-checklist:documents", "");
   const [country, setCountry] = usePersistentState<string>("bid-checklist:country", "");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ChecklistResult | null>(null);
+  const [result, setResult] = useState<ChecklistResult | null>(savedChecklist?.checklist_data ?? null);
   const [error, setError] = useState("");
+  const [checklistId, setChecklistId] = useState<string | null>(savedChecklist?.id ?? null);
   const [checks, setChecks] = useState<Record<string, boolean>>(() => {
+    if (savedChecklist) return savedChecklist.checked_items ?? {};
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
   });
 
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(checks)); }, [checks]);
+
+  // Keep ticked-off items on the saved checklist so progress survives a refresh.
+  useEffect(() => {
+    if (!checklistId) return;
+    const timer = setTimeout(() => {
+      supabase.from("submission_checklists")
+        .update({ checked_items: checks })
+        .eq("id", checklistId)
+        .then(({ error: updateError }) => {
+          if (updateError) console.error("Failed to save checklist progress:", updateError);
+        });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [checks, checklistId]);
 
   const toggleCheck = (key: string) => setChecks(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -86,7 +111,26 @@ const BidChecklist = () => {
       setError(fnError || "Our AI assistant is busy right now — please try again in a moment.");
     } else {
       setResult(data.result);
+      setChecks({});
+      await saveChecklist(data.result);
     }
+  };
+
+  // Persist the generated plan so it survives a refresh and appears in history.
+  const saveChecklist = async (checklist: ChecklistResult) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !deadline) return;
+    const { data, error: saveError } = await supabase.from("submission_checklists").insert({
+      user_id: user.id,
+      title: `${country} — closing ${format(deadline, "d MMM yyyy")}`,
+      deadline: format(deadline, "yyyy-MM-dd"),
+      country,
+      documents,
+      checklist_data: checklist as any,
+      checked_items: {},
+    }).select("id").maybeSingle();
+    if (saveError) console.error("Failed to save checklist:", saveError);
+    else if (data) setChecklistId(data.id);
   };
 
   const priorityColor = (p: string) => {
@@ -102,7 +146,12 @@ const BidChecklist = () => {
           <h1 className="text-2xl font-display font-bold">✅ Submission Checklist</h1>
           <p className="text-muted-foreground mt-1">Never miss a deadline or document again</p>
         </div>
-        <SaveStatusIndicator />
+        <div className="flex items-center gap-3">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/bid-studio/history">Saved checklists</Link>
+          </Button>
+          <SaveStatusIndicator />
+        </div>
       </div>
 
       {!result && (
@@ -221,7 +270,14 @@ const BidChecklist = () => {
             </CardContent>
           </Card>
 
-          <Button variant="outline" onClick={() => { setResult(null); setChecks({}); }}>Generate New Checklist</Button>
+          {checklistId && (
+            <p className="text-xs text-muted-foreground">
+              Saved to your history, including which items you tick off — find it again under{" "}
+              <Link to="/bid-studio/history" className="underline">Saved checklists</Link>.
+            </p>
+          )}
+
+          <Button variant="outline" onClick={() => { setResult(null); setChecks({}); setChecklistId(null); }}>Generate New Checklist</Button>
         </div>
       )}
     </div>
