@@ -15,7 +15,22 @@ const THROTTLE_MINUTES: Record<AlertType, number> = {
   test: 0,
 };
 
-const EMAIL_TEMPLATE = "scrape-alert";
+const SITE_NAME = "MiddlBrand Connect";
+const SENDER_DOMAIN = "notify.middlbrand.com";
+
+function renderAlertEmail(alert: AlertInput, occurredAt: string) {
+  const severity = alert.severity ?? "warning";
+  const html = `<!doctype html><html><body style="margin:0;padding:32px;background:#FAFAFA;font-family:Inter,Helvetica,Arial,sans-serif;color:#1A1A1A;">
+  <div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:16px;padding:28px;">
+    <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#737373;">Scraper monitoring &middot; ${severity}</p>
+    <h1 style="margin:0 0 16px;font-size:20px;line-height:1.3;letter-spacing:-0.02em;">${alert.subject}</h1>
+    <pre style="margin:0 0 20px;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.6;color:#1A1A1A;">${alert.detail}</pre>
+    <p style="margin:0;font-size:12px;color:#737373;">Alert type: ${alert.type} &middot; ${occurredAt}</p>
+  </div>
+</body></html>`;
+  const text = `[${severity.toUpperCase()}] ${alert.subject}\n\n${alert.detail}\n\nAlert type: ${alert.type}\n${occurredAt}`;
+  return { html, text };
+}
 
 async function resolveAdminEmail(supabase: SupabaseClient): Promise<string | null> {
   const fromEnv = Deno.env.get("ADMIN_EMAIL");
