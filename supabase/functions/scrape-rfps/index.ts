@@ -521,6 +521,16 @@ serve(async (req) => {
             status: autoDisable ? "auto_disabled" : "failed",
             error_message: msg.slice(0, 500),
           }).then(() => {}, () => {});
+
+          if (autoDisable) {
+            await sendScrapeAlert(supabase, {
+              type: "source_auto_disabled",
+              key: `auto-disabled-${target.id}`,
+              severity: "critical",
+              subject: `Source auto-disabled: ${target.name}`,
+              detail: `"${target.name}" (${target.url}) has been switched off after ${newFailures} consecutive failures and stays off until ${autoDisable}.\n\nReason (last error): ${msg.slice(0, 500)}`,
+            });
+          }
         }
       }
 
