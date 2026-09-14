@@ -75,11 +75,15 @@ serve(async (req) => {
 - Use clear structure with sections: Executive Summary, Understanding of Requirements, Proposed Approach, Relevant Experience, Why Us, Timeline & Deliverables
 - Be specific and data-driven where possible
 - Maintain a professional but confident tone
-- Keep it concise but thorough (800-1200 words)`,
+- Keep it concise but thorough (800-1200 words)
+
+Today's date is ${todayLong} (${todayIso}). Use this date for the proposal date, any validity period, and every timeline you produce. Never use any other current date and never rely on your training data for what today is.`,
           },
           {
             role: "user",
             content: `Draft a proposal for the following RFP based on our company profile and knowledge base.
+
+Today's date: ${todayLong} (${todayIso}). Date the proposal with this date and build all timelines forward from it.
 
 ## RFP Details
 Title: ${rfp.title}
