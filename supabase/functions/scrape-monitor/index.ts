@@ -179,6 +179,41 @@ serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    if (action === "auth_alert") {
+      // Immediate credential alert for failures recorded from the real HTTP
+      // response of a cron-triggered run (pg_cron reports those as successful).
+      const since = new Date(nowMs - 60 * 60_000).toISOString();
+      const { data: authRows } = await supabase
+        .from("scrape_run_log")
+        .select("http_status, response_body, created_at, invoked_by")
+        .eq("auth_failure", true)
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      let alert = null;
+      if (authRows && authRows.length > 0) {
+        const first = authRows[0] as Record<string, any>;
+        alert = await sendScrapeAlert(supabase, {
+          type: "auth_failure",
+          key: `scrape-function-auth-${first.http_status ?? "unknown"}`,
+          severity: "critical",
+          subject: `Scraper credential failure: scrape function returned ${first.http_status ?? "no status"}`,
+          detail: [
+            `${authRows.length} credential failure(s) recorded in the last hour.`,
+            `Most recent: HTTP ${first.http_status ?? "none"} at ${first.created_at} (${first.invoked_by}).`,
+            "",
+            `Response: ${JSON.stringify(first.response_body ?? {}).slice(0, 800)}`,
+            "",
+            "Scheduled runs are being rejected before any page is scraped.",
+          ].join("\n"),
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, action: "auth_alert", failures: authRows?.length ?? 0, alert }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "test_alert") {
       const alert = await sendScrapeAlert(supabase, {
         type: "test",
