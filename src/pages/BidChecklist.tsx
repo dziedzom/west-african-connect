@@ -126,7 +126,7 @@ const BidChecklist = () => {
       deadline: format(deadline, "yyyy-MM-dd"),
       country,
       documents,
-      checklist_data: checklist as unknown as Record<string, unknown>,
+      checklist_data: checklist as any,
       checked_items: {},
     }).select("id").maybeSingle();
     if (saveError) console.error("Failed to save checklist:", saveError);

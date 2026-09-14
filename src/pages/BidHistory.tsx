@@ -102,7 +102,6 @@ const BidHistory = () => {
       <SEO
         title="Bid Studio History | MiddlBrand"
         description="Revisit your saved RFP analyses, submission checklists and bid reviews."
-        noindex
       />
       <div className="flex items-start justify-between gap-4">
         <div>

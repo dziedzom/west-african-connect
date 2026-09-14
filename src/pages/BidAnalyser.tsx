@@ -145,7 +145,7 @@ const BidAnalyser = () => {
       user_id: user.id,
       title,
       source_text: rfpText.slice(0, 40000),
-      analysis_data: analysis as unknown as Record<string, unknown>,
+      analysis_data: analysis as any,
     });
     if (saveError) console.error("Failed to save analysis:", saveError);
     else setSaved(true);
