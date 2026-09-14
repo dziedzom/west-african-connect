@@ -500,7 +500,7 @@ Return ONLY valid JSON via the function call.`,
     } else console.error(`Upsert error for "${rfp.title}":`, upsertError.message);
   }
 
-  console.log(`${target.name}: extracted ${rfps.length}, inserted ${insertedCount}, deduped ${dedupedCount}, non-africa ${nonAfricaCount}, open ${statusCounts.open}, closing_soon ${statusCounts.closing_soon}, expired ${statusCounts.expired}, null_deadline ${nullDeadlineCount}`);
+  console.log(`${target.name}: extracted ${rfps.length}, inserted ${insertedCount}, deduped ${dedupedCount}, non-africa ${nonAfricaCount}, open ${statusCounts.open}, closing_soon ${statusCounts.closing_soon}, expired ${statusCounts.expired}, null_deadline ${nullDeadlineCount}, detail attempted ${detailAttempted}, detail ok ${detailSucceeded}, detail failed ${detailFailed}, deadlines recovered ${detailRecovered}, detail ms ${detailMs}`);
   return {
     portal: target.name, url: target.url,
     rfps_extracted: rfps.length,
@@ -512,6 +512,12 @@ Return ONLY valid JSON via the function call.`,
     closing_soon: statusCounts.closing_soon,
     expired: statusCounts.expired,
     null_deadline: nullDeadlineCount,
+    detail_attempted: detailAttempted,
+    detail_succeeded: detailSucceeded,
+    detail_failed: detailFailed,
+    detail_deadlines_recovered: detailRecovered,
+    detail_skipped_for_time: detailSkippedForTime,
+    detail_ms: detailMs,
   };
 }
 
