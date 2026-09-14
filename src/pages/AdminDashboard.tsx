@@ -133,16 +133,15 @@ const AdminDashboard = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [contacts, setContacts] = useState<ContactMessage[]>([]);
   const [wonContracts, setWonContracts] = useState<WonContract[]>([]);
-  const [stats, setStats] = useState({ users: 0, proposals: 0, rfps: 0, scraped: 0, contacts: 0, subscribers: 0 });
+  const [stats, setStats] = useState({ users: 0, proposals: 0, scraped: 0, contacts: 0, subscribers: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [profilesRes, proposalsRes, contactsRes, rfpsCount, scrapedCount, subscribersCount, wonRes] = await Promise.all([
+      const [profilesRes, proposalsRes, contactsRes, scrapedCount, subscribersCount, wonRes] = await Promise.all([
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.from("proposals").select("*").order("created_at", { ascending: false }),
         supabase.from("contact_messages").select("*").order("created_at", { ascending: false }).limit(50),
-        supabase.from("rfps").select("id", { count: "exact", head: true }),
         supabase.from("scraped_rfps").select("id", { count: "exact", head: true }),
         supabase.from("newsletter_subscribers").select("id", { count: "exact", head: true }),
         supabase.from("won_contracts").select("*").order("created_at", { ascending: false }),
@@ -155,7 +154,6 @@ const AdminDashboard = () => {
       setStats({
         users: profilesRes.data?.length ?? 0,
         proposals: proposalsRes.data?.length ?? 0,
-        rfps: rfpsCount.count ?? 0,
         scraped: scrapedCount.count ?? 0,
         contacts: contactsRes.data?.length ?? 0,
         subscribers: subscribersCount.count ?? 0,
@@ -197,7 +195,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard title="Total Users" value={stats.users} icon={Users} loading={loading} />
         <StatCard title="Proposals" value={stats.proposals} icon={FileText} loading={loading} />
-        <StatCard title="RFPs" value={stats.rfps + stats.scraped} icon={Activity} loading={loading} />
+        <StatCard title="RFPs" value={stats.scraped} icon={Activity} loading={loading} />
         <StatCard title="Contact Messages" value={stats.contacts} icon={Mail} loading={loading} />
       </div>
 
@@ -405,8 +403,7 @@ const AdminDashboard = () => {
         <TabsContent value="activity">
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Local RFPs</CardTitle></CardHeader><CardContent><p className="text-xl font-bold">{stats.rfps}</p></CardContent></Card>
-              <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Scraped RFPs</CardTitle></CardHeader><CardContent><p className="text-xl font-bold">{stats.scraped}</p></CardContent></Card>
+              <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Live RFPs</CardTitle></CardHeader><CardContent><p className="text-xl font-bold">{stats.scraped}</p></CardContent></Card>
               <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Newsletter Subscribers</CardTitle></CardHeader><CardContent><p className="text-xl font-bold">{stats.subscribers}</p></CardContent></Card>
             </div>
 
