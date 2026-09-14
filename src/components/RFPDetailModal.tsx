@@ -88,6 +88,8 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         .select("match_score, winning_strategy_summary, gap_analysis, key_requirements, risk_flags, missing_qualifications")
         .eq("rfp_id", rfpId)
         .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (data) {
@@ -102,6 +104,10 @@ const AIInsightsPanel = ({ rfpId }: { rfpId: string }) => {
         const { result, error } = await invokeAi<any>("generate-ai-insights", { rfp_id: rfpId });
         if (error) {
           setInsightError(error);
+          return;
+        }
+        if (result?.status === "profile_incomplete") {
+          setProfileIncomplete({ message: result.message });
           return;
         }
         if (result?.status === "created") {
