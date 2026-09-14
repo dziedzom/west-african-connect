@@ -133,6 +133,9 @@ const BidReviewer = () => {
             <div>
               <label className="text-sm font-medium mb-1 block">Paste your complete bid draft</label>
               <Textarea className="min-h-[200px]" placeholder="Paste your bid draft here..." value={bidDraft} onChange={(e) => setBidDraft(e.target.value)} />
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Paste your narrative bid text only. Separate attachments — bid security, financial proposal or price schedule, audited accounts, tax clearance, registration certificates, CVs and signed forms — are not scored here, and their absence will not reduce your score. Include any of that text if you want it reviewed.
+              </p>
             </div>
             <Button onClick={handleReview} disabled={!rfpText.trim() || !bidDraft.trim() || loading} className="w-full">
               {loading ? "Evaluating your bid against RFP requirements..." : "Review My Bid"}
