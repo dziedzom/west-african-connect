@@ -17,6 +17,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import SaveStatusIndicator from "@/components/SaveStatusIndicator";
 import ScoreDashboard, { CategoryScores, ScoreHistoryEntry } from "@/components/ScoreDashboard";
 import WinProbability, { WinProbabilityData } from "@/components/WinProbability";
+import { useEngagementParam } from "@/lib/managed";
 
 interface ReviewResult {
   overall_score: number;
@@ -120,6 +121,7 @@ const BidReviewer = () => {
           overall_score: data.result.overall_score,
           grade: data.result.grade,
           review_data: data.result,
+          engagement_id: engagementId,
         });
       }
     }

@@ -19,6 +19,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_DOCUMENTS_LIST } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import SaveStatusIndicator from "@/components/SaveStatusIndicator";
+import { useEngagementParam } from "@/lib/managed";
 
 const AFRICAN_COUNTRIES = [
   "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic",
@@ -128,6 +129,7 @@ const BidChecklist = () => {
       documents,
       checklist_data: checklist as any,
       checked_items: {},
+      engagement_id: engagementId,
     }).select("id").maybeSingle();
     if (saveError) console.error("Failed to save checklist:", saveError);
     else if (data) setChecklistId(data.id);
