@@ -33,6 +33,8 @@ import BidChecklist from "./pages/BidChecklist";
 import IndexingStatus from "./pages/IndexingStatus";
 import CompanyVerification from "./pages/CompanyVerification";
 import AdminVerifications from "./pages/AdminVerifications";
+import AdminManaged from "./pages/AdminManaged";
+import AdminEngagement from "./pages/AdminEngagement";
 
 const queryClient = new QueryClient();
 
