@@ -104,6 +104,7 @@ export type Database = {
         Row: {
           analysis_data: Json
           created_at: string
+          engagement_id: string | null
           id: string
           rfp_id: string | null
           source_text: string | null
@@ -114,6 +115,7 @@ export type Database = {
         Insert: {
           analysis_data: Json
           created_at?: string
+          engagement_id?: string | null
           id?: string
           rfp_id?: string | null
           source_text?: string | null
@@ -124,6 +126,7 @@ export type Database = {
         Update: {
           analysis_data?: Json
           created_at?: string
+          engagement_id?: string | null
           id?: string
           rfp_id?: string | null
           source_text?: string | null
@@ -132,6 +135,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bid_analyses_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bid_analyses_rfp_id_fkey"
             columns: ["rfp_id"]
@@ -145,6 +155,7 @@ export type Database = {
         Row: {
           company_intake: Json | null
           created_at: string | null
+          engagement_id: string | null
           generated_sections: Json | null
           id: string
           rfp_id: string | null
@@ -156,6 +167,7 @@ export type Database = {
         Insert: {
           company_intake?: Json | null
           created_at?: string | null
+          engagement_id?: string | null
           generated_sections?: Json | null
           id?: string
           rfp_id?: string | null
@@ -167,6 +179,7 @@ export type Database = {
         Update: {
           company_intake?: Json | null
           created_at?: string | null
+          engagement_id?: string | null
           generated_sections?: Json | null
           id?: string
           rfp_id?: string | null
@@ -176,6 +189,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bid_drafts_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bid_drafts_rfp_id_fkey"
             columns: ["rfp_id"]
@@ -188,6 +208,7 @@ export type Database = {
       bid_reviews: {
         Row: {
           created_at: string | null
+          engagement_id: string | null
           grade: string | null
           id: string
           overall_score: number | null
@@ -198,6 +219,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          engagement_id?: string | null
           grade?: string | null
           id?: string
           overall_score?: number | null
@@ -208,6 +230,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          engagement_id?: string | null
           grade?: string | null
           id?: string
           overall_score?: number | null
@@ -217,6 +240,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bid_reviews_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bid_reviews_rfp_id_fkey"
             columns: ["rfp_id"]
@@ -350,6 +380,298 @@ export type Database = {
           subject?: string | null
         }
         Relationships: []
+      }
+      engagement_activities: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          is_internal: boolean
+          note: string | null
+        }
+        Insert: {
+          activity_date?: string
+          activity_type?: string
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          is_internal?: boolean
+          note?: string | null
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          is_internal?: boolean
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_activities_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_commissions: {
+        Row: {
+          agreed_at: string | null
+          commission_rate: number
+          created_at: string
+          currency: string
+          engagement_id: string
+          expected_commission: number | null
+          id: string
+          invoiced_at: string | null
+          needs_fx_review: boolean | null
+          notes: string | null
+          paid_at: string | null
+          project_value: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agreed_at?: string | null
+          commission_rate?: number
+          created_at?: string
+          currency?: string
+          engagement_id: string
+          expected_commission?: number | null
+          id?: string
+          invoiced_at?: string | null
+          needs_fx_review?: boolean | null
+          notes?: string | null
+          paid_at?: string | null
+          project_value?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agreed_at?: string | null
+          commission_rate?: number
+          created_at?: string
+          currency?: string
+          engagement_id?: string
+          expected_commission?: number | null
+          id?: string
+          invoiced_at?: string | null
+          needs_fx_review?: boolean | null
+          notes?: string | null
+          paid_at?: string | null
+          project_value?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_commissions_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: true
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_documents: {
+        Row: {
+          created_at: string
+          doc_type: string | null
+          due_date: string | null
+          engagement_id: string
+          external_location: string | null
+          id: string
+          name: string
+          notes: string | null
+          provided_by: string
+          status: string
+          storage_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type?: string | null
+          due_date?: string | null
+          engagement_id: string
+          external_location?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          provided_by?: string
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string | null
+          due_date?: string | null
+          engagement_id?: string
+          external_location?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          provided_by?: string
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_documents_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_partnerships: {
+        Row: {
+          created_at: string
+          engagement_id: string | null
+          id: string
+          lead_label: string | null
+          lead_prospect_id: string | null
+          lead_status: string
+          lead_user_id: string | null
+          partner_label: string | null
+          partner_prospect_id: string | null
+          partner_status: string
+          partner_user_id: string | null
+          rationale: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id?: string | null
+          id?: string
+          lead_label?: string | null
+          lead_prospect_id?: string | null
+          lead_status?: string
+          lead_user_id?: string | null
+          partner_label?: string | null
+          partner_prospect_id?: string | null
+          partner_status?: string
+          partner_user_id?: string | null
+          rationale?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string | null
+          id?: string
+          lead_label?: string | null
+          lead_prospect_id?: string | null
+          lead_status?: string
+          lead_user_id?: string | null
+          partner_label?: string | null
+          partner_prospect_id?: string | null
+          partner_status?: string
+          partner_user_id?: string | null
+          rationale?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_partnerships_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_partnerships_lead_prospect_id_fkey"
+            columns: ["lead_prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_partnerships_partner_prospect_id_fkey"
+            columns: ["partner_prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagements: {
+        Row: {
+          client_user_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          internal_notes: string | null
+          manual_buyer: string | null
+          manual_deadline: string | null
+          manual_source_url: string | null
+          manual_title: string | null
+          prospect_id: string | null
+          rfp_id: string | null
+          stage: string
+          stage_changed_at: string
+          updated_at: string
+        }
+        Insert: {
+          client_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          internal_notes?: string | null
+          manual_buyer?: string | null
+          manual_deadline?: string | null
+          manual_source_url?: string | null
+          manual_title?: string | null
+          prospect_id?: string | null
+          rfp_id?: string | null
+          stage?: string
+          stage_changed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          client_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          internal_notes?: string | null
+          manual_buyer?: string | null
+          manual_deadline?: string | null
+          manual_source_url?: string | null
+          manual_title?: string | null
+          prospect_id?: string | null
+          rfp_id?: string | null
+          stage?: string
+          stage_changed_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagements_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagements_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_rfps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       newsletter_subscribers: {
         Row: {
@@ -672,6 +994,63 @@ export type Database = {
           },
         ]
       }
+      prospects: {
+        Row: {
+          capabilities: string | null
+          company_name: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          converted_at: string | null
+          converted_user_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lead_source: string | null
+          location: string | null
+          notes: string | null
+          sector: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          capabilities?: string | null
+          company_name: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          converted_at?: string | null
+          converted_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_source?: string | null
+          location?: string | null
+          notes?: string | null
+          sector?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          capabilities?: string | null
+          company_name?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          converted_at?: string | null
+          converted_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_source?: string | null
+          location?: string | null
+          notes?: string | null
+          sector?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rfp_opportunities: {
         Row: {
           created_at: string
@@ -983,6 +1362,7 @@ export type Database = {
           created_at: string
           deadline: string | null
           documents: string | null
+          engagement_id: string | null
           id: string
           rfp_id: string | null
           title: string
@@ -996,6 +1376,7 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           documents?: string | null
+          engagement_id?: string | null
           id?: string
           rfp_id?: string | null
           title: string
@@ -1009,6 +1390,7 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           documents?: string | null
+          engagement_id?: string | null
           id?: string
           rfp_id?: string | null
           title?: string
@@ -1016,6 +1398,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "submission_checklists_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "submission_checklists_rfp_id_fkey"
             columns: ["rfp_id"]
@@ -1210,6 +1599,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_engagement_client: {
+        Args: { _engagement_id: string }
         Returns: boolean
       }
     }
