@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SAMPLE_RFP_TEXT } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import SaveStatusIndicator from "@/components/SaveStatusIndicator";
+import { useEngagementParam } from "@/lib/managed";
 
 const SECTIONS = [
   { key: "executive_summary", label: "Executive Summary" },
@@ -32,6 +33,7 @@ const BidWriter = () => {
   const { user } = useAuth();
   const { isPro } = useSubscription();
   const { toast } = useToast();
+  const engagementId = useEngagementParam();
   const [step, setStep] = usePersistentState<number>("bid-writer:step", 1);
   const [rfpText, setRfpText, resetRfpText] = usePersistentState<string>("bid-writer:rfpText", (location.state as any)?.rfpText || "");
   const [companyName, setCompanyName] = usePersistentState<string>("bid-writer:companyName", "");
@@ -65,6 +67,7 @@ const BidWriter = () => {
         company_intake: { companyName, years, employees, pastProjects, certifications, advantage, teamMembers },
         generated_sections: sections,
         status: "draft" as const,
+        engagement_id: engagementId,
       };
       if (draftId) {
         await supabase.from("bid_drafts").update(payload).eq("id", draftId);

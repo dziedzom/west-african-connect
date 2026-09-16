@@ -33,6 +33,8 @@ import BidChecklist from "./pages/BidChecklist";
 import IndexingStatus from "./pages/IndexingStatus";
 import CompanyVerification from "./pages/CompanyVerification";
 import AdminVerifications from "./pages/AdminVerifications";
+import AdminManaged from "./pages/AdminManaged";
+import AdminEngagement from "./pages/AdminEngagement";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +83,8 @@ const App = () => (
               <Route path="/verification" element={<ProtectedRoute><CompanyVerification /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/admin/verifications" element={<AdminRoute><AdminVerifications /></AdminRoute>} />
+              <Route path="/admin/managed" element={<AdminRoute><AdminManaged /></AdminRoute>} />
+              <Route path="/admin/managed/engagements/:id" element={<AdminRoute><AdminEngagement /></AdminRoute>} />
               <Route path="/bid-studio" element={<ProtectedRoute><BidStudio /></ProtectedRoute>} />
               <Route path="/bid-studio/analyser" element={<ProtectedRoute><BidAnalyser /></ProtectedRoute>} />
               <Route path="/bid-studio/writer" element={<ProtectedRoute><BidWriter /></ProtectedRoute>} />

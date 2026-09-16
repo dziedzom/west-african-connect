@@ -57,11 +57,11 @@ const BidHistory = () => {
     setLoading(true);
     const [a, c, r] = await Promise.all([
       supabase.from("bid_analyses").select("id, title, created_at, analysis_data")
-        .eq("user_id", user.id).order("created_at", { ascending: false }),
+        .eq("user_id", user.id).is("engagement_id", null).order("created_at", { ascending: false }),
       supabase.from("submission_checklists").select("id, title, created_at, deadline, country, checklist_data, checked_items")
-        .eq("user_id", user.id).order("created_at", { ascending: false }),
+        .eq("user_id", user.id).is("engagement_id", null).order("created_at", { ascending: false }),
       supabase.from("bid_reviews").select("id, rfp_title, rfp_id, overall_score, grade, created_at")
-        .eq("user_id", user.id).order("created_at", { ascending: false }),
+        .eq("user_id", user.id).is("engagement_id", null).order("created_at", { ascending: false }),
     ]);
     setAnalyses((a.data as SavedAnalysis[]) ?? []);
     setChecklists((c.data as SavedChecklistRow[]) ?? []);

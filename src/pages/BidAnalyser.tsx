@@ -16,6 +16,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { SAMPLE_RFP_TEXT } from "@/lib/sampleRfp";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import SaveStatusIndicator from "@/components/SaveStatusIndicator";
+import { useEngagementParam } from "@/lib/managed";
 
 interface AnalysisResult {
   summary: string;
@@ -34,6 +35,7 @@ const BidAnalyser = () => {
   const location = useLocation();
   const savedAnalysis = (location.state as { savedAnalysis?: AnalysisResult } | null)?.savedAnalysis ?? null;
   const { isPro } = useSubscription();
+  const engagementId = useEngagementParam();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [rfpText, setRfpText, resetRfpText] = usePersistentState<string>("bid-analyser:rfpText", "");
   const [loading, setLoading] = useState(false);
@@ -146,6 +148,7 @@ const BidAnalyser = () => {
       title,
       source_text: rfpText.slice(0, 40000),
       analysis_data: analysis as any,
+      engagement_id: engagementId,
     });
     if (saveError) console.error("Failed to save analysis:", saveError);
     else setSaved(true);

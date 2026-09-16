@@ -13,6 +13,7 @@ import SEO from "@/components/SEO";
 import RecentApplicationsTable from "@/components/RecentApplicationsTable";
 import SavedRFPsList from "@/components/SavedRFPsList";
 import OutcomeLoopPanels from "@/components/OutcomeLoopPanels";
+import ManagedEngagementPanel from "@/components/managed/ManagedEngagementPanel";
 import { useOpportunityTracker } from "@/hooks/useOpportunityTracker";
 
 
@@ -296,6 +297,13 @@ const Dashboard = () => {
               </span>
             )}
           </div>
+
+          {/* Bids MiddlBrand runs on this company's behalf (renders nothing when there are none) */}
+          {user && (
+            <div className="mb-8">
+              <ManagedEngagementPanel />
+            </div>
+          )}
 
           {/* Outcome loop: outcomes to confirm, pipeline, success fees */}
           {user && <OutcomeLoopPanels />}

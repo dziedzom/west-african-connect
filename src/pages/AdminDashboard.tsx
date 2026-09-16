@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, FileText, Activity, Mail, DollarSign, TrendingUp, CheckCircle, Pencil, ShieldCheck } from "lucide-react";
+import { Users, FileText, Activity, Mail, DollarSign, TrendingUp, CheckCircle, Pencil, ShieldCheck, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -203,14 +203,21 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-display font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground mt-1">Monitor platform activity and manage users</p>
         </div>
-        <Button asChild variant="outline" className="rounded-full font-semibold">
-          <Link to="/admin/verifications">
-            <ShieldCheck className="h-4 w-4 mr-2" /> Verification Queue
-            {pendingVerifications > 0 && (
-              <Badge className="ml-2" variant="default">{pendingVerifications}</Badge>
-            )}
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="rounded-full font-semibold">
+            <Link to="/admin/verifications">
+              <ShieldCheck className="h-4 w-4 mr-2" /> Verification Queue
+              {pendingVerifications > 0 && (
+                <Badge className="ml-2" variant="default">{pendingVerifications}</Badge>
+              )}
+            </Link>
+          </Button>
+          <Button asChild className="rounded-full font-semibold">
+            <Link to="/admin/managed">
+              <Briefcase className="h-4 w-4 mr-2" /> Managed Bids
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
