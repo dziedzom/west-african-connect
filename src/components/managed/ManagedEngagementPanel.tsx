@@ -55,13 +55,13 @@ const ManagedEngagementPanel = () => {
         supabase.from("bid_drafts").select("id, engagement_id").in("engagement_id", ids),
       ]);
 
-      const groupBy = <T extends { engagement_id: string }>(list: T[] | null) => {
-        const out: Record<string, T[]> = {};
+      const groupBy = (list: any[] | null | undefined) => {
+        const out: Record<string, any[]> = {};
         (list ?? []).forEach((row) => { (out[row.engagement_id] ||= []).push(row); });
         return out;
       };
-      setDocs(groupBy((d.data as any) ?? []) as Record<string, ClientDoc[]>);
-      setActivities(groupBy((a.data as any) ?? []) as Record<string, ClientActivity[]>);
+      setDocs(groupBy(d.data as any) as Record<string, ClientDoc[]>);
+      setActivities(groupBy(a.data as any) as Record<string, ClientActivity[]>);
 
       const counts: Record<string, number> = {};
       [...((an.data as any) ?? []), ...((dr.data as any) ?? [])].forEach((row: any) => {
