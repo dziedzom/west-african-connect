@@ -133,7 +133,7 @@ const AdminManaged = () => {
 
   return (
     <div className="container py-8 space-y-8">
-      <SEO title="Managed Bid Workspace | MiddlBrand Admin" description="Run bids on behalf of companies." noindex />
+      <SEO title="Managed Bid Workspace | MiddlBrand Admin" description="Run bids on behalf of companies." />
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
