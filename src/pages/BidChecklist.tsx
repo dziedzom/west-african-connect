@@ -49,6 +49,7 @@ const BidChecklist = () => {
   const location = useLocation();
   const savedChecklist = (location.state as { savedChecklist?: SavedChecklist } | null)?.savedChecklist ?? null;
   const { isPro } = useSubscription();
+  const engagementId = useEngagementParam();
   const [deadlineIso, setDeadlineIso] = usePersistentState<string | null>("bid-checklist:deadline", null);
   const deadline = deadlineIso ? new Date(deadlineIso) : undefined;
   const setDeadline = (d: Date | undefined) => setDeadlineIso(d ? d.toISOString() : null);

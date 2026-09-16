@@ -52,6 +52,7 @@ const BidReviewer = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { isPro } = useSubscription();
+  const engagementId = useEngagementParam();
   const [rfpText, setRfpText] = usePersistentState<string>("bid-reviewer:rfpText", (location.state as any)?.rfpText || "");
   const [bidDraft, setBidDraft] = usePersistentState<string>("bid-reviewer:bidDraft", (location.state as any)?.bidDraft || "");
   const [scoreHistory, setScoreHistory, resetHistory] = usePersistentState<ScoreHistoryEntry[]>("bid-reviewer:scoreHistory", []);
