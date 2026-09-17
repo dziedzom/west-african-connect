@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
 import RFPDetailModal from "@/components/RFPDetailModal";
-import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
+import { useRFPFilters, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
 import { formatRecordedValue, type RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 import UpgradeBanner from "@/components/UpgradeBanner";
@@ -73,6 +73,8 @@ const RFPListings = () => {
     resetFilters,
     activeCount,
     globalHiddenCount,
+    categoryOptions,
+    locationOptions,
   } = useRFPFilters();
 
   const [selectedRFP, setSelectedRFP] = useState<RFP | null>(null);

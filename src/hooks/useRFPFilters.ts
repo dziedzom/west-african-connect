@@ -177,6 +177,15 @@ export function useRFPFilters() {
     });
   }, [rfps, filters]);
 
+  // Dropdown options come from the rows actually loaded, so any new or
+  // reclassified sector/country shows up without a code change.
+  const optionPool = useMemo(
+    () => (filters.showGlobal ? rfps : rfps.filter((r) => r.africa_relevant !== false)),
+    [rfps, filters.showGlobal]
+  );
+  const categoryOptions = useMemo(() => buildOptions(optionPool.map((r) => r.category)), [optionPool]);
+  const locationOptions = useMemo(() => buildOptions(optionPool.map((r) => r.location)), [optionPool]);
+
   const globalHiddenCount = useMemo(
     () => (filters.showGlobal ? 0 : rfps.filter((r) => r.africa_relevant === false).length),
     [rfps, filters.showGlobal]
@@ -206,5 +215,7 @@ export function useRFPFilters() {
     resetFilters,
     activeCount,
     globalHiddenCount,
+    categoryOptions,
+    locationOptions,
   };
 }
