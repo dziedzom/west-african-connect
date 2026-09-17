@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Target, Shield, TrendingUp, Users, Zap } from "lucide-react";
+import { ArrowRight, ChevronDown, Target, Shield, TrendingUp, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import AnimatedCounter from "@/components/AnimatedCounter";
@@ -149,21 +149,21 @@ const Index = () => {
             {/* Large card — Lead Generation */}
             <div className="reveal sm:col-span-2 md:col-span-2 md:row-span-2 rounded-lg border border-border bg-card p-8 md:p-10 flex flex-col justify-between min-h-[280px] md:min-h-[340px] group hover:border-foreground/20 transition-colors">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
-                  <Target className="h-6 w-6 text-accent" />
+                <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-6">
+                  <Target className="h-6 w-6 text-foreground" />
                 </div>
                 <h3 className="text-2xl font-display font-bold text-foreground mb-3">Lead Generation</h3>
                 <p className="text-sm text-muted-foreground font-body leading-relaxed max-w-md">
                   We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity across Africa.
                 </p>
               </div>
-              <div className="mt-8 h-20 rounded-xl bg-gradient-to-r from-accent/5 to-accent/10" />
+              
             </div>
 
             {/* Small card — Vetted */}
             <div className="reveal rounded-lg border border-border bg-card p-8 group hover:border-foreground/20 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
-                <Shield className="h-5 w-5 text-accent" />
+              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center mb-4">
+                <Shield className="h-5 w-5 text-foreground" />
               </div>
               <h3 className="text-lg font-display font-semibold text-foreground mb-2">Verified Companies</h3>
               <p className="text-xs text-muted-foreground font-body">
@@ -174,8 +174,8 @@ const Index = () => {
 
             {/* Small card — Subscription */}
             <div className="reveal rounded-lg border border-border bg-card p-8 group hover:border-foreground/20 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
-                <TrendingUp className="h-5 w-5 text-accent" />
+              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center mb-4">
+                <TrendingUp className="h-5 w-5 text-foreground" />
               </div>
               <h3 className="text-lg font-display font-semibold text-foreground mb-2">Pro Subscription</h3>
               <p className="text-xs text-muted-foreground font-body">
@@ -185,8 +185,8 @@ const Index = () => {
 
             {/* Wide card — Ethical Matching */}
             <div className="reveal sm:col-span-2 md:col-span-2 rounded-lg border border-border bg-card p-8 flex items-center gap-4 sm:gap-6 group hover:border-foreground/20 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                <Users className="h-5 w-5 text-accent" />
+              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                <Users className="h-5 w-5 text-foreground" />
               </div>
               <div>
                 <h3 className="text-lg font-display font-semibold text-foreground mb-1">Ethical Matching</h3>
@@ -198,7 +198,7 @@ const Index = () => {
 
             {/* Small card — Speed */}
             <div className="reveal rounded-lg border border-border bg-secondary/50 p-8 flex flex-col items-center justify-center text-center group hover:border-foreground/20 transition-colors">
-              <Zap className="h-8 w-8 text-accent/40 mb-3 group-hover:text-accent transition-colors duration-300" />
+              <Zap className="h-8 w-8 text-foreground mb-3" aria-hidden="true" />
               <h3 className="text-lg font-display font-semibold text-foreground mb-1">Fast Turnaround</h3>
               <p className="text-xs text-muted-foreground font-body">Matched to opportunities within 48 hours.</p>
             </div>
