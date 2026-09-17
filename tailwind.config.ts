@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
-        body: ["JetBrains Mono", "SF Mono", "Fira Code", "monospace"],
+        display: ["Instrument Sans", "Arial", "sans-serif"],
+        body: ["Source Sans 3", "Arial", "sans-serif"],
+        data: ["JetBrains Mono", "SF Mono", "Fira Code", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -64,8 +65,8 @@ export default {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "var(--radius-control)",
+        sm: "calc(var(--radius-control) - 2px)",
       },
       keyframes: {
         "accordion-down": {
@@ -88,7 +89,7 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.6s ease-out forwards",
+        "fade-in": "fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards",
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
       },
     },
