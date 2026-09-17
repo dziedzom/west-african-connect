@@ -1,0 +1,3 @@
+- Replace fabricated homepage stats/testimonials with live, defensible data.
+- Audit home, about, pricing, and footer for unsupported claims before changing copy.
+- Report current live stat values and remove invented customer stories.
