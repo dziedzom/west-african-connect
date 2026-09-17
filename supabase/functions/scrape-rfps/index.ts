@@ -91,10 +91,41 @@ async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Buyer names arrive in many variants of the same body (UNDP-GHA vs UNDP,
+// "Ministry of Health" vs "MoH"), so the identity key deliberately ignores the
+// organisation and works off meaningful title words, the closing date and the
+// country instead.
+const TITLE_STOPWORDS = new Set([
+  "the", "a", "an", "of", "for", "and", "or", "to", "in", "at", "on", "by", "with", "from",
+  "de", "la", "le", "les", "des", "du", "et", "pour", "dans", "el", "los", "las", "y",
+  "tender", "tenders", "rfp", "rfq", "itb", "eoi", "notice", "invitation", "procurement",
+  "supply", "services", "service", "provision", "request", "proposal", "proposals", "bid",
+  "bids", "bidding", "contract", "no", "nr", "ref", "lot", "re", "advertisement",
+]);
+
+function titleTokens(title: string): string[] {
+  return (title || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(" ")
+    .filter((t) => t.length > 2 && !TITLE_STOPWORDS.has(t));
+}
+
+/** Overlap of the shorter token set — tolerant of truncated titles. */
+function titleSimilarity(a: string, b: string): number {
+  const ta = new Set(titleTokens(a));
+  const tb = new Set(titleTokens(b));
+  if (ta.size === 0 || tb.size === 0) return 0;
+  let shared = 0;
+  for (const t of ta) if (tb.has(t)) shared++;
+  return shared / Math.min(ta.size, tb.size);
+}
+
 async function buildContentHash(rfp: { title?: string; organization?: string | null; deadline?: string | null; location?: string | null }): Promise<string> {
   const parts = [
-    slugify(rfp.title || ""),
-    slugify(rfp.organization || ""),
+    titleTokens(rfp.title || "").sort().join("-"),
     (rfp.deadline || "").slice(0, 10),
     slugify(rfp.location || ""),
   ].join("|");
@@ -350,8 +381,17 @@ CRITICAL RULES:
    - If no closing date is visible for an item, you MUST return null for the deadline field (omit it). NEVER infer, estimate, guess, approximate, derive from context, or copy a date from another item, a publication date, or today's date.
    - A null deadline is a valid and expected outcome, NOT a failure. Returning null is always correct when the date is not shown. Fabricating a date is a critical error.
    - Include EVERY opportunity you find regardless of how soon it closes, including ones closing today, in a few days, or already past. Do not filter or skip by date.
-4. For category, use: IT, Construction, Consulting, Agriculture, Energy, Health, Education, Transport, Marketing, Environment, Finance, Water, Legal, Mining, Pharma, Telecommunications, Other.
+4. For category, use EXACTLY one of: IT, Construction, Consulting, Agriculture, Energy, Health, Education, Transport, Marketing, Environment, Finance, Water, Legal, Mining, Pharma, Telecommunications, Facilities & Cleaning, Vehicles & Fleet, Food & Catering, Furniture & Office Supplies, Travel & Logistics, Industrial & Chemical Supply, Security Systems, Grants & Implementing Partners, Other. Use "Other" only when none of the labels fit — it is a last resort, not a default.
    - Marketing covers marketing, advertising, branding, campaigns, communications and visibility, IEC/behaviour-change materials, public relations, creative and graphic design, printing of publications, audiovisual and video production, photography, social media and digital content, media buying and airtime, and event management. Use Marketing whenever that is the main subject of the contract, whoever the buyer is.
+   - Facilities & Cleaning: cleaning, janitorial, landscaping and gardening, grounds maintenance, pest control, deratization, fumigation, duct and tank cleaning, waste removal, building maintenance services.
+   - Vehicles & Fleet: purchase, hire, maintenance or repair of vehicles, trucks, pickups, buses, motorcycles, tyres and spare parts, fuel supply, fleet management.
+   - Food & Catering: foodstuffs supply, rations, canteen and catering services, kitchen consumables and catering materials.
+   - Furniture & Office Supplies: furniture, office equipment and stationery, printing and photocopying supplies, binding, toner and consumables.
+   - Travel & Logistics: travel management services, air tickets, freight, shipping, customs clearance, warehousing, workshop and conference logistics, transport of goods for events.
+   - Industrial & Chemical Supply: industrial chemicals, fertilizer, acids, gases, lubricants, laboratory reagents, industrial spare parts and machinery supply.
+   - Security Systems: guarding services, CCTV, access control, alarms, security equipment and installations.
+   - Grants & Implementing Partners: calls for proposals for grants, small grants programmes, implementing partner or sub-recipient selection, expressions of interest for funding.
+   - Prefer a specific label over Other: renovation and civil works are Construction, medical or hospital supplies are Health, air-quality or climate monitoring is Environment, pipes and water systems are Water.
 5. For location, give the country name in English. Use "Africa" or a regional label (e.g. "Sub-Saharan Africa") if multi-country.
 6. For source_url, pick the most specific link from the links list; if none match, use the portal URL.
 7. **description — REQUIRED, NEVER INVENTED**: write a factual summary of the scope of work for that specific opportunity, in English, using only wording present in the supplied content: what is being bought, for whom, quantities/lots, place of delivery, and any eligibility or submission detail that is written there. Aim for 2-5 sentences (up to ~1200 characters) when the content supports it. Condense and translate — do not paraphrase into claims the content does not make, and never pad with generic filler. If the page truly carries nothing beyond the title (a bare table row), return null. Null is acceptable; a fabricated summary is a critical error.
@@ -511,11 +551,27 @@ Return ONLY valid JSON via the function call.`,
     const sourceDomain = extractDomain(rfp.source_url) || target.domain;
 
     // Dedup: if hash exists, append source_url to additional_source_urls
-    const { data: existing } = await supabase
+    const { data: hashMatch } = await supabase
       .from("scraped_rfps")
       .select("id, source_url, additional_source_urls")
       .eq("content_hash", contentHash)
       .maybeSingle();
+
+    // Second pass for translated or truncated titles the hash cannot match:
+    // same closing date and country, near-identical meaningful title words.
+    let existing = hashMatch;
+    if (!existing && rowDeadline) {
+      const { data: sameDay } = await supabase
+        .from("scraped_rfps")
+        .select("id, title, source_url, additional_source_urls")
+        .eq("deadline", rowDeadline)
+        .limit(200);
+      const candidate = (sameDay || []).find(
+        (row) => titleSimilarity(rfp.title, (row as { title: string }).title) >= 0.8
+      );
+      if (candidate) existing = candidate as typeof hashMatch;
+    }
+
 
     if (existing) {
       const current = (existing as { source_url: string; additional_source_urls: string[] | null });
