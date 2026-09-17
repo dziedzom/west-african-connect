@@ -209,6 +209,7 @@ const AdminManaged = () => {
         <TabsList>
           <TabsTrigger value="board">Engagements</TabsTrigger>
           <TabsTrigger value="prospects">Prospects</TabsTrigger>
+          <TabsTrigger value="sectors">Sector demand</TabsTrigger>
           <TabsTrigger value="pipeline">Commission pipeline</TabsTrigger>
         </TabsList>
 
@@ -266,7 +267,11 @@ const AdminManaged = () => {
         </TabsContent>
 
         <TabsContent value="prospects">
-          <ProspectsPanel prospects={prospects} engagements={engagements} onChanged={load} />
+          <ProspectsPanel prospects={prospects} engagements={engagements} liveListings={liveListings} onChanged={load} />
+        </TabsContent>
+
+        <TabsContent value="sectors">
+          <SectorDemandPanel listings={liveListings} />
         </TabsContent>
 
         <TabsContent value="pipeline" className="space-y-6">
