@@ -189,8 +189,10 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
                   value_confidence: { type: ["string", "null"] },
                   deadline: { type: ["string", "null"] },
                   official_source_url: { type: ["string", "null"] },
+                  summary: { type: ["string", "null"] },
+                  is_award_notice: { type: "boolean" },
                 },
-                required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url"],
+                required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url", "summary", "is_award_notice"],
                 additionalProperties: false,
               },
             },
@@ -244,6 +246,10 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
     value_confidence: amount !== null && typeof parsed.value_confidence === "string" ? parsed.value_confidence.slice(0, 20) : null,
     deadline,
     official_source_url: official,
+    summary: typeof parsed.summary === "string" && parsed.summary.trim().length >= 40
+      ? parsed.summary.trim().slice(0, 2000)
+      : null,
+    is_award_notice: parsed.is_award_notice === true,
   };
 }
 
