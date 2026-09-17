@@ -150,7 +150,7 @@ const Index = () => {
 
           <div ref={bentoRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl">
             {/* Large card — Lead Generation */}
-            <div className="reveal sm:col-span-2 md:col-span-2 md:row-span-2 rounded-lg border border-border bg-card p-8 md:p-10 flex flex-col justify-between min-h-[280px] md:min-h-[340px] group hover:border-foreground/20 transition-colors">
+            <div className="reveal sm:col-span-2 md:col-span-2 md:row-span-2 rounded-lg border border-border bg-card p-8 md:p-10 flex flex-col justify-center group hover:border-foreground/20 transition-colors">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-6">
                   <Target className="h-6 w-6 text-foreground" />
