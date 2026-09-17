@@ -108,10 +108,10 @@ const Pricing = () => {
           })),
         }}
       />
-      <section className="py-16 bg-background min-h-screen">
+      <section className="py-20 md:py-28 bg-background min-h-screen">
         <div className="container max-w-5xl">
           {/* Trial Banner */}
-          <div className="rounded-2xl border border-accent/30 bg-accent/5 px-6 py-4 flex items-center justify-center gap-3 mb-10 max-w-2xl mx-auto">
+          <div className="rounded-lg border border-border bg-card px-6 py-4 flex items-center justify-center gap-3 mb-12 max-w-2xl mx-auto">
             <Sparkles className="h-5 w-5 text-accent shrink-0" />
             <p className="text-sm font-body text-foreground">
               <span className="font-semibold">New users get 7 days of Pro — free.</span>
@@ -119,23 +119,23 @@ const Pricing = () => {
             </p>
           </div>
 
-          <div className="text-center mb-16 max-w-2xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">
+          <div className="text-center mb-20 max-w-3xl mx-auto">
+            <h1 className="text-[2.375rem] md:text-[3.25rem] leading-[1.08] font-display font-semibold text-foreground">
               Plans that grow with you.
             </h1>
-            <p className="mt-4 text-sm text-muted-foreground font-body">
+            <p className="mt-6 text-lg text-muted-foreground font-body leading-relaxed">
               Start with a free 7-day Pro trial. Upgrade when you're ready for AI-powered matching and full RFP intelligence.
             </p>
           </div>
 
-          <div ref={tiersRef} className="grid md:grid-cols-3 gap-4 mb-24">
+          <div ref={tiersRef} className="grid md:grid-cols-3 gap-6 mb-28">
             {tiers.map((tier) => (
               <div
                 key={tier.name}
-                className={`reveal rounded-2xl border p-8 flex flex-col transition-colors duration-300 relative ${
+                className={`reveal rounded-lg border p-8 flex flex-col transition-colors relative ${
                   tier.featured
                     ? "border-accent bg-foreground text-background"
-                    : "border-border bg-card text-card-foreground hover:border-accent/30"
+                    : "border-border bg-card text-card-foreground hover:border-foreground/20"
                 }`}
               >
                 {tier.badge && (
@@ -145,14 +145,14 @@ const Pricing = () => {
                   </Badge>
                 )}
                 <p
-                  className={`text-xs font-body uppercase tracking-widest mb-2 ${
+                  className={`text-xs font-body font-semibold uppercase tracking-[0.06em] mb-2 ${
                     tier.featured ? "opacity-70" : "text-muted-foreground"
                   }`}
                 >
                   {tier.name}
                 </p>
                 <div className="flex items-baseline gap-1 mb-1">
-                  <p className="text-5xl font-display font-bold">{tier.price}</p>
+                  <p className="text-5xl font-data font-medium">{tier.price}</p>
                   <p
                     className={`text-sm font-body ${
                       tier.featured ? "opacity-70" : "text-muted-foreground"
@@ -216,8 +216,8 @@ const Pricing = () => {
           </div>
 
           {/* Success Fee Explainer */}
-          <div className="max-w-3xl mx-auto mb-24">
-            <div className="rounded-2xl border border-accent/20 bg-accent/5 p-8 text-center">
+          <div className="max-w-4xl mx-auto mb-28">
+            <div className="rounded-lg border border-border bg-secondary/50 p-10 text-center">
               <h2 className="text-2xl font-display font-bold text-foreground mb-2">
                 Success Fee: 3.5%, capped at $5,000
               </h2>
@@ -231,15 +231,15 @@ const Pricing = () => {
                   { contract: "$100,000", fee: "$3,500" },
                   { contract: "$200,000+", fee: "$5,000 (cap)" },
                 ].map((ex) => (
-                  <div key={ex.contract} className="rounded-xl border border-border bg-card p-4">
+                  <div key={ex.contract} className="rounded-lg border border-border bg-card p-4">
                     <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">
                       Contract
                     </p>
-                    <p className="font-display font-semibold text-foreground">{ex.contract}</p>
+                    <p className="font-data font-medium text-foreground">{ex.contract}</p>
                     <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wider mt-2">
                       Fee
                     </p>
-                    <p className="font-display font-semibold text-accent">{ex.fee}</p>
+                    <p className="font-data font-medium text-accent">{ex.fee}</p>
                   </div>
                 ))}
               </div>
@@ -263,7 +263,7 @@ const Pricing = () => {
                 <AccordionItem
                   key={i}
                   value={`faq-${i}`}
-                  className="rounded-2xl border border-border bg-card px-6 data-[state=open]:border-accent/30 transition-colors duration-300"
+                   className="rounded-lg border border-border bg-card px-6 data-[state=open]:border-foreground/20 transition-colors"
                 >
                   <AccordionTrigger className="text-sm font-display font-semibold text-foreground hover:no-underline py-5">
                     {faq.question}

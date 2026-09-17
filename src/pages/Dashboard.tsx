@@ -52,7 +52,7 @@ const formatRelativeTime = (dateStr: string) => {
 
 
 const DashboardSkeleton = () => (
-  <div className="container max-w-6xl py-12">
+  <div className="container py-8">
     <div className="flex items-center justify-between mb-10">
       <div>
         <Skeleton className="h-8 w-48 mb-2" />
@@ -229,14 +229,14 @@ const Dashboard = () => {
   return (
     <>
       <SEO title="Dashboard" path="/dashboard" description="Your MiddlBrand dashboard — view matched RFPs, track opportunities, and manage your company profile." />
-      <section className="py-12 bg-background min-h-screen grain-mesh">
-        <div className="container max-w-6xl">
+      <section className="py-8 bg-background min-h-screen">
+        <div className="container">
           {/* Header */}
-          <div className="flex items-center justify-between mb-10 flex-wrap gap-4">
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <LayoutDashboard className="h-5 w-5 text-accent" />
-                <h1 className="text-3xl font-display font-bold text-foreground">Dashboard</h1>
+                <h1 className="text-3xl font-display font-semibold text-foreground">Dashboard</h1>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-sm text-muted-foreground font-body">{user?.email}</p>
@@ -246,22 +246,22 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <Button asChild variant="outline" size="sm" className="rounded-full">
+              <Button asChild variant="outline" size="sm">
                 <Link to="/verification"><ShieldCheck className="h-4 w-4 mr-1" /> Verification</Link>
               </Button>
-              <Button asChild variant="outline" size="sm" className="rounded-full">
+              <Button asChild variant="outline" size="sm">
                 <Link to="/proposals"><FileEdit className="h-4 w-4 mr-1" /> Proposals</Link>
               </Button>
-              <Button asChild variant="outline" size="sm" className="rounded-full">
+              <Button asChild variant="outline" size="sm">
                 <Link to="/scrape"><Bot className="h-4 w-4 mr-1" /> Scraper</Link>
               </Button>
-              <Button asChild variant="outline" size="sm" className="rounded-full">
+              <Button asChild variant="outline" size="sm">
                 <Link to="/knowledge-base"><BookOpen className="h-4 w-4 mr-1" /> Knowledge</Link>
               </Button>
-              <Button asChild variant="outline" size="sm" className="rounded-full">
+              <Button asChild variant="outline" size="sm">
                 <Link to="/profile"><Settings className="h-4 w-4 mr-1" /> Profile</Link>
               </Button>
-              <Button variant="outline" size="sm" className="rounded-full" onClick={signOut}>Sign Out</Button>
+              <Button variant="outline" size="sm" onClick={signOut}>Sign Out</Button>
             </div>
           </div>
 
@@ -270,24 +270,24 @@ const Dashboard = () => {
             {stats.map((s) => (
               <div
                 key={s.label}
-                className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-5 text-center transition-all hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
+                className="rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-secondary/40"
               >
-                <s.icon className={`h-4 w-4 mx-auto mb-2 ${s.accent ? "text-accent" : "text-muted-foreground"}`} />
-                <p className={`text-2xl font-display font-bold ${s.accent ? "text-accent" : "text-foreground"}`}>{s.value}</p>
-                <p className="text-[10px] text-muted-foreground mt-1 font-body uppercase tracking-wider">{s.label}</p>
+                <s.icon className="h-4 w-4 mb-3 text-muted-foreground" />
+                <p className={`text-2xl font-data font-medium ${s.accent ? "text-accent" : "text-foreground"}`}>{s.value}</p>
+                <p className="text-xs text-muted-foreground mt-1 font-body">{s.label}</p>
               </div>
             ))}
           </div>
 
           {/* Live Tender Counter */}
-          <div className="rounded-xl border border-accent/30 bg-accent/5 px-5 py-3 mb-8 flex items-center justify-between flex-wrap gap-3">
+          <div className="rounded-lg border border-border bg-card px-5 py-3 mb-8 flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
               </span>
               <p className="text-xs font-body text-foreground">
-                <span className="font-semibold text-accent">{tendersThisWeek.toLocaleString()}</span>{" "}
+                <span className="font-data font-medium text-accent">{tendersThisWeek.toLocaleString()}</span>{" "}
                 tenders read this week across African procurement portals
               </p>
             </div>
