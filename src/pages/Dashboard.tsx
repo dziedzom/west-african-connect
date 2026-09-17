@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle, Brain, Zap, ShieldCheck } from "lucide-react";
+import { ExternalLink, Clock, FileEdit, ShieldCheck } from "lucide-react";
 import VerificationBadge from "@/components/VerificationBadge";
 import { useVerification } from "@/hooks/useVerification";
 import { supabase } from "@/integrations/supabase/client";
@@ -220,79 +219,80 @@ const Dashboard = () => {
   if (loading) return <DashboardSkeleton />;
 
   const stats = [
-    { label: "Active Tenders", value: totalRfps + scrapedCount, icon: FileText, accent: true },
-    { label: "Matched", value: matchedRfps.length, icon: TrendingUp, accent: false },
-    { label: "Applications", value: appCount, icon: Briefcase, accent: false },
-    { label: "Tracked", value: trackedCount, icon: Heart, accent: false },
+    { label: "Active tenders", value: totalRfps + scrapedCount },
+    { label: "Matched to you", value: matchedRfps.length },
+    { label: "Applications", value: appCount },
+    { label: "Tracked", value: trackedCount },
   ];
+
+  const pipeline = [
+    { key: "draft", label: "Draft" },
+    { key: "submitted", label: "Submitted" },
+    { key: "under_review", label: "In review" },
+    { key: "won", label: "Won" },
+    { key: "lost", label: "Lost" },
+  ] as const;
 
   return (
     <>
       <SEO title="Dashboard" path="/dashboard" description="Your MiddlBrand dashboard — view matched RFPs, track opportunities, and manage your company profile." />
-      <section className="py-8 bg-background min-h-screen">
-        <div className="container">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <LayoutDashboard className="h-5 w-5 text-accent" />
-                <h1 className="text-3xl font-display font-semibold text-foreground">Dashboard</h1>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="text-sm text-muted-foreground font-body">{user?.email}</p>
+      <section className="py-6 bg-background min-h-screen">
+        <div className="container panel-enter">
+          {/* Header + the actions that matter, above the fold */}
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div className="min-w-0">
+              <h1 className="screen-title font-display font-semibold text-foreground">Dashboard</h1>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 <Link to="/verification" aria-label="Company verification status">
                   <VerificationBadge status={verificationStatus} />
                 </Link>
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              <Button asChild variant="outline" size="sm">
-                <Link to="/verification"><ShieldCheck className="h-4 w-4 mr-1" /> Verification</Link>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild size="sm" className="h-9">
+                <Link to="/rfps">Browse opportunities</Link>
               </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/proposals"><FileEdit className="h-4 w-4 mr-1" /> Proposals</Link>
+              <Button asChild variant="outline" size="sm" className="h-9">
+                <Link to="/bid-studio">Bid Studio</Link>
               </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/scrape"><Bot className="h-4 w-4 mr-1" /> Scraper</Link>
+              <Button asChild variant="outline" size="sm" className="h-9">
+                <Link to="/proposals"><FileEdit className="h-3.5 w-3.5 mr-1" /> Proposals</Link>
               </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/knowledge-base"><BookOpen className="h-4 w-4 mr-1" /> Knowledge</Link>
+              <Button asChild variant="outline" size="sm" className="h-9">
+                <Link to="/verification"><ShieldCheck className="h-3.5 w-3.5 mr-1" /> Verification</Link>
               </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/profile"><Settings className="h-4 w-4 mr-1" /> Profile</Link>
-              </Button>
-              <Button variant="outline" size="sm" onClick={signOut}>Sign Out</Button>
             </div>
           </div>
 
-          {/* Bento Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          {/* Secondary destinations, kept out of the way */}
+          <div className="flex flex-wrap items-center gap-3 mb-4 text-xs">
+            <Link to="/knowledge-base" className="text-muted-foreground hover:text-foreground">Knowledge base</Link>
+            <span className="text-border">·</span>
+            <Link to="/scrape" className="text-muted-foreground hover:text-foreground">Scraper</Link>
+            <span className="text-border">·</span>
+            <Link to="/profile" className="text-muted-foreground hover:text-foreground">Profile settings</Link>
+            <span className="text-border">·</span>
+            <button onClick={signOut} className="text-muted-foreground hover:text-foreground">Sign out</button>
+          </div>
+
+          {/* Counts */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
             {stats.map((s) => (
-              <div
-                key={s.label}
-                className="rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-secondary/40"
-              >
-                <s.icon className="h-4 w-4 mb-3 text-muted-foreground" />
-                <p className={`text-2xl font-data font-medium ${s.accent ? "text-accent" : "text-foreground"}`}>{s.value}</p>
-                <p className="text-xs text-muted-foreground mt-1 font-body">{s.label}</p>
+              <div key={s.label} className="app-panel">
+                <p className="text-2xl font-data font-medium text-foreground">{s.value}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
 
-          {/* Live Tender Counter */}
-          <div className="rounded-lg border border-border bg-card px-5 py-3 mb-8 flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
-              </span>
-              <p className="text-xs font-body text-foreground">
-                <span className="font-data font-medium text-accent">{tendersThisWeek.toLocaleString()}</span>{" "}
-                tenders read this week across African procurement portals
-              </p>
-            </div>
+          <div className="app-panel mb-4 flex flex-wrap items-center justify-between gap-2 py-2.5">
+            <p className="text-xs text-foreground">
+              <span className="font-data font-medium">{tendersThisWeek.toLocaleString()}</span>{" "}
+              tenders read this week across African procurement portals
+            </p>
             {lastScrapedAt && (
-              <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" /> Updated {formatRelativeTime(lastScrapedAt)}
               </span>
             )}
@@ -300,7 +300,7 @@ const Dashboard = () => {
 
           {/* Bids MiddlBrand runs on this company's behalf (renders nothing when there are none) */}
           {user && (
-            <div className="mb-8">
+            <div className="mb-4">
               <ManagedEngagementPanel />
             </div>
           )}
@@ -308,179 +308,69 @@ const Dashboard = () => {
           {/* Outcome loop: outcomes to confirm, pipeline, success fees */}
           {user && <OutcomeLoopPanels />}
 
-          {/* Proposal Pipeline */}
+          {/* Proposal pipeline — one dense strip instead of five ornamental cards */}
           {user && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <FileEdit className="h-4 w-4 text-accent" /> Proposal Pipeline
-                </h2>
-                <Link to="/proposals" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                  View all <ArrowRight className="h-3 w-3" />
-                </Link>
+            <div className="app-panel mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold text-foreground">Proposal pipeline</h2>
+                <Link to="/proposals" className="text-xs text-accent hover:underline">View all</Link>
               </div>
-              <div className="grid grid-cols-5 gap-2">
-                {([
-                  { key: "draft", label: "Draft", icon: FileEdit, color: "text-muted-foreground" },
-                  { key: "submitted", label: "Submitted", icon: Send, color: "text-accent" },
-                  { key: "under_review", label: "Review", icon: Eye, color: "text-amber-600" },
-                  { key: "won", label: "Won", icon: Trophy, color: "text-emerald-500" },
-                  { key: "lost", label: "Lost", icon: XCircle, color: "text-destructive" },
-                ] as const).map((stage) => (
-                  <div key={stage.key} className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-4 text-center hover:border-accent/30 transition-all">
-                    <stage.icon className={`h-4 w-4 mx-auto mb-1.5 ${stage.color}`} />
-                    <p className="text-xl font-display font-bold text-foreground">{proposalCounts[stage.key] || 0}</p>
-                    <p className="text-[9px] text-muted-foreground font-body uppercase tracking-wider mt-0.5">{stage.label}</p>
+              <div className="grid grid-cols-5 divide-x divide-border">
+                {pipeline.map((stage) => (
+                  <div key={stage.key} className="px-2 first:pl-0">
+                    <p className="text-xl font-data font-medium text-foreground">{proposalCounts[stage.key] || 0}</p>
+                    <p className="text-xs text-muted-foreground">{stage.label}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Top AI Matches */}
-          {user && topMatches.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-accent" /> Top AI Matches
-                </h2>
-                <Link to="/rfps" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                  View all RFPs <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {topMatches.map((m) => {
-                  const scoreColor = m.match_score >= 75 ? "text-accent" : m.match_score >= 50 ? "text-amber-500" : "text-destructive";
-                  return (
-                    <div key={m.rfp_id} className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-5 hover:border-accent/40 transition-all hover:shadow-lg hover:shadow-accent/5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-display font-semibold text-foreground truncate">{m.rfp_title}</p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <Badge variant="secondary" className="text-[10px]">{m.rfp_category}</Badge>
-                            {m.rfp_org && <span className="text-[10px] text-muted-foreground truncate">{m.rfp_org}</span>}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center shrink-0">
-                          <Zap className={`h-4 w-4 ${scoreColor}`} />
-                          <span className={`text-lg font-display font-bold ${scoreColor}`}>{m.match_score}%</span>
-                          <span className="text-[9px] text-muted-foreground uppercase tracking-wider">match</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-
-          {/* Scraped RFPs from AI Agent */}
-          {scrapedRfps.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <Bot className="h-4 w-4 text-accent" /> AI-Tracked Tenders
-                </h2>
-                <div className="flex items-center gap-3">
-                  {lastScrapedAt && (
-                    <span className="text-[10px] text-muted-foreground font-body flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> Last read {formatRelativeTime(lastScrapedAt)}
-                    </span>
-                  )}
-                  <Link to="/scrape" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                    Run agent <ArrowRight className="h-3 w-3" />
-                  </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Top AI matches */}
+            {user && topMatches.length > 0 && (
+              <div className="app-panel">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-semibold text-foreground">Top AI matches</h2>
+                  <Link to="/rfps" className="text-xs text-accent hover:underline">View all</Link>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {scrapedRfps.slice(0, 6).map((rfp) => (
-                  <div
-                    key={rfp.id}
-                    className="group rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 flex flex-col justify-between transition-all hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5"
-                  >
-                    <div className="mb-4">
-                      <h3 className="text-sm font-display font-semibold text-foreground leading-snug line-clamp-2">
-                        {rfp.title}
-                      </h3>
-                      {rfp.description && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">{rfp.description}</p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                        <Badge variant="outline" className="text-[10px]">{rfp.portal}</Badge>
-                        {rfp.category && (
-                          <Badge variant="secondary" className="text-[10px]">
-                            <Tag className="h-2.5 w-2.5 mr-0.5" />{rfp.category}
-                          </Badge>
-                        )}
-                        {rfp.location && (
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                            <MapPin className="h-2.5 w-2.5" />{rfp.location}
-                          </span>
-                        )}
-                        {rfp.organization && (
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                            <Building2 className="h-2.5 w-2.5" />{rfp.organization}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-[10px] text-muted-foreground font-body">
-                          Read {new Date(rfp.scraped_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                <div className="divide-y divide-border">
+                  {topMatches.map((m) => (
+                    <div key={m.rfp_id} className="flex items-center justify-between gap-3 py-2">
+                      <div className="min-w-0">
+                        <p className="text-sm text-foreground truncate">{m.rfp_title}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {m.rfp_category}{m.rfp_org ? ` · ${m.rfp_org}` : ""}
                         </p>
-                        {rfp.deadline && (
-                          <p className="text-[10px] font-semibold text-destructive font-body flex items-center gap-0.5">
-                            <Calendar className="h-2.5 w-2.5" />
-                            {new Date(rfp.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                          </p>
-                        )}
                       </div>
+                      <span className="text-sm font-data font-medium text-foreground shrink-0">{m.match_score}%</span>
                     </div>
-                    <Button asChild size="sm" className="w-full rounded-full mt-auto bg-accent text-accent-foreground hover:bg-accent/90">
-                      <a href={rfp.source_url} target="_blank" rel="noopener noreferrer">
-                        View RFP <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                      </a>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              {scrapedRfps.length > 6 && (
-                <div className="text-center mt-3">
-                  <Link to="/scrape" className="text-xs text-accent hover:underline font-body">
-                    View all {scrapedCount} tracked tenders →
-                  </Link>
+                  ))}
                 </div>
-              )}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Matched Opportunities */}
-            <div className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 md:col-span-1">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-accent" /> Matched Opportunities
-                </h2>
-                <Link to="/rfps" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                  View all <ArrowRight className="h-3 w-3" />
-                </Link>
               </div>
-              <div className="space-y-2 max-h-72 overflow-y-auto">
+            )}
+
+            {/* Matched opportunities */}
+            <div className="app-panel">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold text-foreground">Matched opportunities</h2>
+                <Link to="/rfps" className="text-xs text-accent hover:underline">View all</Link>
+              </div>
+              <div className="divide-y divide-border max-h-72 overflow-y-auto">
                 {matchedRfps.length === 0 ? (
-                  <div className="text-center py-10 text-muted-foreground">
+                  <div className="py-8 text-center text-muted-foreground">
                     <p className="text-sm">No matched opportunities.</p>
                     <p className="text-xs mt-1">
                       <Link to="/profile" className="text-accent hover:underline">Set your expertise</Link> to see relevant RFPs.
                     </p>
                   </div>
                 ) : (
-                  matchedRfps.slice(0, 5).map((rfp) => (
-                    <div key={rfp.id} className="rounded-lg border border-border bg-background/50 p-3 hover:border-accent/30 transition-all">
-                      <p className="text-sm font-display font-semibold text-foreground truncate">{rfp.title}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <Badge variant="secondary" className="text-[10px]">{rfp.category}</Badge>
-                        {rfp.org && <span className="text-[10px] text-muted-foreground">{rfp.org}</span>}
-                      </div>
+                  matchedRfps.slice(0, 6).map((rfp) => (
+                    <div key={rfp.id} className="py-2 min-w-0">
+                      <p className="text-sm text-foreground truncate">{rfp.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {rfp.category}{rfp.org ? ` · ${rfp.org}` : ""}
+                      </p>
                     </div>
                   ))
                 )}
@@ -488,26 +378,56 @@ const Dashboard = () => {
             </div>
 
             {/* Saved RFPs */}
-            <div className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-accent" /> Saved RFPs
-                </h2>
-              </div>
+            <div className="app-panel">
+              <h2 className="text-sm font-semibold text-foreground mb-2">Saved RFPs</h2>
               <div className="max-h-72 overflow-y-auto">
                 <SavedRFPsList />
               </div>
             </div>
 
-            {/* Recent Applications - full width */}
-            <div className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-6 md:col-span-2">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                  <Briefcase className="h-4 w-4 text-accent" /> Recent Applications
-                </h2>
-                <Link to="/partnerships" className="text-[10px] text-accent hover:underline flex items-center gap-1 font-body">
-                  Browse partnerships <ArrowRight className="h-3 w-3" />
-                </Link>
+            {/* Newly read tenders */}
+            {scrapedRfps.length > 0 && (
+              <div className="app-panel">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-semibold text-foreground">Newly read tenders</h2>
+                  <Link to="/scrape" className="text-xs text-accent hover:underline">Run agent</Link>
+                </div>
+                <div className="divide-y divide-border max-h-72 overflow-y-auto">
+                  {scrapedRfps.slice(0, 8).map((rfp) => (
+                    <div key={rfp.id} className="flex items-start justify-between gap-3 py-2">
+                      <div className="min-w-0">
+                        <p className="text-sm text-foreground truncate">{rfp.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {rfp.portal}{rfp.location ? ` · ${rfp.location}` : ""}{rfp.organization ? ` · ${rfp.organization}` : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {rfp.deadline && (
+                          <span className="text-xs font-data text-muted-foreground">
+                            {new Date(rfp.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        )}
+                        <a
+                          href={rfp.source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Open source notice"
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recent applications */}
+            <div className="app-panel lg:col-span-2">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold text-foreground">Recent applications</h2>
+                <Link to="/partnerships" className="text-xs text-accent hover:underline">Browse partnerships</Link>
               </div>
               <RecentApplicationsTable />
             </div>

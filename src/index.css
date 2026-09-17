@@ -135,6 +135,36 @@
     padding-left: clamp(1.25rem, 2.5vw, 2rem);
     padding-right: clamp(1.25rem, 2.5vw, 2rem);
   }
+  /* App density scale: 14px body text, 36px controls, 6px radius */
+  .app-shell {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .app-shell .screen-title {
+    font-size: 1.875rem;
+    line-height: 2.125rem;
+  }
+  .app-panel {
+    border-radius: var(--radius-control);
+    border-width: 1px;
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--card));
+    padding: 1rem;
+  }
+  @media (min-width: 768px) {
+    .app-panel {
+      padding: 1.25rem;
+    }
+  }
+  /* Panel entry: single 200ms fade, no stagger */
+  .panel-enter {
+    animation: panel-fade 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes panel-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Grain gradient mesh animation */
