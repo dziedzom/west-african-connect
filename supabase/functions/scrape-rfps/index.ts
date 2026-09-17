@@ -331,9 +331,13 @@ async function scrapePortal(
     body: JSON.stringify({
       url: target.url,
       formats: ["markdown", "links"],
-      onlyMainContent: true,
+      // Whole-page read: on several portals (AU, SADC, Gavi, GCF, IsDB, AFD,
+      // SA eTenders) the tender table sits outside the "main content" region,
+      // so main-content-only reading returned an empty page.
+      onlyMainContent: false,
       waitFor: 5000,
     }),
+
   });
 
   const scrapeText = await scrapeRes.text();
