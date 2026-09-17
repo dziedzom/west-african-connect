@@ -673,6 +673,54 @@ export type Database = {
           },
         ]
       }
+      homepage_live_stats: {
+        Row: {
+          active_sources: number
+          countries_represented: number
+          id: boolean
+          live_opportunities: number
+          opportunities_with_recorded_value: number
+          total_recorded_value: number
+          updated_at: string
+        }
+        Insert: {
+          active_sources?: number
+          countries_represented?: number
+          id?: boolean
+          live_opportunities?: number
+          opportunities_with_recorded_value?: number
+          total_recorded_value?: number
+          updated_at?: string
+        }
+        Update: {
+          active_sources?: number
+          countries_represented?: number
+          id?: boolean
+          live_opportunities?: number
+          opportunities_with_recorded_value?: number
+          total_recorded_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      homepage_source_stats: {
+        Row: {
+          active_sources: number
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          active_sources?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          active_sources?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string
@@ -1594,6 +1642,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_homepage_live_stats: {
+        Args: never
+        Returns: {
+          active_sources: number
+          countries_represented: number
+          live_opportunities: number
+          opportunities_with_recorded_value: number
+          total_recorded_value: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1605,6 +1663,7 @@ export type Database = {
         Args: { _engagement_id: string }
         Returns: boolean
       }
+      refresh_homepage_live_stats: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

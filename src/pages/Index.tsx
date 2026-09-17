@@ -1,43 +1,70 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Target, Shield, TrendingUp, Users, Zap, Building2, Briefcase, Globe } from "lucide-react";
+import { ArrowRight, Target, Shield, TrendingUp, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import SEO from "@/components/SEO";
+import { supabase } from "@/integrations/supabase/client";
 
-const stats = [
-  { value: "500+", label: "Vetted Companies" },
-  { value: "$12M+", label: "Matched" },
-  { value: "$40", label: "Pro Plan" },
-  { value: "54", label: "Countries" },
-];
+type HomepageLiveStats = {
+  live_opportunities: number;
+  total_recorded_value: number;
+  opportunities_with_recorded_value: number;
+  active_sources: number;
+  countries_represented: number;
+};
 
-const testimonials = [
-  {
-    quote: "MiddlBrand connected us to a $250K infrastructure contract we never would have found on our own. Their matching is incredibly precise.",
-    name: "Kwame Asante",
-    title: "CEO, Asante Construction",
-    icon: Building2,
-  },
-  {
-    quote: "The AI-powered matching and bid tools save us hours every week. We've won three contracts in six months through MiddlBrand.",
-    name: "Amina Diallo",
-    title: "Director, Sahel Logistics",
-    icon: Briefcase,
-  },
-  {
-    quote: "Their vetting process gave us credibility with buyers we couldn't reach before. It's opened doors across Africa.",
-    name: "Emeka Okafor",
-    title: "Founder, TechBridge Solutions",
-    icon: Globe,
-  },
-];
+const formatRecordedValue = (value: number) => {
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(value >= 10_000_000 ? 0 : 1)}M`;
+  if (value >= 1_000) return `$${Math.round(value / 1_000)}K`;
+  return `$${Math.round(value)}`;
+};
 
 const Index = () => {
+  const [liveStats, setLiveStats] = useState<HomepageLiveStats | null>(null);
   const statsRef = useScrollReveal(80);
   const bentoRef = useScrollReveal(120);
   const ctaRef = useScrollReveal();
-  const testimonialsRef = useScrollReveal(100);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadStats = async () => {
+      const { data, error } = await supabase
+        .from("homepage_live_stats")
+        .select("live_opportunities,total_recorded_value,opportunities_with_recorded_value,active_sources,countries_represented")
+        .eq("id", true)
+        .maybeSingle();
+      if (error || !mounted) return;
+      if (data) setLiveStats(data);
+    };
+
+    loadStats();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const stats = useMemo(() => {
+    if (!liveStats) return [];
+
+    return [
+      liveStats.live_opportunities > 0
+        ? { value: String(liveStats.live_opportunities), label: "Live Opportunities" }
+        : null,
+      liveStats.total_recorded_value > 0 && liveStats.opportunities_with_recorded_value > 0
+        ? { value: formatRecordedValue(liveStats.total_recorded_value), label: "Recorded Tender Value" }
+        : null,
+      liveStats.active_sources > 0
+        ? { value: String(liveStats.active_sources), label: "Active Sources" }
+        : null,
+      liveStats.countries_represented > 0
+        ? { value: String(liveStats.countries_represented), label: "Countries Represented" }
+        : null,
+    ].filter((stat): stat is { value: string; label: string } => Boolean(stat));
+  }, [liveStats]);
 
   return (
     <>
@@ -84,20 +111,21 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Stats with animated counters */}
-      <section ref={statsRef} className="border-y border-border bg-card">
-        <div className="container grid grid-cols-2 md:grid-cols-4 divide-x divide-border [&>div:nth-child(n+3)]:border-t [&>div:nth-child(n+3)]:md:border-t-0">
-          {stats.map((s) => (
-            <div key={s.label} className="reveal py-10 text-center group cursor-default">
-              <AnimatedCounter
-                value={s.value}
-                className="text-3xl md:text-4xl font-display font-bold text-foreground transition-colors duration-300 group-hover:text-accent"
-              />
-              <p className="mt-1 text-xs font-body text-muted-foreground uppercase tracking-wider">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {stats.length > 0 && (
+        <section ref={statsRef} className="border-y border-border bg-card">
+          <div className={`container grid grid-cols-1 divide-y sm:divide-y-0 sm:divide-x divide-border ${stats.length === 4 ? "sm:grid-cols-2 md:grid-cols-4" : "sm:grid-cols-3"}`}>
+            {stats.map((s) => (
+              <div key={s.label} className="py-10 text-center group cursor-default">
+                <AnimatedCounter
+                  value={s.value}
+                  className="text-3xl md:text-4xl font-display font-bold text-foreground transition-colors duration-300 group-hover:text-accent"
+                />
+                <p className="mt-1 text-xs font-body text-muted-foreground uppercase tracking-wider">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Bento Grid Services */}
       <section className="py-24 bg-background">
@@ -172,33 +200,35 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials / Social Proof */}
       <section className="py-24 bg-card border-y border-border">
         <div className="container">
           <div className="text-center max-w-xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-              Trusted by Leading Companies
+              Built Around Verifiable Data
             </h2>
             <p className="mt-4 text-muted-foreground font-body text-sm">
-              Real results from businesses growing through MiddlBrand.
+              Every listing, company badge, and bid workspace is tied to source material or reviewed documentation.
             </p>
           </div>
 
-          <div ref={testimonialsRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-            {testimonials.map((t) => (
-              <div key={t.name} className="reveal rounded-2xl border border-border bg-background p-8 flex flex-col justify-between hover:border-accent/30 transition-colors duration-300">
-                <p className="text-sm text-muted-foreground font-body leading-relaxed mb-8">
-                  "{t.quote}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                    <t.icon className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-display font-semibold text-foreground">{t.name}</p>
-                    <p className="text-xs text-muted-foreground font-body">{t.title}</p>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            {[
+              {
+                title: "Source-linked listings",
+                text: "Open opportunities keep their portal links, deadlines, locations, and tender details visible for review.",
+              },
+              {
+                title: "Manual verification",
+                text: "Verified badges are granted only after registration and tax documents are reviewed by the MiddlBrand team.",
+              },
+              {
+                title: "Recorded outcomes",
+                text: "Users can track submitted, won, lost, or undecided opportunities so performance data starts from real results.",
+              },
+            ].map((item) => (
+              <div key={item.title} className="reveal rounded-2xl border border-border bg-background p-8 hover:border-accent/30 transition-colors duration-300">
+                <h3 className="font-display font-semibold text-foreground mb-3">{item.title}</h3>
+                <p className="text-sm text-muted-foreground font-body leading-relaxed">{item.text}</p>
               </div>
             ))}
           </div>
@@ -212,7 +242,7 @@ const Index = () => {
             Ready to Win More Contracts?
           </h2>
           <p className="mt-4 text-background/60 font-body text-sm max-w-lg mx-auto">
-            Join hundreds of African companies growing through MiddlBrand's opportunity matching platform.
+            Create a company profile, browse live opportunities, and use Pro tools when you're ready to bid.
           </p>
           <div className="mt-10 flex justify-center">
             <Button asChild size="lg" className="group rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold px-8 transition-all duration-300">
