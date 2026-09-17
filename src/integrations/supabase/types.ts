@@ -1379,12 +1379,14 @@ export type Database = {
           created_at: string
           deadline: string | null
           description: string | null
+          description_source: string | null
           document_urls: string[]
           enriched_at: string | null
           enrichment_attempts: number
           enrichment_error: string | null
           enrichment_status: string
           id: string
+          is_award_notice: boolean
           location: string | null
           needs_fx_review: boolean
           needs_review: boolean
@@ -1417,12 +1419,14 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           description?: string | null
+          description_source?: string | null
           document_urls?: string[]
           enriched_at?: string | null
           enrichment_attempts?: number
           enrichment_error?: string | null
           enrichment_status?: string
           id?: string
+          is_award_notice?: boolean
           location?: string | null
           needs_fx_review?: boolean
           needs_review?: boolean
@@ -1455,12 +1459,14 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           description?: string | null
+          description_source?: string | null
           document_urls?: string[]
           enriched_at?: string | null
           enrichment_attempts?: number
           enrichment_error?: string | null
           enrichment_status?: string
           id?: string
+          is_award_notice?: boolean
           location?: string | null
           needs_fx_review?: boolean
           needs_review?: boolean
