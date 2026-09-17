@@ -67,6 +67,7 @@ export function useRFPFilters() {
         .from("scraped_rfps")
         .select("*")
         .or(`deadline.is.null,deadline.gte.${nowISO}`)
+        .not("is_award_notice", "is", true)
         .order("scraped_at", { ascending: false });
 
       const scraped: RFP[] = (data || []).map((r) => {

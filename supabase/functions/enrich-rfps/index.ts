@@ -129,6 +129,8 @@ interface Extraction {
   value_confidence: string | null;
   deadline: string | null;
   official_source_url: string | null;
+  summary: string | null;
+  is_award_notice: boolean;
 }
 
 async function extractFromContent(
@@ -161,6 +163,8 @@ STRICT, NO INFERENCE — every field may be null, and null is a correct, expecte
 - value_confidence: "high" when the figure is labelled as the contract/budget value for this opportunity; "medium" when the label is indirect but unambiguous; null when there is no figure.
 - deadline: the closing/submission/bid deadline as YYYY-MM-DD, only when explicitly written for THIS opportunity. Never a publication date, never today, never inferred.
 - official_source_url: the buying organisation's own notice/tender page URL if one appears in the content; null otherwise. Never invent a URL.
+- summary: a factual scope-of-work summary of THIS opportunity in English, 2-6 sentences (max 1500 characters), built only from wording in the supplied content: what is being procured, for whom, lots/quantities, place of performance, and stated eligibility or submission requirements. Condense and translate; never add claims, benefits, or context that is not written there. Null when the content carries no scope description.
+- is_award_notice: true when the content shows this is a notice of a contract ALREADY awarded or signed rather than an open invitation to bid; false otherwise.
 
 A bid bond, tender fee, document purchase price, registration fee, or insurance figure is NOT the contract value. Return null rather than any of those.`,
           },
@@ -185,8 +189,10 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
                   value_confidence: { type: ["string", "null"] },
                   deadline: { type: ["string", "null"] },
                   official_source_url: { type: ["string", "null"] },
+                  summary: { type: ["string", "null"] },
+                  is_award_notice: { type: "boolean" },
                 },
-                required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url"],
+                required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url", "summary", "is_award_notice"],
                 additionalProperties: false,
               },
             },
@@ -240,6 +246,10 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
     value_confidence: amount !== null && typeof parsed.value_confidence === "string" ? parsed.value_confidence.slice(0, 20) : null,
     deadline,
     official_source_url: official,
+    summary: typeof parsed.summary === "string" && parsed.summary.trim().length >= 40
+      ? parsed.summary.trim().slice(0, 2000)
+      : null,
+    is_award_notice: parsed.is_award_notice === true,
   };
 }
 
@@ -327,7 +337,7 @@ serve(async (req) => {
 
     const { data: queue } = await supabase
       .from("scraped_rfps")
-      .select("id, title, organization, source_url, additional_source_urls, deadline, value_amount, enrichment_attempts")
+      .select("id, title, organization, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
       .eq("enrichment_status", "pending")
       .eq("africa_relevant", true)
       .in("status", ["open", "closing_soon"])
@@ -335,7 +345,7 @@ serve(async (req) => {
       .limit(batchSize);
 
     const rows = queue || [];
-    let processed = 0, valuesFound = 0, deadlinesFound = 0, failed = 0, rateLimitHits = 0;
+    let processed = 0, valuesFound = 0, deadlinesFound = 0, summariesFound = 0, failed = 0, rateLimitHits = 0;
     let halt: HaltError | null = null;
 
     for (const row of rows as any[]) {
@@ -409,6 +419,16 @@ serve(async (req) => {
         }
 
         if (ex?.official_source_url) update.official_source_url = ex.official_source_url;
+
+        // Only replace the stored summary when the document read produced something fuller.
+        const existingSummary = ((row as { description?: string | null }).description || "").trim();
+        if (ex?.summary && ex.summary.length > existingSummary.length) {
+          update.description = ex.summary;
+          update.description_source = "tender_documents";
+          summariesFound++;
+        }
+
+        if (ex?.is_award_notice) update.is_award_notice = true;
 
         await supabase.from("scraped_rfps").update(update).eq("id", row.id);
         processed++;
@@ -484,6 +504,7 @@ serve(async (req) => {
       processed,
       values_found: valuesFound,
       deadlines_recovered: deadlinesFound,
+      summaries_written: summariesFound,
       failed,
       rate_limited: rateLimitHits,
       was_probe: paused,
