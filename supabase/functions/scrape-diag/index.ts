@@ -45,6 +45,10 @@ async function probe(url: string, keys: { lovable: string; fc: string }, render:
       links: links.length, detail_links: detailish.length,
       sample_detail_links: detailish.slice(0, 3).map((l) => l.slice(0, 80)),
       head: md.replace(/\s+/g, " ").slice(0, 180),
+      find_at: find ? md.toLowerCase().indexOf(find.toLowerCase()) : null,
+      find_slice: find && md.toLowerCase().includes(find.toLowerCase())
+        ? md.slice(Math.max(0, md.toLowerCase().indexOf(find.toLowerCase()) - 100), md.toLowerCase().indexOf(find.toLowerCase()) + 900).replace(/\s+/g, " ")
+        : null,
       ms: Date.now() - started,
     };
   } catch (e) {
