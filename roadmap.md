@@ -1,3 +1,5 @@
-- Replace fabricated homepage stats/testimonials with live, defensible data.
-- Audit home, about, pricing, and footer for unsupported claims before changing copy.
-- Report current live stat values and remove invented customer stories.
+Current homepage claim cleanup status:
+- Homepage fabricated stats replaced with live database aggregates.
+- Invented testimonials removed.
+- Home CTA unsupported customer-count claim removed.
+- Audit completed for home, about, pricing, and footer.
