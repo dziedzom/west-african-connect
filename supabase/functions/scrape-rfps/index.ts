@@ -91,10 +91,41 @@ async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Buyer names arrive in many variants of the same body (UNDP-GHA vs UNDP,
+// "Ministry of Health" vs "MoH"), so the identity key deliberately ignores the
+// organisation and works off meaningful title words, the closing date and the
+// country instead.
+const TITLE_STOPWORDS = new Set([
+  "the", "a", "an", "of", "for", "and", "or", "to", "in", "at", "on", "by", "with", "from",
+  "de", "la", "le", "les", "des", "du", "et", "pour", "dans", "el", "los", "las", "y",
+  "tender", "tenders", "rfp", "rfq", "itb", "eoi", "notice", "invitation", "procurement",
+  "supply", "services", "service", "provision", "request", "proposal", "proposals", "bid",
+  "bids", "bidding", "contract", "no", "nr", "ref", "lot", "re", "advertisement",
+]);
+
+function titleTokens(title: string): string[] {
+  return (title || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(" ")
+    .filter((t) => t.length > 2 && !TITLE_STOPWORDS.has(t));
+}
+
+/** Overlap of the shorter token set — tolerant of truncated titles. */
+function titleSimilarity(a: string, b: string): number {
+  const ta = new Set(titleTokens(a));
+  const tb = new Set(titleTokens(b));
+  if (ta.size === 0 || tb.size === 0) return 0;
+  let shared = 0;
+  for (const t of ta) if (tb.has(t)) shared++;
+  return shared / Math.min(ta.size, tb.size);
+}
+
 async function buildContentHash(rfp: { title?: string; organization?: string | null; deadline?: string | null; location?: string | null }): Promise<string> {
   const parts = [
-    slugify(rfp.title || ""),
-    slugify(rfp.organization || ""),
+    titleTokens(rfp.title || "").sort().join("-"),
     (rfp.deadline || "").slice(0, 10),
     slugify(rfp.location || ""),
   ].join("|");
