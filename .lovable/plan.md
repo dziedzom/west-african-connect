@@ -10,9 +10,29 @@ The redesign is a system change, not an Apple imitation. It borrows disciplined 
 
 ### Typeface roles
 
-- **Display and interface: Inter Variable** — retained for continuity, but used with less extreme weight and more deliberate sizing.
 - **Reading/body: Source Sans 3** — replaces JetBrains Mono for paragraphs, descriptions, forms, FAQs, navigation, tables, and long Bid Studio output. It has open forms, strong screen readability, and broad language support.
 - **Data: JetBrains Mono** — retained only for deadlines, contract values, match scores, tender/reference numbers, source names, timestamps, and compact status metadata.
+- **Display/headline:** choose one of the two options below. Inter is removed from the proposed system rather than retained by default.
+
+### Display type alternatives
+
+Both options keep Source Sans 3 for body and interface copy.
+
+#### Option A — Instrument Sans (recommended)
+
+- **Character:** contemporary, editorial, and assured, with more personality than Inter without becoming fashion-led or decorative.
+- **Display XL specimen:** `MiddlBrand` — **88px / 620 / 86px line height**.
+- **H2 specimen:** `Built around verifiable data` — **36px / 600 / 42px line height**.
+- **Why it fits:** the open shapes and subtly expressive proportions create a premium public voice, while remaining crisp for dashboard headings.
+- **Trade-off:** quieter than Sora; distinction comes from composition and hierarchy rather than visibly geometric letterforms.
+
+#### Option B — Sora
+
+- **Character:** geometric, modern, and recognisable, with strong silhouettes at large sizes.
+- **Display XL specimen:** `MiddlBrand` — **84px / 600 / 84px line height**.
+- **H2 specimen:** `Built around verifiable data` — **36px / 600 / 42px line height**.
+- **Why it fits:** gives MiddlBrand a more ownable digital-product voice and a sharper contrast against the humanist Source Sans 3 body.
+- **Trade-off:** more overtly “tech”; it requires restrained weight and accent use to avoid returning to a startup-SaaS feel.
 
 ### Public-page scale
 
@@ -113,12 +133,20 @@ This replaces the current repeated `py-24 + gap-4 + p-6` rhythm with distinct be
 - **Primary muted text:** `#5F625F`.
 - **Hairline:** `#DCDDDA`.
 - **Strong rule:** `#B9BCB8`.
-- **Proposed accent — Mineral Teal:** `#006C70`.
-- **Accent hover:** `#00595C`.
-- **Accent soft:** `#E6F2F1`.
-- **Accent-on-dark:** `#63D3CC`.
 
-Mineral Teal is more ownable and grounded than the current generic SaaS blue, while remaining calm enough for procurement work. It does not replace semantic colours: success remains green, warning amber, destructive red, and information blue.
+### Accent alternatives
+
+Each row shows the accent between the fixed canvas and ink: `canvas → accent → ink`.
+
+| Option | Palette against canvas and ink | Rationale | Foreground rule |
+|---|---|---|---|
+| **Signal Vermilion — recommended** | `#FAFAFA → #D6402F → #1A1A1A` | Decisive, energetic, and uncommon in procurement software. It makes actions feel intentional and gives MiddlBrand a recognisable editorial signature without relying on gradients. | Light text on solid accent; soft tint `#FBEAE7`; hover `#B93427`. |
+| **Deep Ultramarine** | `#FAFAFA → #3446C8 → #1A1A1A` | Keeps the trust and digital clarity of blue but moves away from the bright SaaS default into a deeper, ink-like hue. It works especially well for active states and data emphasis. | Light text on solid accent; soft tint `#EBEDFA`; hover `#2938A8`. |
+| **Electric Citron** | `#FAFAFA → #C7DB19 → #1A1A1A` | The most ownable and contemporary option. Used sparingly, it creates a sharp signal against the neutral system and makes key actions unmistakable. | **Ink text**, never light text, on solid accent; soft tint `#F5F8D8`; hover `#B4C600`. |
+
+**Recommendation:** Signal Vermilion. It is distinctive without becoming playful, separates MiddlBrand from fintech/health conventions, and supports the confident editorial tone. Deep Ultramarine is the safer alternative; Electric Citron is the boldest.
+
+The chosen accent does not replace semantic colours: success remains green, warning amber, destructive red, and information blue.
 
 ### Accent allocation
 
@@ -158,7 +186,7 @@ Do **not** use accent for every icon, every card border, decorative gradients, b
 
 ### Product application
 
-- Listings: replace oversized stacked cards with scan-friendly rows on desktop and compact cards on mobile; metadata uses mono selectively.
+- Listings: replace oversized stacked cards with scan-friendly rows on desktop and compact cards on mobile; metadata uses mono selectively. **Contract value is conditional, not a permanent empty column:** while recorded values remain unavailable, the desktop layout reallocates that track to title/issuer and omits value entirely. Once extraction produces real values, the value column appears only when the current result set contains at least one recorded value; missing individual values display a muted em dash, never “TBD” or an invented range.
 - Dashboard: reduce ornamental cards and repeated icon-accent treatment; group by workflow priority, keep key actions above the fold, and use denser summaries.
 - Bid Studio: preserve generous space in writing/review canvases, while controls, history, scores, and tender metadata use compact app density.
 - Admin: use table/list density and stable columns; reserve cards for rollups, not every record.
