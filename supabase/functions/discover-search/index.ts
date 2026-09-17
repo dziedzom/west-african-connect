@@ -36,6 +36,7 @@ const BLOCKED_DOMAINS = [
   "jobs.undp.org", "unjobs.org", "reliefweb.int",
   "globaltenders.com", "tendersontime.com", "biddetail.com", "bidsinfo.com",
   "tendersinfo.com", "tenderimpulse.com", "zonebourse.com", "amazon.com", "alibaba.com",
+  "github.com", "gitlab.com", "stackoverflow.com",
 ];
 
 const TENDER_HINT_RE = new RegExp(
@@ -526,6 +527,7 @@ serve(async (req) => {
 
         knownUrls.add(url);
 
+        const detected = detectCountry(haystack, host, combo.country);
         const isKept = !verdict;
         if (isKept) {
           kept++;
@@ -537,7 +539,7 @@ serve(async (req) => {
           if (c.titles.length < 5) c.titles.push(r.title ?? "");
           if (c.urls.length < 5) c.urls.push(url);
           if (!c.queries.includes(query) && c.queries.length < 8) c.queries.push(query);
-          if (!c.countries.includes(combo.country)) c.countries.push(combo.country);
+          if (detected && !c.countries.includes(detected)) c.countries.push(detected);
           candidateTouch.set(host, c);
         }
 
@@ -546,7 +548,7 @@ serve(async (req) => {
           query_text: query,
           phrasing: combo.phrase,
           sector: combo.sector,
-          country: combo.country,
+          country: detected,
           url,
           domain: host,
           title: (r.title ?? url).slice(0, 500),
