@@ -116,3 +116,81 @@ export const useEngagementParam = () => {
   const [params] = useSearchParams();
   return params.get("engagement");
 };
+
+/* ---- Sector demand (managed workspace) ---- */
+
+export const UNCLASSIFIED_SECTOR = "Unclassified";
+
+/** Listings carry a free-text category; normalise it into a stable sector label. */
+export const normaliseSector = (category: string | null | undefined) => {
+  const value = (category ?? "").trim();
+  return value.length > 0 ? value : UNCLASSIFIED_SECTOR;
+};
+
+export interface SectorDemand {
+  sector: string;
+  count: number;
+  withValue: number;
+  totalValue: number;
+  totalValueCurrency: string;
+  nearest: LiveListing[];
+}
+
+export interface LiveListing {
+  id: string;
+  title: string;
+  category: string | null;
+  location: string | null;
+  organization: string | null;
+  deadline: string | null;
+  status: string;
+  source_url: string | null;
+  value_amount: number | null;
+  value_currency: string | null;
+}
+
+export const buildSectorDemand = (listings: LiveListing[]): SectorDemand[] => {
+  const groups = new Map<string, LiveListing[]>();
+  for (const listing of listings) {
+    const sector = normaliseSector(listing.category);
+    const bucket = groups.get(sector);
+    if (bucket) bucket.push(listing);
+    else groups.set(sector, [listing]);
+  }
+
+  return Array.from(groups.entries())
+    .map(([sector, rows]) => {
+      // Only USD figures are summed; anything else would need a rate check.
+      const usd = rows.filter((r) => r.value_amount != null && (r.value_currency ?? "USD").toUpperCase() === "USD");
+      const nearest = rows
+        .filter((r) => r.deadline)
+        .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime())
+        .slice(0, 3);
+      return {
+        sector,
+        count: rows.length,
+        withValue: usd.length,
+        totalValue: usd.reduce((sum, r) => sum + Number(r.value_amount ?? 0), 0),
+        totalValueCurrency: "USD",
+        nearest,
+      };
+    })
+    .sort((a, b) => b.count - a.count || a.sector.localeCompare(b.sector));
+};
+
+/** Matches a prospect's sector against a listing's sector, tolerant of casing and partial names. */
+export const sectorMatches = (prospectSector: string | null | undefined, listingCategory: string | null | undefined) => {
+  const a = (prospectSector ?? "").trim().toLowerCase();
+  if (!a) return false;
+  const b = normaliseSector(listingCategory).toLowerCase();
+  return a === b || b.includes(a) || a.includes(b);
+};
+
+export const matchingListings = (prospectSector: string | null | undefined, listings: LiveListing[]) =>
+  listings
+    .filter((l) => sectorMatches(prospectSector, l.category))
+    .sort((a, b) => {
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+    });

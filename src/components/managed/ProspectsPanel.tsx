@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, UserCheck } from "lucide-react";
-import { PROSPECT_STATUSES, titleCase } from "@/lib/managed";
+import { ExternalLink, Plus, Target, UserCheck } from "lucide-react";
+import { format } from "date-fns";
+import {
+  PROSPECT_STATUSES,
+  titleCase,
+  normaliseSector,
+  matchingListings,
+  formatMoney,
+  type LiveListing,
+} from "@/lib/managed";
 import type { Engagement, Prospect } from "@/types/managed";
 
 interface Candidate { user_id: string; company_name: string | null; email: string | null; location: string | null }
@@ -31,13 +39,23 @@ const emptyForm = {
 const ProspectsPanel = ({
   prospects,
   engagements,
+  liveListings = [],
   onChanged,
 }: {
   prospects: Prospect[];
   engagements: Engagement[];
+  liveListings?: LiveListing[];
   onChanged: () => void;
 }) => {
   const { toast } = useToast();
+  const [matchesFor, setMatchesFor] = useState<Prospect | null>(null);
+
+  const liveSectors = useMemo(() => {
+    const set = new Set(liveListings.map((l) => normaliseSector(l.category)));
+    return Array.from(set).sort();
+  }, [liveListings]);
+
+  const matchesForSector = (sector: string | null) => matchingListings(sector, liveListings);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Prospect | null>(null);
   const [form, setForm] = useState({ ...emptyForm });
@@ -162,8 +180,25 @@ const ProspectsPanel = ({
                 )}
                 {prospect.notes && <p className="text-muted-foreground italic line-clamp-2">{prospect.notes}</p>}
                 <p className="text-xs text-muted-foreground">{countFor(prospect.id)} engagement(s)</p>
-                <div className="flex gap-2 pt-2">
+                {prospect.sector ? (
+                  matchesForSector(prospect.sector).length > 0 ? (
+                    <p className="text-xs">
+                      <span className="font-data font-semibold text-accent">{matchesForSector(prospect.sector).length}</span>{" "}
+                      <span className="text-muted-foreground">live opportunit(ies) in {prospect.sector}</span>
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No live opportunities in {prospect.sector} right now</p>
+                  )
+                ) : (
+                  <p className="text-xs text-muted-foreground">Add a sector to see matching opportunities</p>
+                )}
+                <div className="flex flex-wrap gap-2 pt-2">
                   <Button size="sm" variant="outline" onClick={() => startEdit(prospect)}>Edit</Button>
+                  {prospect.sector && matchesForSector(prospect.sector).length > 0 && (
+                    <Button size="sm" variant="outline" onClick={() => setMatchesFor(prospect)}>
+                      <Target className="h-3.5 w-3.5 mr-1" /> See matches
+                    </Button>
+                  )}
                   {prospect.status !== "converted" && (
                     <Button size="sm" variant="outline" onClick={() => startConvert(prospect)}>
                       <UserCheck className="h-3.5 w-3.5 mr-1" /> Convert
@@ -182,7 +217,19 @@ const ProspectsPanel = ({
           <div className="space-y-3">
             <div><Label>Company name</Label><Input value={form.company_name} onChange={(e) => set("company_name", e.target.value)} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Sector</Label><Input value={form.sector} onChange={(e) => set("sector", e.target.value)} /></div>
+              <div>
+                <Label>Sector</Label>
+                <Input
+                  list="live-sectors"
+                  value={form.sector}
+                  onChange={(e) => set("sector", e.target.value)}
+                  placeholder={liveSectors[0] ?? "e.g. Construction"}
+                />
+                <datalist id="live-sectors">
+                  {liveSectors.map((s) => <option key={s} value={s} />)}
+                </datalist>
+                <p className="text-xs text-muted-foreground mt-1">Matches this prospect to live listings in the same sector.</p>
+              </div>
               <div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div>
             </div>
             <div><Label>Capabilities</Label><Textarea rows={3} value={form.capabilities} onChange={(e) => set("capabilities", e.target.value)} /></div>
@@ -239,6 +286,46 @@ const ProspectsPanel = ({
               {converting ? "Linking…" : "Link account"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!matchesFor} onOpenChange={(v) => !v && setMatchesFor(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Live opportunities for {matchesFor?.company_name}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Open and closing-soon listings in {matchesFor?.sector}. Soonest deadline first.
+          </p>
+          <div className="space-y-2">
+            {matchesForSector(matchesFor?.sector ?? null).map((listing) => (
+              <div key={listing.id} className="rounded-md border p-3 space-y-1">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="font-medium text-sm">{listing.title}</p>
+                  {listing.source_url && (
+                    <a
+                      href={listing.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-accent shrink-0"
+                      aria-label="Open the source notice"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {[listing.organization, listing.location].filter(Boolean).join(" · ") || "Buyer not stated"}
+                </p>
+                <p className="text-xs font-data">
+                  {listing.deadline ? format(new Date(listing.deadline), "d MMM yyyy") : "No date published"}
+                  {listing.value_amount != null && (
+                    <span> · {formatMoney(listing.value_amount, listing.value_currency ?? "USD")}</span>
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
