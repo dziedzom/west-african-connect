@@ -125,18 +125,18 @@ const RFPListings = () => {
       <SEO title="RFP Opportunities" path="/rfps" description="Browse open RFP listings and contract opportunities across Africa. Filter by category, location, and value." />
       <section className="py-8 bg-background min-h-screen">
         <div className="container">
-          <div className="mb-8 max-w-3xl">
-            <h1 className="text-3xl font-display font-semibold text-foreground">
+          <div className="mb-5 max-w-3xl">
+            <h1 className="screen-title font-display font-semibold text-foreground">
               Open Opportunities
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">Browse active RFPs, tenders and contracts across Africa.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Browse active RFPs, tenders and contracts across Africa.</p>
           </div>
 
           {/* Upgrade banner for free users */}
           {(!user || !isPro) && <UpgradeBanner />}
 
           {/* Search + Filters */}
-          <div className="space-y-4 mb-8">
+          <div className="space-y-3 mb-5">
             {/* Row 1: Search + selects */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="relative">
@@ -204,10 +204,10 @@ const RFPListings = () => {
             </div>
 
             {/* Row 2: Budget slider */}
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-md border border-border bg-card px-4 py-3">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-accent" />
+                  <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-xs font-display font-semibold text-foreground">Budget Range</span>
                 </div>
                 <span className="text-xs font-data text-muted-foreground">
@@ -227,7 +227,7 @@ const RFPListings = () => {
             {/* Africa toggle + active filters bar */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5">
-                <Globe className="h-3.5 w-3.5 text-accent" />
+                <Globe className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-xs font-body text-foreground">Show global opportunities</span>
                 <Switch checked={filters.showGlobal} onCheckedChange={(v) => { setShowGlobal(v); setCurrentPage(1); }} />
                 {!filters.showGlobal && globalHiddenCount > 0 && (
@@ -246,81 +246,107 @@ const RFPListings = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-muted-foreground">
               {filtered.length} opportunit{filtered.length === 1 ? "y" : "ies"} found
               {totalPages > 1 && ` · Page ${safeCurrentPage} of ${totalPages}`}
             </p>
           </div>
 
-          <div className="grid gap-2">
-            {paginatedRFPs.map((rfp) => (
-              <div
-                key={`${rfp.source}-${rfp.id}`}
-                onClick={() => setSelectedRFP(rfp)}
-                className={`grid gap-4 rounded-lg border border-border bg-card px-4 py-3.5 hover:bg-secondary/40 hover:border-foreground/20 transition-colors cursor-pointer ${showRecordedValue ? "lg:grid-cols-[minmax(0,1fr)_11rem_10rem_8.5rem]" : "lg:grid-cols-[minmax(0,1fr)_11rem_8.5rem]"}`}
-              >
+          {/* Column header — desktop only, stable across the result set */}
+          <div
+            className={`hidden md:grid gap-4 px-3 pb-2 border-b border-border text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground ${
+              showRecordedValue
+                ? "md:grid-cols-[minmax(0,1fr)_9rem_7rem_8rem_7rem_2.5rem]"
+                : "md:grid-cols-[minmax(0,1fr)_9rem_8rem_7rem_2.5rem]"
+            }`}
+          >
+            <span>Opportunity</span>
+            <span>Location / Category</span>
+            {showRecordedValue && <span>Value</span>}
+            <span>Deadline</span>
+            <span>Source</span>
+            <span className="sr-only">Action</span>
+          </div>
+
+          <div className="divide-y divide-border panel-enter">
+            {paginatedRFPs.map((rfp) => {
+              const chip = getDeadlineChip(rfp.deadline);
+              const recorded = formatRecordedValue(rfp);
+              return (
+                <div
+                  key={`${rfp.source}-${rfp.id}`}
+                  onClick={() => setSelectedRFP(rfp)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter") setSelectedRFP(rfp); }}
+                  className={`grid gap-1.5 md:gap-4 px-3 py-3 items-start cursor-pointer transition-colors hover:bg-secondary/50 ${
+                    showRecordedValue
+                      ? "md:grid-cols-[minmax(0,1fr)_9rem_7rem_8rem_7rem_2.5rem]"
+                      : "md:grid-cols-[minmax(0,1fr)_9rem_8rem_7rem_2.5rem]"
+                  }`}
+                >
                   <div className="min-w-0">
-                    <h2 className="text-base font-display font-semibold leading-snug text-foreground line-clamp-2">{rfp.title}</h2>
-                    {rfp.org && <p className="text-sm text-muted-foreground mt-1 truncate">{rfp.org}</p>}
-                    {rfp.description && <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{rfp.description}</p>}
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      <Badge variant="secondary">{rfp.category}</Badge>
-                      {rfp.location && (
-                        <Badge variant="outline">{rfp.location}</Badge>
-                      )}
-                    </div>
+                    <h2 className="text-sm font-medium leading-snug text-foreground line-clamp-2">{rfp.title}</h2>
+                    {rfp.org && <p className="text-xs text-muted-foreground mt-0.5 truncate">{rfp.org}</p>}
+                    {/* When the value column is folded away, a recorded figure still shows here */}
+                    {!showRecordedValue && recorded && (
+                      <p className="mt-1 text-xs font-data text-foreground">{recorded}</p>
+                    )}
                   </div>
+
+                  <div className="min-w-0 text-xs text-muted-foreground">
+                    <p className="truncate text-foreground">{rfp.location || "—"}</p>
+                    <p className="truncate">{rfp.category}</p>
+                  </div>
+
                   {showRecordedValue && (
-                    <div className="lg:border-l lg:border-border lg:pl-4">
-                      <p className="text-xs text-muted-foreground">Recorded value</p>
-                      <p className="mt-1 text-sm font-data font-medium text-foreground">{formatRecordedValue(rfp) ?? "—"}</p>
-                    </div>
+                    <div className="text-sm font-data text-foreground">{recorded ?? <span className="text-muted-foreground">—</span>}</div>
                   )}
-                  <div className="lg:border-l lg:border-border lg:pl-4">
-                    <p className="text-xs text-muted-foreground">Deadline</p>
-                    <p className="mt-1 font-data text-sm font-medium text-foreground">
-                      {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "—"}
+
+                  <div className="min-w-0">
+                    <p className="font-data text-sm text-foreground">
+                      {rfp.deadline ? format(new Date(rfp.deadline), "d MMM yyyy") : "—"}
                     </p>
-                    {(() => {
-                      const chip = getDeadlineChip(rfp.deadline);
-                      if (!chip) return null;
-                      return (
-                        <Badge variant="outline" className={cn("mt-1 text-xs", chip.urgent ? "border-destructive/50 text-destructive bg-destructive/10" : "border-muted-foreground/30 text-muted-foreground")}>
-                          {chip.text}
-                        </Badge>
-                      );
-                    })()}
+                    {chip && (
+                      <span className={cn("text-xs", chip.urgent ? "text-destructive" : "text-muted-foreground")}>
+                        {chip.text}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex flex-col items-start lg:items-end justify-between gap-2">
-                    <span className="text-[11px] font-data text-muted-foreground truncate max-w-full">{rfp.portal || rfp.source}</span>
-                    <div>
-                      {rfp.source_url && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => { e.stopPropagation(); window.open(rfp.source_url!, "_blank"); }}
-                          aria-label="Open source"
-                          title="Open source"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                    </div>
+
+                  <div className="min-w-0">
+                    <span className="text-xs font-data text-muted-foreground truncate block">{rfp.portal || rfp.source}</span>
                   </div>
-              </div>
-            ))}
+
+                  <div className="flex md:justify-end">
+                    {rfp.source_url && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9"
+                        onClick={(e) => { e.stopPropagation(); window.open(rfp.source_url!, "_blank"); }}
+                        aria-label="Open source notice"
+                        title="Open source notice"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
             {filtered.length === 0 && (
-              <div className="text-center py-16 text-muted-foreground">
-                <p className="text-lg">No opportunities match your filters.</p>
-                <p className="text-sm mt-1">Try adjusting your search criteria.</p>
+              <div className="text-center py-14 text-muted-foreground">
+                <p className="text-sm">No opportunities match your filters.</p>
+                <p className="text-xs mt-1">Try adjusting your search criteria.</p>
               </div>
             )}
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <Pagination className="mt-8">
+            <Pagination className="mt-6">
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
