@@ -7,7 +7,7 @@ const corsHeaders = {
 const GATEWAY = "https://connector-gateway.lovable.dev/firecrawl/v2";
 const KW = /(tender|bid |invitation|procure|rfp|rfq|expression of interest|appel d'offre|avis|concurso|closing|deadline|submission)/gi;
 
-async function probe(url: string, keys: { lovable: string; fc: string }, render: boolean, main = false) {
+async function probe(url: string, keys: { lovable: string; fc: string }, render: boolean, main = false, find = "") {
   const started = Date.now();
   try {
     const body: Record<string, unknown> = {
