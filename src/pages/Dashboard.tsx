@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, FileText, ArrowRight, Settings, Briefcase, Heart, TrendingUp, BookOpen, ExternalLink, Bot, MapPin, Building2, Calendar, Tag, Clock, FileEdit, Send, Eye, Trophy, XCircle, Brain, Zap, ShieldCheck } from "lucide-react";
+import { ExternalLink, Clock, FileEdit, ShieldCheck } from "lucide-react";
 import VerificationBadge from "@/components/VerificationBadge";
 import { useVerification } from "@/hooks/useVerification";
 import { supabase } from "@/integrations/supabase/client";
