@@ -31,10 +31,13 @@ const Index = () => {
     let mounted = true;
 
     const loadStats = async () => {
-      const { data, error } = await supabase.rpc("get_homepage_live_stats");
+      const { data, error } = await supabase
+        .from("homepage_live_stats")
+        .select("live_opportunities,total_recorded_value,opportunities_with_recorded_value,active_sources,countries_represented")
+        .eq("id", true)
+        .maybeSingle();
       if (error || !mounted) return;
-      const row = data?.[0];
-      if (row) setLiveStats(row);
+      if (data) setLiveStats(data);
     };
 
     loadStats();
