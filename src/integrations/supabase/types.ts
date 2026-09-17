@@ -673,6 +673,36 @@ export type Database = {
           },
         ]
       }
+      homepage_live_stats: {
+        Row: {
+          active_sources: number
+          countries_represented: number
+          id: boolean
+          live_opportunities: number
+          opportunities_with_recorded_value: number
+          total_recorded_value: number
+          updated_at: string
+        }
+        Insert: {
+          active_sources?: number
+          countries_represented?: number
+          id?: boolean
+          live_opportunities?: number
+          opportunities_with_recorded_value?: number
+          total_recorded_value?: number
+          updated_at?: string
+        }
+        Update: {
+          active_sources?: number
+          countries_represented?: number
+          id?: boolean
+          live_opportunities?: number
+          opportunities_with_recorded_value?: number
+          total_recorded_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       homepage_source_stats: {
         Row: {
           active_sources: number
@@ -1633,6 +1663,7 @@ export type Database = {
         Args: { _engagement_id: string }
         Returns: boolean
       }
+      refresh_homepage_live_stats: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
