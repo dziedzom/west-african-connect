@@ -63,14 +63,14 @@ Deno.serve(async (req) => {
   if (!lovable || !fc) {
     return new Response(JSON.stringify({ error: "missing keys" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-  const { urls = [], render = false, main = false } = await req.json().catch(() => ({}));
+  const { urls = [], render = false, main = false, find = "" } = await req.json().catch(() => ({}));
   const results = [];
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   for (const u of (urls as string[]).slice(0, 4)) {
-    let out = await probe(u, { lovable, fc }, render, main);
+    let out = await probe(u, { lovable, fc }, render, main, find);
     for (let i = 0; i < 3 && !out.ok && out.status === 429; i++) {
       await sleep(7000);
-      out = await probe(u, { lovable, fc }, render, main);
+      out = await probe(u, { lovable, fc }, render, main, find);
     }
     results.push(out);
     await sleep(6000);
