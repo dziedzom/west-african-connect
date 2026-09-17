@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,13 +39,23 @@ const emptyForm = {
 const ProspectsPanel = ({
   prospects,
   engagements,
+  liveListings = [],
   onChanged,
 }: {
   prospects: Prospect[];
   engagements: Engagement[];
+  liveListings?: LiveListing[];
   onChanged: () => void;
 }) => {
   const { toast } = useToast();
+  const [matchesFor, setMatchesFor] = useState<Prospect | null>(null);
+
+  const liveSectors = useMemo(() => {
+    const set = new Set(liveListings.map((l) => normaliseSector(l.category)));
+    return Array.from(set).sort();
+  }, [liveListings]);
+
+  const matchesForSector = (sector: string | null) => matchingListings(sector, liveListings);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Prospect | null>(null);
   const [form, setForm] = useState({ ...emptyForm });
