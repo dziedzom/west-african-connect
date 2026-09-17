@@ -349,8 +349,11 @@ CRITICAL RULES:
    - A null deadline is a valid and expected outcome, NOT a failure. Returning null is always correct when the date is not shown. Fabricating a date is a critical error.
    - Include EVERY opportunity you find regardless of how soon it closes, including ones closing today, in a few days, or already past. Do not filter or skip by date.
 4. For category, use: IT, Construction, Consulting, Agriculture, Energy, Health, Education, Transport, Marketing, Environment, Finance, Water, Legal, Mining, Pharma, Telecommunications, Other.
+   - Marketing covers marketing, advertising, branding, campaigns, communications and visibility, IEC/behaviour-change materials, public relations, creative and graphic design, printing of publications, audiovisual and video production, photography, social media and digital content, media buying and airtime, and event management. Use Marketing whenever that is the main subject of the contract, whoever the buyer is.
 5. For location, give the country name in English. Use "Africa" or a regional label (e.g. "Sub-Saharan Africa") if multi-country.
 6. For source_url, pick the most specific link from the links list; if none match, use the portal URL.
+7. **description — REQUIRED, NEVER INVENTED**: write a factual summary of the scope of work for that specific opportunity, in English, using only wording present in the supplied content: what is being bought, for whom, quantities/lots, place of delivery, and any eligibility or submission detail that is written there. Aim for 2-5 sentences (up to ~1200 characters) when the content supports it. Condense and translate — do not paraphrase into claims the content does not make, and never pad with generic filler. If the page truly carries nothing beyond the title (a bare table row), return null. Null is acceptable; a fabricated summary is a critical error.
+8. is_award_notice: true when the item announces a contract that has ALREADY been awarded, or is a general procurement notice for information only (titles such as "Contract Award", "Award Notice", "Notice of Award", "Attribution du marché", "Contract Signature"). These are not biddable. Otherwise false.
 
 Return ONLY valid JSON via the function call.`,
         },
@@ -374,15 +377,22 @@ Return ONLY valid JSON via the function call.`,
                     type: "object",
                     properties: {
                       title: { type: "string" },
-                      description: { type: "string" },
+                      description: {
+                        type: ["string", "null"],
+                        description: "Factual scope-of-work summary drawn only from the supplied content, in English, 2-5 sentences; null if the content carries nothing beyond the title.",
+                      },
                       deadline: { type: "string" },
                       category: { type: "string" },
                       budget: { type: "string" },
                       location: { type: "string" },
                       organization: { type: "string" },
                       source_url: { type: "string" },
+                      is_award_notice: {
+                        type: "boolean",
+                        description: "True when the item announces an already-awarded contract rather than an open tender.",
+                      },
                     },
-                    required: ["title", "source_url"],
+                    required: ["title", "source_url", "description", "is_award_notice"],
                     additionalProperties: false,
                   },
                 },
