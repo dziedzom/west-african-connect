@@ -1,0 +1,1 @@
+UPDATE public.scrape_sources SET auto_disabled_until = NULL, consecutive_failures = 0, last_error = NULL WHERE name = 'UNDP Procurement';
