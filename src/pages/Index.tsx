@@ -115,7 +115,7 @@ const Index = () => {
         <section ref={statsRef} className="border-y border-border bg-card">
           <div className={`container grid grid-cols-1 divide-y sm:divide-y-0 sm:divide-x divide-border ${stats.length === 4 ? "sm:grid-cols-2 md:grid-cols-4" : "sm:grid-cols-3"}`}>
             {stats.map((s) => (
-              <div key={s.label} className="reveal py-10 text-center group cursor-default">
+              <div key={s.label} className="py-10 text-center group cursor-default">
                 <AnimatedCounter
                   value={s.value}
                   className="text-3xl md:text-4xl font-display font-bold text-foreground transition-colors duration-300 group-hover:text-accent"
