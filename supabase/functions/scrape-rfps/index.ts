@@ -10,7 +10,7 @@ const corsHeaders = {
 const FIRECRAWL_API = "https://connector-gateway.lovable.dev/firecrawl/v1";
 const BATCH_SIZE = 5;
 const CLOSING_SOON_DAYS = 7;
-const PORTAL_TIMEOUT_MS = 60_000;
+const PORTAL_TIMEOUT_MS = 90_000; // room for a second/third extraction window on long lists
 // The gateway drops a request that has sent no bytes for 150s, so the whole
 // invocation must return well before that. Stop starting new portals past this.
 const TIME_BUDGET_MS = 115_000;
@@ -19,6 +19,10 @@ const PORTAL_SLEEP_MS = 1_000;
 const DETAIL_TIMEOUT_MS = 25_000;      // per detail page (fetch + extraction)
 const DETAIL_SLEEP_MS = 1_500;         // spacing to respect Firecrawl per-minute limits
 const DETAIL_TIME_RESERVE_MS = 20_000; // headroom kept for saving rows + cleanup
+const EXTRACTION_CHUNK_CHARS = 28_000; // smaller windows keep each extraction call fast
+const MAX_EXTRACTION_CHUNKS = 4; // long notice lists (UNDP) run well past one window
+const CHUNK_TIME_RESERVE_MS = 30_000; // stop reading extra chunks near the run ceiling
+const CHUNK_PORTAL_RESERVE_MS = 45_000; // a further window needs this much portal time left
 // Award / signature notices are records of a closed procurement, not something to bid on.
 const AWARD_NOTICE_RE = /\b(contract award|award notice|notice of award|awarded contract|contract signature|attribution du march|avis d.attribution)\b/i;
 const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more room
@@ -296,18 +300,26 @@ STRICT, NO INFERENCE: return the closing/submission/due/bid-deadline date as ISO
   return d.substring(0, 10);
 }
 
+// Pagination controls: numbered page links, page-of-page labels, and
+// first/last/next/previous arrows in any of the portal languages we read.
+// On e-GP portals these run to tens of thousands of characters and never
+// carry tender data, so they are stripped for every source by default.
+const PAGINATION_LINK_RE =
+  /\[\s*(?:(?:page|página|pagina|p\.|pg)\s*)?(?:\d{1,6}|[«»‹›]{1,2}|\.{2,3}|…|first|last|next|prev(?:ious)?|premier|dernier|suivant(?:e)?|pr[ée]c[ée]dent(?:e)?|primeir[ao]|[úu]ltim[ao]|pr[óo]xim[ao]|anterior)\s*\]\([^)]*\)/gi;
+const PAGINATION_LABEL_RE =
+  /\[\s*(?:page|página|pagina)\s+\d{1,6}(?:\s+(?:of|de|sur)\s+\d{1,6})?\s*\]\([^)]*\)/gi;
+// A line that is nothing but a number or an arrow is a pagination cell.
+const PAGINATION_ONLY_LINE_RE = /^[-*+•|\s]*(?:\d{1,6}|[«»‹›]{1,2}|\.{2,3}|…)[-*+•|\s]*$/;
+
 /**
- * Strip page chrome that eats the truncation budget without carrying tender
- * data. Deliberately conservative: link lines are kept, because on some
+ * Strip page chrome that eats the extraction budget without carrying tender
+ * data. Deliberately conservative: real link lines are kept, because on some
  * portals (e.g. AU bids) each opportunity IS a link.
  */
 function trimPageChrome(md: string): string {
   const seen = new Set<string>();
   const out: string[] = [];
-  // Pagination links ("[Page 12](...)", "[37](...)") can run to tens of
-  // thousands of characters on e-GP portals and push the notice table past the
-  // truncation window. They never carry tender data.
-  const cleaned = md.replace(/\[\s*(?:page\s*)?\d{1,5}\s*\]\([^)]*\)/gi, "");
+  const cleaned = md.replace(PAGINATION_LINK_RE, "").replace(PAGINATION_LABEL_RE, "");
   for (const raw of cleaned.split("\n")) {
     const line = raw.replace(/\s+$/, "");
     const bare = line.trim();
@@ -319,6 +331,7 @@ function trimPageChrome(md: string): string {
     if (/^!\[[^\]]*\]\([^)]*\)$/.test(bare)) continue; // image-only line
     if (/skip to (main )?content|skip to navigation/i.test(bare)) continue;
     if (/^(cookie|we use (some )?(essential )?cookies|accept all cookies)/i.test(bare)) continue;
+    if (PAGINATION_ONLY_LINE_RE.test(bare)) continue; // leftover pagination cell
     if (bare.length < 120) {
       const key = bare.toLowerCase().replace(/\W+/g, " ");
       if (seen.has(key)) continue; // repeated nav / menu entry
@@ -327,6 +340,26 @@ function trimPageChrome(md: string): string {
     out.push(line);
   }
   return out.join("\n");
+}
+
+/**
+ * Split trimmed page content into extraction windows on line boundaries, so a
+ * notice table that runs past one window is still read instead of cut away.
+ */
+function splitForExtraction(content: string): string[] {
+  if (content.length <= EXTRACTION_CHUNK_CHARS) return [content];
+  const chunks: string[] = [];
+  let current = "";
+  for (const line of content.split("\n")) {
+    if (current.length + line.length + 1 > EXTRACTION_CHUNK_CHARS && current) {
+      chunks.push(current);
+      if (chunks.length >= MAX_EXTRACTION_CHUNKS) return chunks;
+      current = "";
+    }
+    current += (current ? "\n" : "") + line.slice(0, EXTRACTION_CHUNK_CHARS);
+  }
+  if (current) chunks.push(current);
+  return chunks.slice(0, MAX_EXTRACTION_CHUNKS);
 }
 
 function isDetailCandidate(target: ScrapeSource, candidateUrl: string): boolean {
@@ -352,6 +385,8 @@ async function scrapePortal(
   runDeadlineMs: number = Date.now() + TIME_BUDGET_MS
 ): Promise<PortalResult> {
   console.log(`Scraping: ${target.name} - ${target.url}`);
+  const portalStartedMs = Date.now();
+  const portalBudgetMs = target.follow_detail_pages ? PORTAL_TIMEOUT_DETAIL_MS : PORTAL_TIMEOUT_MS;
 
   const scrapeRes = await fetch(`${FIRECRAWL_API}/scrape`, {
     method: "POST",
@@ -399,13 +434,28 @@ async function scrapePortal(
     return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "Page content too short or empty" };
   }
 
-  // Trim chrome (skip-links, cookie notices, image-only lines, repeated nav
-  // blocks) BEFORE cutting, so long portals like SA eTenders don't lose their
-  // tender table to the truncation window.
-  const truncatedContent = trimPageChrome(markdown).substring(0, 45000);
+  // Trim chrome (pagination strips, skip-links, cookie notices, image-only
+  // lines, repeated nav blocks) BEFORE cutting, so long portals like SA
+  // eTenders and Zambia don't lose their tender table to the window. Anything
+  // still past one window is read as further chunks rather than discarded
+  // (UNDP's notice list alone runs well past a single window).
+  const cleanedContent = trimPageChrome(markdown);
+  const chunks = splitForExtraction(cleanedContent);
+  const rfps: Array<Record<string, string>> = [];
+  const seenExtracted = new Set<string>();
+  let chunkError = "";
 
+  for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+    const truncatedContent = chunks[chunkIndex];
+    if (chunkIndex > 0) {
+      // Extra chunks are a bonus: never blow the run budget or the per-portal
+      // timeout for them — rows already extracted must be saved.
+      if (Date.now() > runDeadlineMs - CHUNK_TIME_RESERVE_MS) break;
+      if (Date.now() - portalStartedMs > portalBudgetMs - CHUNK_PORTAL_RESERVE_MS) break;
+      await new Promise((r) => setTimeout(r, 500));
+    }
 
-  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -491,37 +541,56 @@ Return ONLY valid JSON via the function call.`,
     }),
   });
 
-  if (!aiRes.ok) {
-    const errText = await aiRes.text();
-    if (aiRes.status === 429) {
-      return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "AI rate limited" };
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      if (aiRes.status === 429) {
+        chunkError = "AI rate limited";
+        break;
+      }
+      if (detectAuthFailure(aiRes.status, errText)) {
+        await sendScrapeAlert(supabase, {
+          type: "auth_failure",
+          key: `ai-gateway-auth-${aiRes.status}`,
+          severity: "critical",
+          subject: `Scraper credential failure: AI gateway returned ${aiRes.status}`,
+          detail: `The AI extraction call for "${target.name}" was rejected with HTTP ${aiRes.status}.\n\nResponse: ${errText.slice(0, 500)}\n\nNo opportunities can be extracted until this is fixed.`,
+        });
+        throw new Error(`AUTH_FAILURE AI gateway ${aiRes.status}: ${errText.slice(0, 500)}`);
+      }
+      if (rfps.length) {
+        chunkError = `AI gateway error (${aiRes.status})`;
+        break;
+      }
+      throw new Error(`AI gateway error (${aiRes.status}): ${errText.slice(0, 500)}`);
     }
-    if (detectAuthFailure(aiRes.status, errText)) {
-      await sendScrapeAlert(supabase, {
-        type: "auth_failure",
-        key: `ai-gateway-auth-${aiRes.status}`,
-        severity: "critical",
-        subject: `Scraper credential failure: AI gateway returned ${aiRes.status}`,
-        detail: `The AI extraction call for "${target.name}" was rejected with HTTP ${aiRes.status}.\n\nResponse: ${errText.slice(0, 500)}\n\nNo opportunities can be extracted until this is fixed.`,
-      });
-      throw new Error(`AUTH_FAILURE AI gateway ${aiRes.status}: ${errText.slice(0, 500)}`);
+
+    const aiData = await aiRes.json();
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall) {
+      chunkError = "AI returned no structured data";
+      continue;
     }
-    throw new Error(`AI gateway error (${aiRes.status}): ${errText.slice(0, 500)}`);
+
+    let extracted: { rfps?: Array<Record<string, string>> } = {};
+    try {
+      extracted = JSON.parse(toolCall.function.arguments);
+    } catch (_e) {
+      chunkError = "Failed to parse AI JSON";
+      continue;
+    }
+    for (const item of extracted.rfps || []) {
+      // Chunks are split on line boundaries, but a portal can still repeat an
+      // entry across views; keep the first occurrence only.
+      const key = `${(item.title || "").trim().toLowerCase()}|${(item.source_url || "").trim()}`;
+      if (seenExtracted.has(key)) continue;
+      seenExtracted.add(key);
+      rfps.push(item);
+    }
   }
 
-  const aiData = await aiRes.json();
-  const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall) {
-    return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "AI returned no structured data" };
+  if (!rfps.length) {
+    return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: chunkError || "No opportunities extracted from page" };
   }
-
-  let extracted: { rfps?: Array<Record<string, string>> } = {};
-  try {
-    extracted = JSON.parse(toolCall.function.arguments);
-  } catch (e) {
-    return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "Failed to parse AI JSON" };
-  }
-  const rfps = extracted.rfps || [];
 
   let insertedCount = 0;
   const skippedExpired = 0; // no longer used: nothing is skipped at ingest
