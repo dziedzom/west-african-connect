@@ -20,6 +20,8 @@ const publicLinks = [
   { to: "/contact", label: "Contact" },
 ];
 
+const publicRoutes = new Set(["/", "/pricing", "/partnerships", "/join", "/about", "/contact", "/learn", "/auth", "/forgot-password", "/reset-password"]);
+
 const authedLinks = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/rfps", label: "RFPs" },
@@ -60,9 +62,9 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-5xl">
-        <nav className="flex items-center justify-between gap-2 rounded-full border border-border/50 bg-background/60 backdrop-blur-xl px-4 py-2.5 shadow-lg shadow-foreground/5">
-          <Link to="/" className="font-display text-lg font-bold tracking-tight text-foreground pl-2">
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl">
+        <nav className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/90 backdrop-blur-xl px-4 py-2 shadow-sm">
+          <Link to="/" className="font-display text-lg font-semibold text-foreground pl-1">
             MiddlBrand
           </Link>
 
@@ -71,15 +73,15 @@ const Navbar = () => {
               <Link
                 key={l.to}
                 to={l.to}
-                className={`relative px-3 py-1.5 text-xs font-medium transition-colors rounded-full ${
+                className={`relative px-3 py-1.5 text-sm font-medium transition-colors rounded-md ${
                   location.pathname === l.to
-                    ? "text-accent"
+                    ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {l.label}
                 {location.pathname === l.to && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-accent rounded-full" />
+                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-accent" />
                 )}
               </Link>
             ))}
@@ -102,7 +104,7 @@ const Navbar = () => {
                   </Badge>
                 )}
                 {isPro && (
-                  <Badge className="text-[10px] bg-accent text-accent-foreground mr-1">
+                  <Badge className="text-[10px] bg-accent text-accent-foreground mr-1 font-data">
                     Pro
                   </Badge>
                 )}
@@ -116,7 +118,7 @@ const Navbar = () => {
                 </Button>
               </div>
             ) : (
-              <Button asChild size="sm" className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 text-xs h-8 px-4">
+                <Button asChild size="sm" className="text-xs px-4">
                 <Link to="/auth"><LogIn className="h-3.5 w-3.5 mr-1" /> Sign In</Link>
               </Button>
             )}
@@ -194,15 +196,15 @@ const Footer = () => {
 
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
-      <div className="container py-16">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 mb-12">
+      <div className="container py-20">
+        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 md:grid-cols-4 mb-16">
           <div>
-            <p className="text-sm font-body opacity-60 max-w-xs">
+            <p className="text-base font-body leading-relaxed opacity-60 max-w-xs">
               Connecting vetted African companies to real business opportunities. Pro plans from $40/mo.
             </p>
           </div>
           <div>
-            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Links</h4>
+            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-[0.06em] opacity-50">Links</h4>
             <div className="flex flex-col gap-2">
               {footerLinks.map((l) => (
                 <Link key={l.to} to={l.to} className="text-sm font-body opacity-60 hover:opacity-100 hover:text-accent transition-all">
@@ -212,7 +214,7 @@ const Footer = () => {
             </div>
           </div>
           <div>
-            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Connect</h4>
+            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-[0.06em] opacity-50">Connect</h4>
             <div className="flex items-center gap-3 mb-4">
               <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="MiddlBrand on LinkedIn" className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground/60 hover:text-accent hover:border-accent transition-all">
                 <Linkedin className="h-4 w-4" />
@@ -230,7 +232,7 @@ const Footer = () => {
             <p className="text-sm font-body opacity-40">info@middlbrand.com</p>
           </div>
           <div>
-            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-widest opacity-50">Newsletter</h4>
+            <h4 className="font-display font-semibold mb-4 text-xs uppercase tracking-[0.06em] opacity-50">Newsletter</h4>
             <p className="text-xs font-body opacity-50 mb-4">Get the latest opportunities delivered to your inbox.</p>
             <form onSubmit={handleSubscribe} className="flex gap-2">
               <Input
@@ -253,7 +255,7 @@ const Footer = () => {
 
         {/* Massive logo */}
         <div className="border-t border-primary-foreground/10 pt-8">
-          <p className="font-display font-black text-[12vw] md:text-[8vw] leading-none tracking-tighter opacity-10 select-none">
+          <p className="font-display font-semibold text-[12vw] md:text-[8vw] leading-none opacity-10 select-none">
             MiddlBrand
           </p>
           <p className="text-xs font-body opacity-30 mt-4">© 2026 MiddlBrand. All rights reserved.</p>
@@ -267,12 +269,17 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout = ({ children }: LayoutProps) => (
-  <div className="flex min-h-screen flex-col">
-    <Navbar />
-    <main className="flex-1 pt-24">{children}</main>
-    <Footer />
-  </div>
-);
+const Layout = ({ children }: LayoutProps) => {
+  const location = useLocation();
+  const isPublic = publicRoutes.has(location.pathname);
+
+  return (
+    <div className={`flex min-h-screen flex-col ${isPublic ? "public-shell" : "app-shell"}`}>
+      <Navbar />
+      <main className="flex-1 pt-20">{children}</main>
+      <Footer />
+    </div>
+  );
+};
 
 export default Layout;
