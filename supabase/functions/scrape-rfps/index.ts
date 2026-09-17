@@ -551,11 +551,27 @@ Return ONLY valid JSON via the function call.`,
     const sourceDomain = extractDomain(rfp.source_url) || target.domain;
 
     // Dedup: if hash exists, append source_url to additional_source_urls
-    const { data: existing } = await supabase
+    const { data: hashMatch } = await supabase
       .from("scraped_rfps")
       .select("id, source_url, additional_source_urls")
       .eq("content_hash", contentHash)
       .maybeSingle();
+
+    // Second pass for translated or truncated titles the hash cannot match:
+    // same closing date and country, near-identical meaningful title words.
+    let existing = hashMatch;
+    if (!existing && rowDeadline) {
+      const { data: sameDay } = await supabase
+        .from("scraped_rfps")
+        .select("id, title, source_url, additional_source_urls")
+        .eq("deadline", rowDeadline)
+        .limit(200);
+      const candidate = (sameDay || []).find(
+        (row) => titleSimilarity(rfp.title, (row as { title: string }).title) >= 0.8
+      );
+      if (candidate) existing = candidate as typeof hashMatch;
+    }
+
 
     if (existing) {
       const current = (existing as { source_url: string; additional_source_urls: string[] | null });
