@@ -592,7 +592,7 @@ serve(async (req) => {
 
     if (halted) {
       await sendScrapeAlert(supabase, {
-        type: "scrape_failure",
+        type: "auth_failure",
         key: `discovery-halt`,
         severity: "critical",
         subject: "Search discovery paused",
