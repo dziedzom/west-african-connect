@@ -491,37 +491,56 @@ Return ONLY valid JSON via the function call.`,
     }),
   });
 
-  if (!aiRes.ok) {
-    const errText = await aiRes.text();
-    if (aiRes.status === 429) {
-      return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "AI rate limited" };
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      if (aiRes.status === 429) {
+        chunkError = "AI rate limited";
+        break;
+      }
+      if (detectAuthFailure(aiRes.status, errText)) {
+        await sendScrapeAlert(supabase, {
+          type: "auth_failure",
+          key: `ai-gateway-auth-${aiRes.status}`,
+          severity: "critical",
+          subject: `Scraper credential failure: AI gateway returned ${aiRes.status}`,
+          detail: `The AI extraction call for "${target.name}" was rejected with HTTP ${aiRes.status}.\n\nResponse: ${errText.slice(0, 500)}\n\nNo opportunities can be extracted until this is fixed.`,
+        });
+        throw new Error(`AUTH_FAILURE AI gateway ${aiRes.status}: ${errText.slice(0, 500)}`);
+      }
+      if (rfps.length) {
+        chunkError = `AI gateway error (${aiRes.status})`;
+        break;
+      }
+      throw new Error(`AI gateway error (${aiRes.status}): ${errText.slice(0, 500)}`);
     }
-    if (detectAuthFailure(aiRes.status, errText)) {
-      await sendScrapeAlert(supabase, {
-        type: "auth_failure",
-        key: `ai-gateway-auth-${aiRes.status}`,
-        severity: "critical",
-        subject: `Scraper credential failure: AI gateway returned ${aiRes.status}`,
-        detail: `The AI extraction call for "${target.name}" was rejected with HTTP ${aiRes.status}.\n\nResponse: ${errText.slice(0, 500)}\n\nNo opportunities can be extracted until this is fixed.`,
-      });
-      throw new Error(`AUTH_FAILURE AI gateway ${aiRes.status}: ${errText.slice(0, 500)}`);
+
+    const aiData = await aiRes.json();
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall) {
+      chunkError = "AI returned no structured data";
+      continue;
     }
-    throw new Error(`AI gateway error (${aiRes.status}): ${errText.slice(0, 500)}`);
+
+    let extracted: { rfps?: Array<Record<string, string>> } = {};
+    try {
+      extracted = JSON.parse(toolCall.function.arguments);
+    } catch (_e) {
+      chunkError = "Failed to parse AI JSON";
+      continue;
+    }
+    for (const item of extracted.rfps || []) {
+      // Chunks are split on line boundaries, but a portal can still repeat an
+      // entry across views; keep the first occurrence only.
+      const key = `${(item.title || "").trim().toLowerCase()}|${(item.source_url || "").trim()}`;
+      if (seenExtracted.has(key)) continue;
+      seenExtracted.add(key);
+      rfps.push(item);
+    }
   }
 
-  const aiData = await aiRes.json();
-  const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall) {
-    return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "AI returned no structured data" };
+  if (!rfps.length) {
+    return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: chunkError || "No opportunities extracted from page" };
   }
-
-  let extracted: { rfps?: Array<Record<string, string>> } = {};
-  try {
-    extracted = JSON.parse(toolCall.function.arguments);
-  } catch (e) {
-    return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "Failed to parse AI JSON" };
-  }
-  const rfps = extracted.rfps || [];
 
   let insertedCount = 0;
   const skippedExpired = 0; // no longer used: nothing is skipped at ingest
