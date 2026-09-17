@@ -337,7 +337,7 @@ serve(async (req) => {
 
     const { data: queue } = await supabase
       .from("scraped_rfps")
-      .select("id, title, organization, source_url, additional_source_urls, deadline, value_amount, enrichment_attempts")
+      .select("id, title, organization, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
       .eq("enrichment_status", "pending")
       .eq("africa_relevant", true)
       .in("status", ["open", "closing_soon"])
@@ -345,7 +345,7 @@ serve(async (req) => {
       .limit(batchSize);
 
     const rows = queue || [];
-    let processed = 0, valuesFound = 0, deadlinesFound = 0, failed = 0, rateLimitHits = 0;
+    let processed = 0, valuesFound = 0, deadlinesFound = 0, summariesFound = 0, failed = 0, rateLimitHits = 0;
     let halt: HaltError | null = null;
 
     for (const row of rows as any[]) {
@@ -419,6 +419,16 @@ serve(async (req) => {
         }
 
         if (ex?.official_source_url) update.official_source_url = ex.official_source_url;
+
+        // Only replace the stored summary when the document read produced something fuller.
+        const existingSummary = ((row as { description?: string | null }).description || "").trim();
+        if (ex?.summary && ex.summary.length > existingSummary.length) {
+          update.description = ex.summary;
+          update.description_source = "tender_documents";
+          summariesFound++;
+        }
+
+        if (ex?.is_award_notice) update.is_award_notice = true;
 
         await supabase.from("scraped_rfps").update(update).eq("id", row.id);
         processed++;
