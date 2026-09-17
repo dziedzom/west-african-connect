@@ -9,8 +9,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, UserCheck } from "lucide-react";
-import { PROSPECT_STATUSES, titleCase } from "@/lib/managed";
+import { ExternalLink, Plus, Target, UserCheck } from "lucide-react";
+import { format } from "date-fns";
+import {
+  PROSPECT_STATUSES,
+  titleCase,
+  normaliseSector,
+  matchingListings,
+  formatMoney,
+  type LiveListing,
+} from "@/lib/managed";
 import type { Engagement, Prospect } from "@/types/managed";
 
 interface Candidate { user_id: string; company_name: string | null; email: string | null; location: string | null }
