@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Target, Shield, TrendingUp, Users, Zap } from "lucide-react";
+import { ArrowRight, ChevronDown, Target, Shield, TrendingUp, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import AnimatedCounter from "@/components/AnimatedCounter";
@@ -26,6 +26,9 @@ const Index = () => {
   const statsRef = useScrollReveal(80);
   const bentoRef = useScrollReveal(120);
   const ctaRef = useScrollReveal();
+  const howHeadingRef = useScrollReveal();
+  const dataHeadingRef = useScrollReveal();
+  const dataGridRef = useScrollReveal(120);
 
   useEffect(() => {
     let mounted = true;
@@ -83,31 +86,37 @@ const Index = () => {
           },
         }}
       />
-      <section className="relative min-h-[72svh] md:min-h-[78svh] flex items-center grain-mesh border-b border-border">
-        <div className="container relative z-10 py-20 md:py-24">
-          <div className="max-w-5xl">
-            <p className="mb-5 text-xs font-data font-medium uppercase tracking-[0.06em] text-accent animate-fade-in">African procurement intelligence</p>
-            <h1 className="text-[3.25rem] sm:text-7xl lg:text-[5.5rem] font-display font-semibold text-foreground leading-[0.98] animate-fade-in max-w-4xl">
-              MiddlBrand
-              <span className="sr-only"> — Connecting African Businesses to Winning RFP Contracts</span>
-            </h1>
-            <p className="mt-7 text-lg md:text-xl leading-relaxed text-muted-foreground font-body max-w-2xl animate-fade-in"
-               style={{ animationDelay: "200ms" }}>
-              Connecting vetted African businesses to real opportunities.
-              Start free. Upgrade to Pro for AI-powered matching and bidding.
-            </p>
-            <div className="mt-9 flex flex-wrap gap-3 animate-fade-in" style={{ animationDelay: "400ms" }}>
-              <Button asChild size="lg" className="group px-7">
-                <Link to="/rfps">
-                  Browse Opportunities
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="border-foreground/20 text-foreground">
-                <Link to="/join">Register Your Company</Link>
-              </Button>
-            </div>
+      <section className="relative flex min-h-[calc(100svh-3.5rem)] items-center justify-center border-b border-border bg-background">
+        <div className="container relative z-10 flex flex-col items-center text-center py-16">
+          <p className="text-xs font-data font-medium uppercase tracking-[0.06em] text-muted-foreground animate-fade-in">
+            African procurement intelligence
+          </p>
+          <h1 className="mt-6 text-[3rem] sm:text-6xl lg:text-[5.5rem] font-display font-semibold text-foreground leading-[0.98] animate-fade-in max-w-4xl">
+            Find the tender. Build the bid. Win the work.
+          </h1>
+          <p
+            className="mt-6 text-lg md:text-xl leading-relaxed text-muted-foreground font-body max-w-[640px] animate-fade-in"
+            style={{ animationDelay: "200ms" }}
+          >
+            Live public tenders from across Africa, with the bid tools to answer them.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in" style={{ animationDelay: "400ms" }}>
+            <Button asChild size="lg" className="px-7">
+              <Link to="/rfps">
+                Browse Opportunities
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-foreground/20 text-foreground">
+              <Link to="/join">Register Your Company</Link>
+            </Button>
           </div>
+        </div>
+
+        {/* Cue that content continues below the fold */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground">
+          <span className="text-[10px] font-data uppercase tracking-[0.08em]">Scroll</span>
+          <ChevronDown className="h-4 w-4 animate-bounce" aria-hidden="true" />
         </div>
       </section>
 
@@ -130,7 +139,7 @@ const Index = () => {
       {/* Bento Grid Services */}
       <section className="py-20 md:py-36 bg-background">
         <div className="container">
-          <div className="max-w-2xl mb-14 md:mb-20">
+          <div ref={howHeadingRef} className="max-w-2xl mb-14 md:mb-20">
             <h2 className="text-3xl md:text-4xl font-display font-semibold text-foreground">
               How It Works
             </h2>
@@ -141,23 +150,23 @@ const Index = () => {
 
           <div ref={bentoRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl">
             {/* Large card — Lead Generation */}
-            <div className="reveal sm:col-span-2 md:col-span-2 md:row-span-2 rounded-lg border border-border bg-card p-8 md:p-10 flex flex-col justify-between min-h-[280px] md:min-h-[340px] group hover:border-foreground/20 transition-colors">
+            <div className="reveal sm:col-span-2 md:col-span-2 md:row-span-2 rounded-lg border border-border bg-card p-8 md:p-10 flex flex-col justify-center group hover:border-foreground/20 transition-colors">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
-                  <Target className="h-6 w-6 text-accent" />
+                <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-6">
+                  <Target className="h-6 w-6 text-foreground" />
                 </div>
                 <h3 className="text-2xl font-display font-bold text-foreground mb-3">Lead Generation</h3>
                 <p className="text-sm text-muted-foreground font-body leading-relaxed max-w-md">
                   We source tenders, RFPs and contracts that match your company's expertise — so you never miss an opportunity across Africa.
                 </p>
               </div>
-              <div className="mt-8 h-20 rounded-xl bg-gradient-to-r from-accent/5 to-accent/10" />
+              
             </div>
 
             {/* Small card — Vetted */}
             <div className="reveal rounded-lg border border-border bg-card p-8 group hover:border-foreground/20 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
-                <Shield className="h-5 w-5 text-accent" />
+              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center mb-4">
+                <Shield className="h-5 w-5 text-foreground" />
               </div>
               <h3 className="text-lg font-display font-semibold text-foreground mb-2">Verified Companies</h3>
               <p className="text-xs text-muted-foreground font-body">
@@ -168,8 +177,8 @@ const Index = () => {
 
             {/* Small card — Subscription */}
             <div className="reveal rounded-lg border border-border bg-card p-8 group hover:border-foreground/20 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
-                <TrendingUp className="h-5 w-5 text-accent" />
+              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center mb-4">
+                <TrendingUp className="h-5 w-5 text-foreground" />
               </div>
               <h3 className="text-lg font-display font-semibold text-foreground mb-2">Pro Subscription</h3>
               <p className="text-xs text-muted-foreground font-body">
@@ -179,8 +188,8 @@ const Index = () => {
 
             {/* Wide card — Ethical Matching */}
             <div className="reveal sm:col-span-2 md:col-span-2 rounded-lg border border-border bg-card p-8 flex items-center gap-4 sm:gap-6 group hover:border-foreground/20 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                <Users className="h-5 w-5 text-accent" />
+              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                <Users className="h-5 w-5 text-foreground" />
               </div>
               <div>
                 <h3 className="text-lg font-display font-semibold text-foreground mb-1">Ethical Matching</h3>
@@ -192,7 +201,7 @@ const Index = () => {
 
             {/* Small card — Speed */}
             <div className="reveal rounded-lg border border-border bg-secondary/50 p-8 flex flex-col items-center justify-center text-center group hover:border-foreground/20 transition-colors">
-              <Zap className="h-8 w-8 text-accent/40 mb-3 group-hover:text-accent transition-colors duration-300" />
+              <Zap className="h-8 w-8 text-foreground mb-3" aria-hidden="true" />
               <h3 className="text-lg font-display font-semibold text-foreground mb-1">Fast Turnaround</h3>
               <p className="text-xs text-muted-foreground font-body">Matched to opportunities within 48 hours.</p>
             </div>
@@ -202,7 +211,7 @@ const Index = () => {
 
       <section className="py-20 md:py-36 bg-card border-y border-border">
         <div className="container">
-          <div className="max-w-2xl mb-14 md:mb-20">
+          <div ref={dataHeadingRef} className="max-w-2xl mb-14 md:mb-20">
             <h2 className="text-3xl md:text-4xl font-display font-semibold text-foreground">
               Built Around Verifiable Data
             </h2>
@@ -211,7 +220,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-6xl">
+          <div ref={dataGridRef} className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-6xl">
             {[
               {
                 title: "Source-linked listings",

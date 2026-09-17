@@ -18,7 +18,8 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(staggerM
           if (entry.isIntersecting) {
             if (children.length > 0) {
               children.forEach((child, i) => {
-                setTimeout(() => child.classList.add("visible"), i * staggerMs);
+                // Stagger is capped at 5 children so long lists never trail behind.
+                setTimeout(() => child.classList.add("visible"), Math.min(i, 4) * staggerMs);
               });
             } else {
               el.classList.add("visible");

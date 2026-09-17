@@ -62,69 +62,65 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl">
-        <nav className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-background/90 backdrop-blur-xl px-4 py-2 shadow-sm">
-          <Link to="/" className="font-display text-lg font-semibold text-foreground pl-1">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
+        <nav className="container flex h-14 items-center justify-between gap-4">
+          <Link to="/" className="font-display text-lg font-semibold text-foreground shrink-0">
             MiddlBrand
           </Link>
 
-          <div className="hidden lg:flex items-center gap-1">
+          {/* Every destination written out from 768px up; hamburger only below that. */}
+          <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
             {navLinks.map((l) => (
               <Link
                 key={l.to}
                 to={l.to}
-                className={`relative px-3 py-1.5 text-sm font-medium transition-colors rounded-md ${
+                className={`relative px-3 py-4 text-sm font-medium transition-colors ${
                   location.pathname === l.to
-                    ? "text-foreground"
+                    ? "text-accent"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {l.label}
                 {location.pathname === l.to && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-accent" />
+                  <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-accent" />
                 )}
               </Link>
             ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1 shrink-0">
             <button
               onClick={() => setDark(!dark)}
-              className="p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              className="p-2 rounded-md text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Toggle dark mode"
             >
               {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </button>
-            <NotificationCenter />
             {user ? (
               <div className="flex items-center gap-1">
-                {!isPro && (
-                  <Badge variant="outline" className="text-[10px] border-border text-muted-foreground mr-1">
-                    Free
-                  </Badge>
+                {isPro ? (
+                  <Badge className="text-[10px] bg-accent text-accent-foreground font-data">Pro</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">Free</Badge>
                 )}
-                {isPro && (
-                  <Badge className="text-[10px] bg-accent text-accent-foreground mr-1 font-data">
-                    Pro
-                  </Badge>
-                )}
+                <NotificationCenter />
                 {isAdmin && (
-                  <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
+                  <Button asChild variant="ghost" size="sm" className="text-xs h-8">
                     <Link to="/admin"><Shield className="h-3.5 w-3.5 mr-1" /> Admin</Link>
                   </Button>
                 )}
-                <Button asChild variant="ghost" size="sm" className="rounded-full text-xs h-8">
-                  <Link to="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> Dashboard</Link>
+                <Button asChild variant="ghost" size="sm" className="text-xs h-8">
+                  <Link to="/profile"><LayoutDashboard className="h-3.5 w-3.5 mr-1" /> Account</Link>
                 </Button>
               </div>
             ) : (
-                <Button asChild size="sm" className="text-xs px-4">
+              <Button asChild size="sm" className="text-xs px-4">
                 <Link to="/auth"><LogIn className="h-3.5 w-3.5 mr-1" /> Sign In</Link>
               </Button>
             )}
           </div>
 
-          <button className="lg:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+          <button className="md:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </nav>
@@ -276,7 +272,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className={`flex min-h-screen flex-col ${isPublic ? "public-shell" : "app-shell"}`}>
       <Navbar />
-      <main className="flex-1 pt-20">{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   );
