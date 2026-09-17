@@ -399,13 +399,26 @@ async function scrapePortal(
     return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "Page content too short or empty" };
   }
 
-  // Trim chrome (skip-links, cookie notices, image-only lines, repeated nav
-  // blocks) BEFORE cutting, so long portals like SA eTenders don't lose their
-  // tender table to the truncation window.
-  const truncatedContent = trimPageChrome(markdown).substring(0, 45000);
+  // Trim chrome (pagination strips, skip-links, cookie notices, image-only
+  // lines, repeated nav blocks) BEFORE cutting, so long portals like SA
+  // eTenders and Zambia don't lose their tender table to the window. Anything
+  // still past one window is read as further chunks rather than discarded
+  // (UNDP's notice list alone runs well past a single window).
+  const cleanedContent = trimPageChrome(markdown);
+  const chunks = splitForExtraction(cleanedContent);
+  const rfps: Array<Record<string, string>> = [];
+  const seenExtracted = new Set<string>();
+  let chunkError = "";
 
+  for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+    const truncatedContent = chunks[chunkIndex];
+    if (chunkIndex > 0) {
+      // Extra chunks are a bonus, never worth blowing the run budget for.
+      if (Date.now() > runDeadlineMs - CHUNK_TIME_RESERVE_MS) break;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
 
-  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
