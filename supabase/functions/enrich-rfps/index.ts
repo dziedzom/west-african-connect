@@ -129,6 +129,8 @@ interface Extraction {
   value_confidence: string | null;
   deadline: string | null;
   official_source_url: string | null;
+  summary: string | null;
+  is_award_notice: boolean;
 }
 
 async function extractFromContent(
@@ -161,6 +163,8 @@ STRICT, NO INFERENCE — every field may be null, and null is a correct, expecte
 - value_confidence: "high" when the figure is labelled as the contract/budget value for this opportunity; "medium" when the label is indirect but unambiguous; null when there is no figure.
 - deadline: the closing/submission/bid deadline as YYYY-MM-DD, only when explicitly written for THIS opportunity. Never a publication date, never today, never inferred.
 - official_source_url: the buying organisation's own notice/tender page URL if one appears in the content; null otherwise. Never invent a URL.
+- summary: a factual scope-of-work summary of THIS opportunity in English, 2-6 sentences (max 1500 characters), built only from wording in the supplied content: what is being procured, for whom, lots/quantities, place of performance, and stated eligibility or submission requirements. Condense and translate; never add claims, benefits, or context that is not written there. Null when the content carries no scope description.
+- is_award_notice: true when the content shows this is a notice of a contract ALREADY awarded or signed rather than an open invitation to bid; false otherwise.
 
 A bid bond, tender fee, document purchase price, registration fee, or insurance figure is NOT the contract value. Return null rather than any of those.`,
           },

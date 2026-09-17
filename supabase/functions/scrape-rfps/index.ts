@@ -19,6 +19,8 @@ const PORTAL_SLEEP_MS = 1_000;
 const DETAIL_TIMEOUT_MS = 25_000;      // per detail page (fetch + extraction)
 const DETAIL_SLEEP_MS = 1_500;         // spacing to respect Firecrawl per-minute limits
 const DETAIL_TIME_RESERVE_MS = 20_000; // headroom kept for saving rows + cleanup
+// Award / signature notices are records of a closed procurement, not something to bid on.
+const AWARD_NOTICE_RE = /\b(contract award|award notice|notice of award|awarded contract|contract signature|attribution du march|avis d.attribution)\b/i;
 const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more room
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
