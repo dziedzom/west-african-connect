@@ -26,6 +26,9 @@ const Index = () => {
   const statsRef = useScrollReveal(80);
   const bentoRef = useScrollReveal(120);
   const ctaRef = useScrollReveal();
+  const howHeadingRef = useScrollReveal();
+  const dataHeadingRef = useScrollReveal();
+  const dataGridRef = useScrollReveal(120);
 
   useEffect(() => {
     let mounted = true;
@@ -136,7 +139,7 @@ const Index = () => {
       {/* Bento Grid Services */}
       <section className="py-20 md:py-36 bg-background">
         <div className="container">
-          <div className="max-w-2xl mb-14 md:mb-20">
+          <div ref={howHeadingRef} className="max-w-2xl mb-14 md:mb-20">
             <h2 className="text-3xl md:text-4xl font-display font-semibold text-foreground">
               How It Works
             </h2>
@@ -208,7 +211,7 @@ const Index = () => {
 
       <section className="py-20 md:py-36 bg-card border-y border-border">
         <div className="container">
-          <div className="max-w-2xl mb-14 md:mb-20">
+          <div ref={dataHeadingRef} className="max-w-2xl mb-14 md:mb-20">
             <h2 className="text-3xl md:text-4xl font-display font-semibold text-foreground">
               Built Around Verifiable Data
             </h2>
@@ -217,7 +220,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-6xl">
+          <div ref={dataGridRef} className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-6xl">
             {[
               {
                 title: "Source-linked listings",
