@@ -288,6 +288,46 @@ const ProspectsPanel = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!matchesFor} onOpenChange={(v) => !v && setMatchesFor(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Live opportunities for {matchesFor?.company_name}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Open and closing-soon listings in {matchesFor?.sector}. Soonest deadline first.
+          </p>
+          <div className="space-y-2">
+            {matchesForSector(matchesFor?.sector ?? null).map((listing) => (
+              <div key={listing.id} className="rounded-md border p-3 space-y-1">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="font-medium text-sm">{listing.title}</p>
+                  {listing.source_url && (
+                    <a
+                      href={listing.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-accent shrink-0"
+                      aria-label="Open the source notice"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {[listing.organization, listing.location].filter(Boolean).join(" · ") || "Buyer not stated"}
+                </p>
+                <p className="text-xs font-data">
+                  {listing.deadline ? format(new Date(listing.deadline), "d MMM yyyy") : "No date published"}
+                  {listing.value_amount != null && (
+                    <span> · {formatMoney(listing.value_amount, listing.value_currency ?? "USD")}</span>
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
