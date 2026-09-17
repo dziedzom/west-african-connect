@@ -542,10 +542,19 @@ Return ONLY valid JSON via the function call.`,
 
 
 
+    // A summary is only stored when it carries more than the title already does.
+    const rawSummary = typeof rfp.description === "string" ? rfp.description.trim() : "";
+    const summaryText = rawSummary.length >= 40 && rawSummary.toLowerCase() !== rfp.title.trim().toLowerCase()
+      ? rawSummary.substring(0, 2000)
+      : null;
+
     const { error: upsertError } = await supabase.from("scraped_rfps").upsert(
       {
         title: rfp.title.substring(0, 500),
-        description: rfp.description?.substring(0, 2000) || null,
+        description: summaryText,
+        description_source: summaryText ? "listing_page" : null,
+        is_award_notice: (rfp as unknown as { is_award_notice?: boolean }).is_award_notice === true
+          || AWARD_NOTICE_RE.test(rfp.title),
         deadline: rowDeadline,
         category: rfp.category || null,
         budget: rfp.budget || null,
