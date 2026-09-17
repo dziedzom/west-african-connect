@@ -188,6 +188,8 @@ const ScrapeAgent = () => {
           </div>
 
           <ValueExtractionPanel />
+
+          <SearchDiscoveryPanel />
           <ScrapeFreshnessPanel />
           <SourceCoveragePanel />
 
