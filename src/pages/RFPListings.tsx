@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
 import RFPDetailModal from "@/components/RFPDetailModal";
-import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
+import { useRFPFilters, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
 import { formatRecordedValue, type RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 import UpgradeBanner from "@/components/UpgradeBanner";
@@ -73,6 +73,8 @@ const RFPListings = () => {
     resetFilters,
     activeCount,
     globalHiddenCount,
+    categoryOptions,
+    locationOptions,
   } = useRFPFilters();
 
   const [selectedRFP, setSelectedRFP] = useState<RFP | null>(null);
@@ -153,7 +155,7 @@ const RFPListings = () => {
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((c) => (
+                  {categoryOptions.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
@@ -164,7 +166,7 @@ const RFPListings = () => {
                   <SelectValue placeholder="Location" />
                 </SelectTrigger>
                 <SelectContent>
-                  {LOCATIONS.map((l) => (
+                  {locationOptions.map((l) => (
                     <SelectItem key={l} value={l}>{l}</SelectItem>
                   ))}
                 </SelectContent>
