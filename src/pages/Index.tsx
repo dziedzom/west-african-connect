@@ -83,31 +83,37 @@ const Index = () => {
           },
         }}
       />
-      <section className="relative min-h-[72svh] md:min-h-[78svh] flex items-center grain-mesh border-b border-border">
-        <div className="container relative z-10 py-20 md:py-24">
-          <div className="max-w-5xl">
-            <p className="mb-5 text-xs font-data font-medium uppercase tracking-[0.06em] text-accent animate-fade-in">African procurement intelligence</p>
-            <h1 className="text-[3.25rem] sm:text-7xl lg:text-[5.5rem] font-display font-semibold text-foreground leading-[0.98] animate-fade-in max-w-4xl">
-              MiddlBrand
-              <span className="sr-only"> — Connecting African Businesses to Winning RFP Contracts</span>
-            </h1>
-            <p className="mt-7 text-lg md:text-xl leading-relaxed text-muted-foreground font-body max-w-2xl animate-fade-in"
-               style={{ animationDelay: "200ms" }}>
-              Connecting vetted African businesses to real opportunities.
-              Start free. Upgrade to Pro for AI-powered matching and bidding.
-            </p>
-            <div className="mt-9 flex flex-wrap gap-3 animate-fade-in" style={{ animationDelay: "400ms" }}>
-              <Button asChild size="lg" className="group px-7">
-                <Link to="/rfps">
-                  Browse Opportunities
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="border-foreground/20 text-foreground">
-                <Link to="/join">Register Your Company</Link>
-              </Button>
-            </div>
+      <section className="relative flex min-h-[calc(100svh-3.5rem)] items-center justify-center border-b border-border bg-background">
+        <div className="container relative z-10 flex flex-col items-center text-center py-16">
+          <p className="text-xs font-data font-medium uppercase tracking-[0.06em] text-muted-foreground animate-fade-in">
+            African procurement intelligence
+          </p>
+          <h1 className="mt-6 text-[3rem] sm:text-6xl lg:text-[5.5rem] font-display font-semibold text-foreground leading-[0.98] animate-fade-in max-w-4xl">
+            Find the tender. Build the bid. Win the work.
+          </h1>
+          <p
+            className="mt-6 text-lg md:text-xl leading-relaxed text-muted-foreground font-body max-w-[640px] animate-fade-in"
+            style={{ animationDelay: "200ms" }}
+          >
+            Live public tenders from across Africa, with the bid tools to answer them.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in" style={{ animationDelay: "400ms" }}>
+            <Button asChild size="lg" className="px-7">
+              <Link to="/rfps">
+                Browse Opportunities
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-foreground/20 text-foreground">
+              <Link to="/join">Register Your Company</Link>
+            </Button>
           </div>
+        </div>
+
+        {/* Cue that content continues below the fold */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground">
+          <span className="text-[10px] font-data uppercase tracking-[0.08em]">Scroll</span>
+          <ChevronDown className="h-4 w-4 animate-bounce" aria-hidden="true" />
         </div>
       </section>
 
