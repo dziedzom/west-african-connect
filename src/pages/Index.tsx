@@ -83,8 +83,8 @@ const Index = () => {
           },
         }}
       />
-      <section className="relative min-h-[calc(100svh-5rem)] flex items-center grain-mesh border-b border-border">
-        <div className="container relative z-10 py-20 md:py-28">
+      <section className="relative min-h-[72svh] md:min-h-[78svh] flex items-center grain-mesh border-b border-border">
+        <div className="container relative z-10 py-20 md:py-24">
           <div className="max-w-5xl">
             <p className="mb-5 text-xs font-data font-medium uppercase tracking-[0.06em] text-accent animate-fade-in">African procurement intelligence</p>
             <h1 className="text-[3.25rem] sm:text-7xl lg:text-[5.5rem] font-display font-semibold text-foreground leading-[0.98] animate-fade-in max-w-4xl">
