@@ -304,7 +304,11 @@ STRICT, NO INFERENCE: return the closing/submission/due/bid-deadline date as ISO
 function trimPageChrome(md: string): string {
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const raw of md.split("\n")) {
+  // Pagination links ("[Page 12](...)", "[37](...)") can run to tens of
+  // thousands of characters on e-GP portals and push the notice table past the
+  // truncation window. They never carry tender data.
+  const cleaned = md.replace(/\[\s*(?:page\s*)?\d{1,5}\s*\]\([^)]*\)/gi, "");
+  for (const raw of cleaned.split("\n")) {
     const line = raw.replace(/\s+$/, "");
     const bare = line.trim();
     if (!bare) {
