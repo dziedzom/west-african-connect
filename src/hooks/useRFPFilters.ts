@@ -69,25 +69,43 @@ export function useRFPFilters() {
         .or(`deadline.is.null,deadline.gte.${nowISO}`)
         .order("scraped_at", { ascending: false });
 
-      const scraped: RFP[] = (data || []).map((r) => ({
-        id: r.id,
-        title: r.title,
-        description: r.description || "",
-        category: r.category || "Uncategorized",
-        org: r.organization,
-        location: r.location,
-        value: r.budget,
-        budget: r.budget,
-        deadline: r.deadline,
-        status: r.status,
-        created_at: r.created_at,
-        updated_at: r.updated_at,
-        source: "scraped" as const,
-        source_url: r.source_url,
-        portal: r.portal,
-        africa_relevant: (r as { africa_relevant?: boolean }).africa_relevant !== false
-          && isAfricanLocation(r.location),
-      }));
+      const scraped: RFP[] = (data || []).map((r) => {
+        const row = r as typeof r & {
+          value_amount?: number | null;
+          value_currency?: string | null;
+          value_basis?: string | null;
+          value_evidence?: string | null;
+          value_source_url?: string | null;
+          official_source_url?: string | null;
+          document_urls?: string[] | null;
+        };
+        return {
+          id: r.id,
+          title: r.title,
+          description: r.description || "",
+          category: r.category || "Uncategorized",
+          org: r.organization,
+          location: r.location,
+          value: r.budget,
+          budget: r.budget,
+          deadline: r.deadline,
+          status: r.status,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+          source: "scraped" as const,
+          source_url: r.source_url,
+          portal: r.portal,
+          africa_relevant: (r as { africa_relevant?: boolean }).africa_relevant !== false
+            && isAfricanLocation(r.location),
+          value_amount: row.value_amount ?? null,
+          value_currency: row.value_currency ?? null,
+          value_basis: row.value_basis ?? null,
+          value_evidence: row.value_evidence ?? null,
+          value_source_url: row.value_source_url ?? null,
+          official_source_url: row.official_source_url ?? null,
+          document_urls: row.document_urls ?? null,
+        };
+      });
 
       setRfps(scraped);
       setLoading(false);
@@ -133,7 +151,7 @@ export function useRFPFilters() {
 
       const [lo, hi] = filters.budgetRange;
       if (lo !== BUDGET_MIN || hi !== BUDGET_MAX) {
-        const budget = parseBudgetValue(r.value) ?? parseBudgetValue(r.budget);
+        const budget = r.value_amount ?? parseBudgetValue(r.value) ?? parseBudgetValue(r.budget);
         if (budget !== null && (budget < lo || budget > hi)) return false;
       }
 

@@ -14,7 +14,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { cn } from "@/lib/utils";
 import RFPDetailModal from "@/components/RFPDetailModal";
 import { useRFPFilters, CATEGORIES, LOCATIONS, BUDGET_BOUNDS } from "@/hooks/useRFPFilters";
-import type { RFP } from "@/types/rfp";
+import { formatRecordedValue, type RFP } from "@/types/rfp";
 import SEO from "@/components/SEO";
 import UpgradeBanner from "@/components/UpgradeBanner";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -88,7 +88,9 @@ const RFPListings = () => {
     const start = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, safeCurrentPage]);
-  const showRecordedValue = useMemo(() => filtered.some((rfp) => Boolean(rfp.value?.trim() || rfp.budget?.trim())), [filtered]);
+  // The value column only appears when the current results actually contain a
+  // recorded value read from an official document. No placeholders, no guesses.
+  const showRecordedValue = useMemo(() => filtered.some((rfp) => formatRecordedValue(rfp) !== null), [filtered]);
 
   // Reset to page 1 when filters change
   const handleSearch = (v: string) => { setSearch(v); setCurrentPage(1); };
@@ -267,7 +269,7 @@ const RFPListings = () => {
                   {showRecordedValue && (
                     <div className="lg:border-l lg:border-border lg:pl-4">
                       <p className="text-xs text-muted-foreground">Recorded value</p>
-                      <p className="mt-1 text-sm font-data font-medium text-foreground">{rfp.value || rfp.budget || "—"}</p>
+                      <p className="mt-1 text-sm font-data font-medium text-foreground">{formatRecordedValue(rfp) ?? "—"}</p>
                     </div>
                   )}
                   <div className="lg:border-l lg:border-border lg:pl-4">

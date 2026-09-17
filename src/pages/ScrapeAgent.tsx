@@ -11,6 +11,7 @@ import SEO from "@/components/SEO";
 import Layout from "@/components/Layout";
 import SourceCoveragePanel from "@/components/SourceCoveragePanel";
 import ScrapeFreshnessPanel from "@/components/ScrapeFreshnessPanel";
+import ValueExtractionPanel from "@/components/ValueExtractionPanel";
 
 const DEFAULT_PORTALS = [
   { name: "UNGM", label: "UN Global Marketplace", url: "https://www.ungm.org/Public/Notice" },
@@ -185,6 +186,7 @@ const ScrapeAgent = () => {
             </div>
           </div>
 
+          <ValueExtractionPanel />
           <ScrapeFreshnessPanel />
           <SourceCoveragePanel />
 

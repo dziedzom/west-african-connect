@@ -673,6 +673,51 @@ export type Database = {
           },
         ]
       }
+      enrichment_job_state: {
+        Row: {
+          created_at: string
+          id: boolean
+          last_run_at: string | null
+          last_run_error: string | null
+          last_run_processed: number
+          last_run_values_found: number
+          lease_holder: string | null
+          lease_until: string | null
+          paused: boolean
+          paused_at: string | null
+          paused_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: boolean
+          last_run_at?: string | null
+          last_run_error?: string | null
+          last_run_processed?: number
+          last_run_values_found?: number
+          lease_holder?: string | null
+          lease_until?: string | null
+          paused?: boolean
+          paused_at?: string | null
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: boolean
+          last_run_at?: string | null
+          last_run_error?: string | null
+          last_run_processed?: number
+          last_run_values_found?: number
+          lease_holder?: string | null
+          lease_until?: string | null
+          paused?: boolean
+          paused_at?: string | null
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       homepage_live_stats: {
         Row: {
           active_sources: number
@@ -1334,9 +1379,16 @@ export type Database = {
           created_at: string
           deadline: string | null
           description: string | null
+          document_urls: string[]
+          enriched_at: string | null
+          enrichment_attempts: number
+          enrichment_error: string | null
+          enrichment_status: string
           id: string
           location: string | null
+          needs_fx_review: boolean
           needs_review: boolean
+          official_source_url: string | null
           organization: string | null
           portal: string
           scraped_at: string
@@ -1349,6 +1401,12 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          value_amount: number | null
+          value_basis: string | null
+          value_confidence: string | null
+          value_currency: string | null
+          value_evidence: string | null
+          value_source_url: string | null
         }
         Insert: {
           additional_source_urls?: string[]
@@ -1359,9 +1417,16 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           description?: string | null
+          document_urls?: string[]
+          enriched_at?: string | null
+          enrichment_attempts?: number
+          enrichment_error?: string | null
+          enrichment_status?: string
           id?: string
           location?: string | null
+          needs_fx_review?: boolean
           needs_review?: boolean
+          official_source_url?: string | null
           organization?: string | null
           portal: string
           scraped_at?: string
@@ -1374,6 +1439,12 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          value_amount?: number | null
+          value_basis?: string | null
+          value_confidence?: string | null
+          value_currency?: string | null
+          value_evidence?: string | null
+          value_source_url?: string | null
         }
         Update: {
           additional_source_urls?: string[]
@@ -1384,9 +1455,16 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           description?: string | null
+          document_urls?: string[]
+          enriched_at?: string | null
+          enrichment_attempts?: number
+          enrichment_error?: string | null
+          enrichment_status?: string
           id?: string
           location?: string | null
+          needs_fx_review?: boolean
           needs_review?: boolean
+          official_source_url?: string | null
           organization?: string | null
           portal?: string
           scraped_at?: string
@@ -1399,6 +1477,12 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          value_amount?: number | null
+          value_basis?: string | null
+          value_confidence?: string | null
+          value_currency?: string | null
+          value_evidence?: string | null
+          value_source_url?: string | null
         }
         Relationships: []
       }
