@@ -180,8 +180,25 @@ const ProspectsPanel = ({
                 )}
                 {prospect.notes && <p className="text-muted-foreground italic line-clamp-2">{prospect.notes}</p>}
                 <p className="text-xs text-muted-foreground">{countFor(prospect.id)} engagement(s)</p>
-                <div className="flex gap-2 pt-2">
+                {prospect.sector ? (
+                  matchesForSector(prospect.sector).length > 0 ? (
+                    <p className="text-xs">
+                      <span className="font-data font-semibold text-accent">{matchesForSector(prospect.sector).length}</span>{" "}
+                      <span className="text-muted-foreground">live opportunit(ies) in {prospect.sector}</span>
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No live opportunities in {prospect.sector} right now</p>
+                  )
+                ) : (
+                  <p className="text-xs text-muted-foreground">Add a sector to see matching opportunities</p>
+                )}
+                <div className="flex flex-wrap gap-2 pt-2">
                   <Button size="sm" variant="outline" onClick={() => startEdit(prospect)}>Edit</Button>
+                  {prospect.sector && matchesForSector(prospect.sector).length > 0 && (
+                    <Button size="sm" variant="outline" onClick={() => setMatchesFor(prospect)}>
+                      <Target className="h-3.5 w-3.5 mr-1" /> See matches
+                    </Button>
+                  )}
                   {prospect.status !== "converted" && (
                     <Button size="sm" variant="outline" onClick={() => startConvert(prospect)}>
                       <UserCheck className="h-3.5 w-3.5 mr-1" /> Convert
@@ -200,7 +217,19 @@ const ProspectsPanel = ({
           <div className="space-y-3">
             <div><Label>Company name</Label><Input value={form.company_name} onChange={(e) => set("company_name", e.target.value)} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Sector</Label><Input value={form.sector} onChange={(e) => set("sector", e.target.value)} /></div>
+              <div>
+                <Label>Sector</Label>
+                <Input
+                  list="live-sectors"
+                  value={form.sector}
+                  onChange={(e) => set("sector", e.target.value)}
+                  placeholder={liveSectors[0] ?? "e.g. Construction"}
+                />
+                <datalist id="live-sectors">
+                  {liveSectors.map((s) => <option key={s} value={s} />)}
+                </datalist>
+                <p className="text-xs text-muted-foreground mt-1">Matches this prospect to live listings in the same sector.</p>
+              </div>
               <div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div>
             </div>
             <div><Label>Capabilities</Label><Textarea rows={3} value={form.capabilities} onChange={(e) => set("capabilities", e.target.value)} /></div>
