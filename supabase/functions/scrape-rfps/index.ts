@@ -296,7 +296,37 @@ STRICT, NO INFERENCE: return the closing/submission/due/bid-deadline date as ISO
   return d.substring(0, 10);
 }
 
+/**
+ * Strip page chrome that eats the truncation budget without carrying tender
+ * data. Deliberately conservative: link lines are kept, because on some
+ * portals (e.g. AU bids) each opportunity IS a link.
+ */
+function trimPageChrome(md: string): string {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of md.split("\n")) {
+    const line = raw.replace(/\s+$/, "");
+    const bare = line.trim();
+    if (!bare) {
+      if (out.length && out[out.length - 1] === "") continue;
+      out.push("");
+      continue;
+    }
+    if (/^!\[[^\]]*\]\([^)]*\)$/.test(bare)) continue; // image-only line
+    if (/skip to (main )?content|skip to navigation/i.test(bare)) continue;
+    if (/^(cookie|we use (some )?(essential )?cookies|accept all cookies)/i.test(bare)) continue;
+    if (bare.length < 120) {
+      const key = bare.toLowerCase().replace(/\W+/g, " ");
+      if (seen.has(key)) continue; // repeated nav / menu entry
+      seen.add(key);
+    }
+    out.push(line);
+  }
+  return out.join("\n");
+}
+
 function isDetailCandidate(target: ScrapeSource, candidateUrl: string): boolean {
+
   if (!candidateUrl || !/^https?:\/\//i.test(candidateUrl)) return false;
   // Never re-fetch the listing page itself.
   if (candidateUrl.replace(/\/+$/, "") === target.url.replace(/\/+$/, "")) return false;
@@ -331,9 +361,13 @@ async function scrapePortal(
     body: JSON.stringify({
       url: target.url,
       formats: ["markdown", "links"],
-      onlyMainContent: true,
+      // Whole-page read: on several portals (AU, SADC, Gavi, GCF, IsDB, AFD,
+      // SA eTenders) the tender table sits outside the "main content" region,
+      // so main-content-only reading returned an empty page.
+      onlyMainContent: false,
       waitFor: 5000,
     }),
+
   });
 
   const scrapeText = await scrapeRes.text();
@@ -361,7 +395,11 @@ async function scrapePortal(
     return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "Page content too short or empty" };
   }
 
-  const truncatedContent = markdown.substring(0, 15000);
+  // Trim chrome (skip-links, cookie notices, image-only lines, repeated nav
+  // blocks) BEFORE cutting, so long portals like SA eTenders don't lose their
+  // tender table to the truncation window.
+  const truncatedContent = trimPageChrome(markdown).substring(0, 45000);
+
 
   const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -849,18 +887,40 @@ serve(async (req) => {
         );
         results.push({ ...result, duration_ms: Date.now() - startTs });
 
-        // Update source health on success
+        // Success means opportunities were extracted from the page — not merely
+        // that the page returned HTTP 200. Rows that were deduped, expired or
+        // filtered as non-Africa still count: extraction worked.
+        const extracted = (result.rfps_found || 0) + (result.deduped || 0) +
+          (result.skipped_expired || 0) + (result.non_africa || 0);
+
         if (target.id !== "custom") {
-          await supabase.from("scrape_sources").update({
-            last_run_at: new Date().toISOString(),
-            last_success_at: new Date().toISOString(),
-            last_error: null,
-            consecutive_failures: 0,
-            auto_disabled_until: null,
-            total_runs: (await supabase.from("scrape_sources").select("total_runs, successful_runs").eq("id", target.id).single()).data?.total_runs as number + 1 || 1,
-            successful_runs: (await supabase.from("scrape_sources").select("successful_runs").eq("id", target.id).single()).data?.successful_runs as number + 1 || 1,
-          }).eq("id", target.id);
+          const { data: healthRow } = await supabase
+            .from("scrape_sources").select("total_runs, successful_runs").eq("id", target.id).single();
+          const totalRuns = ((healthRow?.total_runs as number) ?? 0) + 1;
+
+          if (extracted > 0) {
+            await supabase.from("scrape_sources").update({
+              last_run_at: new Date().toISOString(),
+              last_success_at: new Date().toISOString(),
+              last_error: null,
+              consecutive_failures: 0,
+              auto_disabled_until: null,
+              total_runs: totalRuns,
+              successful_runs: ((healthRow?.successful_runs as number) ?? 0) + 1,
+            }).eq("id", target.id);
+          } else {
+            // Page loaded but nothing extractable: record it as a failed run so
+            // dead sources stop reporting healthy. No auto-disable on this path
+            // — a portal can legitimately have an empty page for a day.
+            await supabase.from("scrape_sources").update({
+              last_run_at: new Date().toISOString(),
+              last_error: (result.error || "No opportunities extracted from page").slice(0, 500),
+              consecutive_failures: (target.consecutive_failures || 0) + 1,
+              total_runs: totalRuns,
+            }).eq("id", target.id);
+          }
         }
+
       } catch (portalError: unknown) {
         const msg = portalError instanceof Error ? portalError.message : "Unknown error";
         console.error(`Error scraping ${target.name}:`, msg);
