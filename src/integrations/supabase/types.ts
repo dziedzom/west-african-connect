@@ -673,6 +673,24 @@ export type Database = {
           },
         ]
       }
+      homepage_source_stats: {
+        Row: {
+          active_sources: number
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          active_sources?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          active_sources?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string
