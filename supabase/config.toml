@@ -9,6 +9,8 @@ project_id = "tjuunlzlspznabgldvjr"
     verify_jwt = false
   [functions.draft-proposal]
     verify_jwt = false
+  [functions.enrich-rfps]
+    verify_jwt = false
   [functions.generate-ai-insights]
     verify_jwt = false
   [functions.process-agent-rfp]

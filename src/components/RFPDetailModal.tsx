@@ -5,14 +5,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle, Trophy, Lock, ThumbsUp, ThumbsDown, HelpCircle, ListChecks, ShieldAlert, XCircle } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Building, Brain, TrendingUp, AlertTriangle, Trophy, Lock, ThumbsUp, ThumbsDown, HelpCircle, ListChecks, ShieldAlert, XCircle, FileText, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import OutcomeControl from "@/components/OutcomeControl";
 import { useOpportunityTracker } from "@/hooks/useOpportunityTracker";
-import type { RFP } from "@/types/rfp";
+import { formatRecordedValue, valueBasisLabel, type RFP } from "@/types/rfp";
 
 interface AIInsight {
   match_score: number;
@@ -269,6 +269,8 @@ const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
 
   if (!rfp) return null;
 
+  const recordedValue = formatRecordedValue(rfp);
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -289,13 +291,62 @@ const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <DollarSign className="h-4 w-4 text-accent" />
-                <span>{rfp.value}</span>
+                <span className="font-data">{recordedValue ?? "No value stated"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-accent" />
-                <span>Due: {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "N/A"}</span>
+                <span>Due: {rfp.deadline ? new Date(rfp.deadline).toLocaleDateString() : "Not stated"}</span>
               </div>
             </div>
+
+            {recordedValue && (
+              <div className="rounded-lg border border-border bg-secondary/40 p-3 space-y-1.5">
+                <p className="text-xs font-semibold text-foreground">
+                  {valueBasisLabel(rfp.value_basis) ?? "Stated value"} · <span className="font-data">{recordedValue}</span>
+                </p>
+                {rfp.value_evidence && (
+                  <p className="text-xs text-muted-foreground italic leading-relaxed">“{rfp.value_evidence}”</p>
+                )}
+                {rfp.value_source_url && (
+                  <a
+                    href={rfp.value_source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
+                  >
+                    <FileText className="h-3 w-3" /> Read it in the source document
+                  </a>
+                )}
+              </div>
+            )}
+
+            {(rfp.official_source_url || (rfp.document_urls && rfp.document_urls.length > 0)) && (
+              <div className="rounded-lg border border-border p-3 space-y-1.5">
+                <p className="text-xs font-semibold text-foreground">Official paperwork</p>
+                {rfp.official_source_url && (
+                  <a
+                    href={rfp.official_source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs text-accent hover:underline"
+                  >
+                    <ExternalLink className="h-3 w-3" /> Buyer’s own notice
+                  </a>
+                )}
+                {(rfp.document_urls || []).slice(0, 6).map((doc, i) => (
+                  <a
+                    key={doc}
+                    href={doc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs text-accent hover:underline"
+                  >
+                    <FileText className="h-3 w-3" /> Tender document {i + 1}
+                  </a>
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2">
               <Badge variant="secondary">{rfp.category}</Badge>
               {rfp.location && <Badge variant="outline" className="border-accent/30 text-accent">{rfp.location}</Badge>}
