@@ -117,6 +117,29 @@ function looksAfrican(text: string, host: string): boolean {
   return AFRICAN_TLDS.some((tld) => host.endsWith(tld));
 }
 
+const TLD_COUNTRY: Record<string, string> = {
+  ".gh": "Ghana", ".ng": "Nigeria", ".ke": "Kenya", ".ci": "Côte d'Ivoire", ".sn": "Senegal",
+  ".rw": "Rwanda", ".tz": "Tanzania", ".za": "South Africa", ".ug": "Uganda", ".zm": "Zambia",
+  ".et": "Ethiopia", ".mz": "Mozambique", ".zw": "Zimbabwe", ".bw": "Botswana", ".na": "Namibia",
+  ".mw": "Malawi", ".ma": "Morocco", ".tn": "Tunisia", ".eg": "Egypt", ".cm": "Cameroon",
+};
+
+/**
+ * The country a result is actually about — the query's country is only a search
+ * term, and search engines happily return neighbours. Never guess: fall back to
+ * null and let the enrichment pass read the real location off the notice.
+ */
+function detectCountry(text: string, host: string, queryCountry: string): string | null {
+  const t = text.toLowerCase();
+  if (t.includes(queryCountry.toLowerCase())) return queryCountry;
+  for (const [tld, name] of Object.entries(TLD_COUNTRY)) {
+    if (host.endsWith(tld)) return name;
+  }
+  const names = Object.values(TLD_COUNTRY);
+  const hit = names.find((n) => t.includes(n.toLowerCase()));
+  return hit ?? null;
+}
+
 async function sha256(text: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
