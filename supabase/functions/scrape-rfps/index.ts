@@ -365,7 +365,11 @@ async function scrapePortal(
     return { portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, error: "Page content too short or empty" };
   }
 
-  const truncatedContent = markdown.substring(0, 15000);
+  // Trim chrome (skip-links, cookie notices, image-only lines, repeated nav
+  // blocks) BEFORE cutting, so long portals like SA eTenders don't lose their
+  // tender table to the truncation window.
+  const truncatedContent = trimPageChrome(markdown).substring(0, 45000);
+
 
   const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
