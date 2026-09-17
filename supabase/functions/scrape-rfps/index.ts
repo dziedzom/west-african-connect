@@ -447,9 +447,11 @@ async function scrapePortal(
   for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
     const truncatedContent = chunks[chunkIndex];
     if (chunkIndex > 0) {
-      // Extra chunks are a bonus, never worth blowing the run budget for.
+      // Extra chunks are a bonus: never blow the run budget or the per-portal
+      // timeout for them — rows already extracted must be saved.
       if (Date.now() > runDeadlineMs - CHUNK_TIME_RESERVE_MS) break;
-      await new Promise((r) => setTimeout(r, 1000));
+      if (Date.now() - portalStartedMs > portalBudgetMs - CHUNK_TIME_RESERVE_MS) break;
+      await new Promise((r) => setTimeout(r, 500));
     }
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
