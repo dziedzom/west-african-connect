@@ -296,18 +296,26 @@ STRICT, NO INFERENCE: return the closing/submission/due/bid-deadline date as ISO
   return d.substring(0, 10);
 }
 
+// Pagination controls: numbered page links, page-of-page labels, and
+// first/last/next/previous arrows in any of the portal languages we read.
+// On e-GP portals these run to tens of thousands of characters and never
+// carry tender data, so they are stripped for every source by default.
+const PAGINATION_LINK_RE =
+  /\[\s*(?:(?:page|página|pagina|p\.|pg)\s*)?(?:\d{1,6}|[«»‹›]{1,2}|\.{2,3}|…|first|last|next|prev(?:ious)?|premier|dernier|suivant(?:e)?|pr[ée]c[ée]dent(?:e)?|primeir[ao]|[úu]ltim[ao]|pr[óo]xim[ao]|anterior)\s*\]\([^)]*\)/gi;
+const PAGINATION_LABEL_RE =
+  /\[\s*(?:page|página|pagina)\s+\d{1,6}(?:\s+(?:of|de|sur)\s+\d{1,6})?\s*\]\([^)]*\)/gi;
+// A line that is nothing but a number or an arrow is a pagination cell.
+const PAGINATION_ONLY_LINE_RE = /^[-*+•|\s]*(?:\d{1,6}|[«»‹›]{1,2}|\.{2,3}|…)[-*+•|\s]*$/;
+
 /**
- * Strip page chrome that eats the truncation budget without carrying tender
- * data. Deliberately conservative: link lines are kept, because on some
+ * Strip page chrome that eats the extraction budget without carrying tender
+ * data. Deliberately conservative: real link lines are kept, because on some
  * portals (e.g. AU bids) each opportunity IS a link.
  */
 function trimPageChrome(md: string): string {
   const seen = new Set<string>();
   const out: string[] = [];
-  // Pagination links ("[Page 12](...)", "[37](...)") can run to tens of
-  // thousands of characters on e-GP portals and push the notice table past the
-  // truncation window. They never carry tender data.
-  const cleaned = md.replace(/\[\s*(?:page\s*)?\d{1,5}\s*\]\([^)]*\)/gi, "");
+  const cleaned = md.replace(PAGINATION_LINK_RE, "").replace(PAGINATION_LABEL_RE, "");
   for (const raw of cleaned.split("\n")) {
     const line = raw.replace(/\s+$/, "");
     const bare = line.trim();
@@ -319,6 +327,7 @@ function trimPageChrome(md: string): string {
     if (/^!\[[^\]]*\]\([^)]*\)$/.test(bare)) continue; // image-only line
     if (/skip to (main )?content|skip to navigation/i.test(bare)) continue;
     if (/^(cookie|we use (some )?(essential )?cookies|accept all cookies)/i.test(bare)) continue;
+    if (PAGINATION_ONLY_LINE_RE.test(bare)) continue; // leftover pagination cell
     if (bare.length < 120) {
       const key = bare.toLowerCase().replace(/\W+/g, " ");
       if (seen.has(key)) continue; // repeated nav / menu entry
@@ -327,6 +336,26 @@ function trimPageChrome(md: string): string {
     out.push(line);
   }
   return out.join("\n");
+}
+
+/**
+ * Split trimmed page content into extraction windows on line boundaries, so a
+ * notice table that runs past one window is still read instead of cut away.
+ */
+function splitForExtraction(content: string): string[] {
+  if (content.length <= EXTRACTION_CHUNK_CHARS) return [content];
+  const chunks: string[] = [];
+  let current = "";
+  for (const line of content.split("\n")) {
+    if (current.length + line.length + 1 > EXTRACTION_CHUNK_CHARS && current) {
+      chunks.push(current);
+      if (chunks.length >= MAX_EXTRACTION_CHUNKS) return chunks;
+      current = "";
+    }
+    current += (current ? "\n" : "") + line.slice(0, EXTRACTION_CHUNK_CHARS);
+  }
+  if (current) chunks.push(current);
+  return chunks.slice(0, MAX_EXTRACTION_CHUNKS);
 }
 
 function isDetailCandidate(target: ScrapeSource, candidateUrl: string): boolean {
