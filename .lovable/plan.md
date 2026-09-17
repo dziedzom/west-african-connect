@@ -34,7 +34,11 @@ Rotation: a full cross-product would be 9 × 23 × 8 = over 1,600 queries. Inste
 
 **Individual tenders.** Each result that looks like a single notice goes into a review queue, then (on your approval) into `scraped_rfps` with `discovery_method = 'search'` — so you can compare search quality against scraped sources at any time. Extraction reuses the existing document deep-read pipeline: same value, deadline, summary and sector extraction, same Africa relevance check, same end-of-day deadline normalisation, same award-notice flagging.
 
-**Candidate sources — the valuable one.** Results are grouped by domain across runs. When a domain produces 3 or more distinct tender-looking results, it's surfaced as a candidate portal with: domain, how many hits, which queries found it, sample titles, first and last seen, and whether it's already in `scrape_sources`. You approve, dismiss, or add it to the scraper — approving creates the `scrape_sources` row with the sensible defaults and it joins the normal daily rotation.
+**Candidate sources — the valuable one.** Results are grouped by domain across runs and scored on **positive tender hits only**. The threshold is **2 hits for priority countries (Ghana first) and 3 elsewhere**, so a Ghanaian ministry publishing a couple of tenders a month surfaces within a week or two rather than months.
+
+Rejections never suppress the score. A ministry site that publishes tenders alongside news pages would otherwise accumulate negative marks from its news and never surface — which is exactly the portal you want. Rejected and "not a tender" results are still counted and shown next to the domain for your judgement, purely as information.
+
+Each candidate shows: domain, positive hits, rejected/not-a-tender counts, which queries found it, sample titles, first and last seen, and whether it's already in `scrape_sources`. You approve, dismiss, or add it to the scraper — approving creates the `scrape_sources` row with sensible defaults and it joins the normal daily rotation.
 
 ## 4. Guards
 
@@ -47,7 +51,7 @@ Rotation: a full cross-product would be 9 × 23 × 8 = over 1,600 queries. Inste
 
 New tab on the scrape admin page, two lists:
 
-- **Tenders found** — title, buyer, country, sector, deadline, value if extracted, the exact query that found it, the source domain, a link to the original page, and the extracted summary. Approve (publishes), reject with a reason (remembered, so the same URL isn't re-queued), or "not a tender" (which counts against that domain's candidate score).
+- **Tenders found** — title, buyer, country, sector, deadline, value if extracted, the exact query that found it, the source domain, a link to the original page, and the extracted summary. Approve (publishes), reject with a reason (remembered, so the same URL isn't re-queued), or "not a tender". Both rejection types are recorded for visibility only — neither reduces the domain's candidate score.
 - **Candidate portals** — as described above, with Add to scraper / Dismiss.
 
 Plus a run history strip: date, queries used, results, kept, duplicates, cost.
