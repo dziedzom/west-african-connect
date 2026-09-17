@@ -7,13 +7,13 @@ const corsHeaders = {
 const GATEWAY = "https://connector-gateway.lovable.dev/firecrawl/v2";
 const KW = /(tender|bid |invitation|procure|rfp|rfq|expression of interest|appel d'offre|avis|concurso|closing|deadline|submission)/gi;
 
-async function probe(url: string, keys: { lovable: string; fc: string }, render: boolean) {
+async function probe(url: string, keys: { lovable: string; fc: string }, render: boolean, main = false) {
   const started = Date.now();
   try {
     const body: Record<string, unknown> = {
       url,
       formats: ["markdown", "links"],
-      onlyMainContent: false,
+      onlyMainContent: main,
     };
     if (render) body.waitFor = 6000;
     const res = await fetch(`${GATEWAY}/scrape`, {
@@ -63,10 +63,10 @@ Deno.serve(async (req) => {
   const results = [];
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   for (const u of (urls as string[]).slice(0, 4)) {
-    let out = await probe(u, { lovable, fc }, render);
+    let out = await probe(u, { lovable, fc }, render, main);
     for (let i = 0; i < 3 && !out.ok && out.status === 429; i++) {
       await sleep(7000);
-      out = await probe(u, { lovable, fc }, render);
+      out = await probe(u, { lovable, fc }, render, main);
     }
     results.push(out);
     await sleep(6000);
