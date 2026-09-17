@@ -19,8 +19,8 @@ const PORTAL_SLEEP_MS = 1_000;
 const DETAIL_TIMEOUT_MS = 25_000;      // per detail page (fetch + extraction)
 const DETAIL_SLEEP_MS = 1_500;         // spacing to respect Firecrawl per-minute limits
 const DETAIL_TIME_RESERVE_MS = 20_000; // headroom kept for saving rows + cleanup
-const EXTRACTION_CHUNK_CHARS = 45_000; // one extraction window
-const MAX_EXTRACTION_CHUNKS = 3; // long notice lists (UNDP) run past one window
+const EXTRACTION_CHUNK_CHARS = 28_000; // smaller windows keep each extraction call fast
+const MAX_EXTRACTION_CHUNKS = 4; // long notice lists (UNDP) run well past one window
 const CHUNK_TIME_RESERVE_MS = 30_000; // stop reading extra chunks near the run ceiling
 const CHUNK_PORTAL_RESERVE_MS = 45_000; // a further window needs this much portal time left
 // Award / signature notices are records of a closed procurement, not something to bid on.
