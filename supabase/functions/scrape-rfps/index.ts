@@ -384,6 +384,8 @@ async function scrapePortal(
   runDeadlineMs: number = Date.now() + TIME_BUDGET_MS
 ): Promise<PortalResult> {
   console.log(`Scraping: ${target.name} - ${target.url}`);
+  const portalStartedMs = Date.now();
+  const portalBudgetMs = target.follow_detail_pages ? PORTAL_TIMEOUT_DETAIL_MS : PORTAL_TIMEOUT_MS;
 
   const scrapeRes = await fetch(`${FIRECRAWL_API}/scrape`, {
     method: "POST",
