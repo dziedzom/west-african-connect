@@ -381,6 +381,368 @@ export type Database = {
         }
         Relationships: []
       }
+      discovery_candidate_sources: {
+        Row: {
+          countries: string[]
+          created_at: string
+          domain: string
+          existing_source_id: string | null
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          not_tender_hits: number
+          positive_hits: number
+          queries: string[]
+          rejected_hits: number
+          review_note: string | null
+          review_state: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sample_titles: string[]
+          sample_urls: string[]
+          surfaced: boolean
+          threshold: number
+          updated_at: string
+        }
+        Insert: {
+          countries?: string[]
+          created_at?: string
+          domain: string
+          existing_source_id?: string | null
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          not_tender_hits?: number
+          positive_hits?: number
+          queries?: string[]
+          rejected_hits?: number
+          review_note?: string | null
+          review_state?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sample_titles?: string[]
+          sample_urls?: string[]
+          surfaced?: boolean
+          threshold?: number
+          updated_at?: string
+        }
+        Update: {
+          countries?: string[]
+          created_at?: string
+          domain?: string
+          existing_source_id?: string | null
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          not_tender_hits?: number
+          positive_hits?: number
+          queries?: string[]
+          rejected_hits?: number
+          review_note?: string | null
+          review_state?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sample_titles?: string[]
+          sample_urls?: string[]
+          surfaced?: boolean
+          threshold?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_candidate_sources_existing_source_id_fkey"
+            columns: ["existing_source_id"]
+            isOneToOne: false
+            referencedRelation: "scrape_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discovery_countries: {
+        Row: {
+          candidate_threshold: number
+          country: string
+          created_at: string
+          enabled: boolean
+          id: string
+          is_priority: boolean
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          candidate_threshold?: number
+          country: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          is_priority?: boolean
+          priority?: number
+          updated_at?: string
+        }
+        Update: {
+          candidate_threshold?: number
+          country?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          is_priority?: boolean
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      discovery_phrasings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          language: string
+          phrase: string
+          sort_order: number
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          language?: string
+          phrase: string
+          sort_order?: number
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          language?: string
+          phrase?: string
+          sort_order?: number
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      discovery_results: {
+        Row: {
+          country: string | null
+          created_at: string
+          domain: string
+          extracted: Json | null
+          id: string
+          phrasing: string | null
+          published_at: string | null
+          query_text: string
+          review_reason: string | null
+          review_state: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          rfp_id: string | null
+          run_id: string | null
+          sector: string | null
+          snippet: string | null
+          title: string
+          updated_at: string
+          url: string
+          verdict: string
+          verdict_reason: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          domain: string
+          extracted?: Json | null
+          id?: string
+          phrasing?: string | null
+          published_at?: string | null
+          query_text: string
+          review_reason?: string | null
+          review_state?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          rfp_id?: string | null
+          run_id?: string | null
+          sector?: string | null
+          snippet?: string | null
+          title: string
+          updated_at?: string
+          url: string
+          verdict?: string
+          verdict_reason?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          domain?: string
+          extracted?: Json | null
+          id?: string
+          phrasing?: string | null
+          published_at?: string | null
+          query_text?: string
+          review_reason?: string | null
+          review_state?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          rfp_id?: string | null
+          run_id?: string | null
+          sector?: string | null
+          snippet?: string | null
+          title?: string
+          updated_at?: string
+          url?: string
+          verdict?: string
+          verdict_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_results_rfp_id_fkey"
+            columns: ["rfp_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_rfps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_results_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "discovery_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discovery_runs: {
+        Row: {
+          candidates_surfaced: number
+          created_at: string
+          duplicates_dropped: number
+          error: string | null
+          est_read_cost_usd: number
+          est_search_cost_usd: number
+          excluded_dropped: number
+          finished_at: string | null
+          id: string
+          invoked_by: string
+          pages_read: number
+          queries_failed: number
+          queries_issued: number
+          results_kept: number
+          results_returned: number
+          rotation_cursor: number | null
+          started_at: string
+        }
+        Insert: {
+          candidates_surfaced?: number
+          created_at?: string
+          duplicates_dropped?: number
+          error?: string | null
+          est_read_cost_usd?: number
+          est_search_cost_usd?: number
+          excluded_dropped?: number
+          finished_at?: string | null
+          id?: string
+          invoked_by?: string
+          pages_read?: number
+          queries_failed?: number
+          queries_issued?: number
+          results_kept?: number
+          results_returned?: number
+          rotation_cursor?: number | null
+          started_at?: string
+        }
+        Update: {
+          candidates_surfaced?: number
+          created_at?: string
+          duplicates_dropped?: number
+          error?: string | null
+          est_read_cost_usd?: number
+          est_search_cost_usd?: number
+          excluded_dropped?: number
+          finished_at?: string | null
+          id?: string
+          invoked_by?: string
+          pages_read?: number
+          queries_failed?: number
+          queries_issued?: number
+          results_kept?: number
+          results_returned?: number
+          rotation_cursor?: number | null
+          started_at?: string
+        }
+        Relationships: []
+      }
+      discovery_sectors: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          sector: string
+          sort_order: number
+          synonyms: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          sector: string
+          sort_order?: number
+          synonyms?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          sector?: string
+          sort_order?: number
+          synonyms?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      discovery_state: {
+        Row: {
+          created_at: string
+          freshness: string
+          id: boolean
+          last_run_at: string | null
+          last_run_error: string | null
+          max_queries_per_run: number
+          paused: boolean
+          paused_reason: string | null
+          results_per_query: number
+          rotation_cursor: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          freshness?: string
+          id?: boolean
+          last_run_at?: string | null
+          last_run_error?: string | null
+          max_queries_per_run?: number
+          paused?: boolean
+          paused_reason?: string | null
+          results_per_query?: number
+          rotation_cursor?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          freshness?: string
+          id?: boolean
+          last_run_at?: string | null
+          last_run_error?: string | null
+          max_queries_per_run?: number
+          paused?: boolean
+          paused_reason?: string | null
+          results_per_query?: number
+          rotation_cursor?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       engagement_activities: {
         Row: {
           activity_date: string
@@ -1380,6 +1742,8 @@ export type Database = {
           deadline: string | null
           description: string | null
           description_source: string | null
+          discovery_method: string
+          discovery_result_id: string | null
           document_urls: string[]
           enriched_at: string | null
           enrichment_attempts: number
@@ -1420,6 +1784,8 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           description_source?: string | null
+          discovery_method?: string
+          discovery_result_id?: string | null
           document_urls?: string[]
           enriched_at?: string | null
           enrichment_attempts?: number
@@ -1460,6 +1826,8 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           description_source?: string | null
+          discovery_method?: string
+          discovery_result_id?: string | null
           document_urls?: string[]
           enriched_at?: string | null
           enrichment_attempts?: number
