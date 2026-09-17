@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
   if (!lovable || !fc) {
     return new Response(JSON.stringify({ error: "missing keys" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-  const { urls = [], render = false } = await req.json().catch(() => ({}));
+  const { urls = [], render = false, main = false } = await req.json().catch(() => ({}));
   const results = [];
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   for (const u of (urls as string[]).slice(0, 4)) {
