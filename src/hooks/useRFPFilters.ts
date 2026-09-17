@@ -26,8 +26,17 @@ const parseBudgetValue = (val: string | null): number | null => {
   return num;
 };
 
-export const CATEGORIES = ["All", "Pharma", "Transport", "Construction", "IT", "Agriculture", "Energy", "Consulting", "Health", "Education", "Environment", "Finance", "Water", "Mining", "Telecommunications"];
-export const LOCATIONS = ["All", "Ghana", "Nigeria", "Senegal", "Côte d'Ivoire", "Kenya", "South Africa", "Tanzania", "Uganda", "Rwanda", "Ethiopia", "Cameroon", "Egypt", "Morocco", "Mozambique", "Zambia", "Zimbabwe"];
+/** Builds a sorted "All" + distinct-values option list from the loaded rows. */
+const buildOptions = (values: (string | null | undefined)[]): string[] => {
+  const seen = new Map<string, string>();
+  for (const raw of values) {
+    const v = (raw || "").trim();
+    if (!v) continue;
+    const key = v.toLowerCase();
+    if (!seen.has(key)) seen.set(key, v);
+  }
+  return ["All", ...Array.from(seen.values()).sort((a, b) => a.localeCompare(b))];
+};
 
 const AFRICAN_COUNTRIES = new Set([
   "algeria", "angola", "benin", "botswana", "burkina faso", "burundi", "cameroon", "cape verde",
