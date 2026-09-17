@@ -7,6 +7,8 @@ project_id = "tjuunlzlspznabgldvjr"
     verify_jwt = false
   [functions.company-verification]
     verify_jwt = false
+  [functions.discover-search]
+    verify_jwt = false
   [functions.draft-proposal]
     verify_jwt = false
   [functions.enrich-rfps]
