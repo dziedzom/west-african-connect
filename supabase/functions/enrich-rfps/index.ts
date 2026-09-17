@@ -504,6 +504,7 @@ serve(async (req) => {
       processed,
       values_found: valuesFound,
       deadlines_recovered: deadlinesFound,
+      summaries_written: summariesFound,
       failed,
       rate_limited: rateLimitHits,
       was_probe: paused,
