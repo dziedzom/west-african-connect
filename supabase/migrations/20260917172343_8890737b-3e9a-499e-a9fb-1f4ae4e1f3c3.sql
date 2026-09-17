@@ -1,0 +1,3 @@
+
+UPDATE public.scrape_sources SET enabled=false, notes='2026-09-17 disabled: Business & Consultancy Opportunities page carries no notice list - open tenders redirect to an Oracle Fusion supplier portal that renders headers only (data loaded by in-app ajax, not readable). Revisit if a static list returns.' WHERE id='e3b9b78a-8882-4b43-851b-4d5d60a485c0';
+UPDATE public.scrape_sources SET notes='2026-09-17: repointed to /about/procurement. Page carries a Current tenders section but no notices are advertised today - empty, not broken. Kept enabled.' WHERE id='974ea1fd-812d-44a8-8590-5f8f840af014';
