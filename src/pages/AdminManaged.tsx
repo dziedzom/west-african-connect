@@ -17,11 +17,13 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ArrowLeft, Briefcase, Plus } from "lucide-react";
 import ProspectsPanel from "@/components/managed/ProspectsPanel";
+import SectorDemandPanel from "@/components/managed/SectorDemandPanel";
 import {
   ENGAGEMENT_STAGES,
   STAGE_LABELS,
   formatMoney,
   type EngagementStage,
+  type LiveListing,
 } from "@/lib/managed";
 import type { Engagement, EngagementCommission, Prospect } from "@/types/managed";
 
@@ -36,6 +38,7 @@ const AdminManaged = () => {
   const [commissions, setCommissions] = useState<EngagementCommission[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [rfps, setRfps] = useState<Record<string, RfpLite>>({});
+  const [liveListings, setLiveListings] = useState<LiveListing[]>([]);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [newCompany, setNewCompany] = useState("");
@@ -46,13 +49,21 @@ const AdminManaged = () => {
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
-    const [p, e, c, pr] = await Promise.all([
+    const [p, e, c, pr, live] = await Promise.all([
       supabase.from("prospects").select("*").order("created_at", { ascending: false }),
       supabase.from("engagements").select("*").order("updated_at", { ascending: false }),
       supabase.from("engagement_commissions").select("*"),
       supabase.from("profiles").select("user_id, company_name, email"),
+      supabase
+        .from("scraped_rfps")
+        .select("id, title, category, location, organization, deadline, status, source_url, value_amount, value_currency")
+        .in("status", ["open", "closing_soon"])
+        .eq("africa_relevant", true)
+        .order("deadline", { ascending: true, nullsFirst: false })
+        .limit(1000),
     ]);
     setProspects((p.data as Prospect[]) ?? []);
+    setLiveListings((live.data as LiveListing[]) ?? []);
     const engagementRows = (e.data as Engagement[]) ?? [];
     setEngagements(engagementRows);
     setCommissions((c.data as EngagementCommission[]) ?? []);
