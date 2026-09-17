@@ -1594,6 +1594,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_homepage_live_stats: {
+        Args: never
+        Returns: {
+          active_sources: number
+          countries_represented: number
+          live_opportunities: number
+          opportunities_with_recorded_value: number
+          total_recorded_value: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
