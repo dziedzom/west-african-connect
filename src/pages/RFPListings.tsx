@@ -88,9 +88,14 @@ const RFPListings = () => {
     const start = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, safeCurrentPage]);
-  // The value column only appears when the current results actually contain a
-  // recorded value read from an official document. No placeholders, no guesses.
-  const showRecordedValue = useMemo(() => filtered.some((rfp) => formatRecordedValue(rfp) !== null), [filtered]);
+  // Most published notices withhold the contract value, so the value column only
+  // earns its space when a meaningful share of the current results carry one.
+  // Below that threshold the figures fold into the row itself instead.
+  const recordedValueCount = useMemo(
+    () => filtered.filter((rfp) => formatRecordedValue(rfp) !== null).length,
+    [filtered]
+  );
+  const showRecordedValue = recordedValueCount >= Math.max(3, Math.ceil(filtered.length * 0.2));
 
   // Reset to page 1 when filters change
   const handleSearch = (v: string) => { setSearch(v); setCurrentPage(1); };
