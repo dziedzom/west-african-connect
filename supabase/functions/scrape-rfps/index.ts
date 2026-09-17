@@ -296,7 +296,37 @@ STRICT, NO INFERENCE: return the closing/submission/due/bid-deadline date as ISO
   return d.substring(0, 10);
 }
 
+/**
+ * Strip page chrome that eats the truncation budget without carrying tender
+ * data. Deliberately conservative: link lines are kept, because on some
+ * portals (e.g. AU bids) each opportunity IS a link.
+ */
+function trimPageChrome(md: string): string {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of md.split("\n")) {
+    const line = raw.replace(/\s+$/, "");
+    const bare = line.trim();
+    if (!bare) {
+      if (out.length && out[out.length - 1] === "") continue;
+      out.push("");
+      continue;
+    }
+    if (/^!\[[^\]]*\]\([^)]*\)$/.test(bare)) continue; // image-only line
+    if (/skip to (main )?content|skip to navigation/i.test(bare)) continue;
+    if (/^(cookie|we use (some )?(essential )?cookies|accept all cookies)/i.test(bare)) continue;
+    if (bare.length < 120) {
+      const key = bare.toLowerCase().replace(/\W+/g, " ");
+      if (seen.has(key)) continue; // repeated nav / menu entry
+      seen.add(key);
+    }
+    out.push(line);
+  }
+  return out.join("\n");
+}
+
 function isDetailCandidate(target: ScrapeSource, candidateUrl: string): boolean {
+
   if (!candidateUrl || !/^https?:\/\//i.test(candidateUrl)) return false;
   // Never re-fetch the listing page itself.
   if (candidateUrl.replace(/\/+$/, "") === target.url.replace(/\/+$/, "")) return false;
