@@ -1,7 +1,9 @@
-// Temporary diagnostic function: probes source URLs through Firecrawl and returns compact stats.
+// Admin-only diagnostic function: probes source URLs through Firecrawl and returns compact stats.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 const GATEWAY = "https://connector-gateway.lovable.dev/firecrawl/v2";
@@ -58,10 +60,33 @@ async function probe(url: string, keys: { lovable: string; fc: string }, render:
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+  // Auth: shared cron secret, or a signed-in admin. Never open to the public —
+  // this burns paid Firecrawl credits and can fetch arbitrary URLs.
+  const CRON_SECRET = Deno.env.get("SCRAPE_CRON_SECRET");
+  const isCron = !!CRON_SECRET && req.headers.get("x-cron-secret") === CRON_SECRET;
+  if (!isCron) {
+    const token = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
+    if (!token) return json({ error: "Unauthorized" }, 401);
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+    const { data: roleRow } = await supabase
+      .from("user_roles").select("role")
+      .eq("user_id", claimsData.claims.sub).eq("role", "admin").maybeSingle();
+    if (!roleRow) return json({ error: "Forbidden: admin role required" }, 403);
+  }
+
   const lovable = Deno.env.get("LOVABLE_API_KEY") ?? "";
   const fc = Deno.env.get("FIRECRAWL_API_KEY") ?? "";
   if (!lovable || !fc) {
-    return new Response(JSON.stringify({ error: "missing keys" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ error: "missing keys" }, 500);
   }
   const { urls = [], render = false, main = false, find = "" } = await req.json().catch(() => ({}));
   const results = [];
