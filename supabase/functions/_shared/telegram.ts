@@ -59,12 +59,20 @@ const DEFAULTS: TelegramSettings = {
   admin_base_url: "https://www.middlbrand.com",
 };
 
-/** Tolerant sector comparison — casing and partial labels both count. */
+/**
+ * Tolerant sector comparison: casing and partial labels count, but only on word
+ * boundaries — otherwise "Telecommunications" would match "Communications" and
+ * telecoms tenders would arrive as marketing work.
+ */
 export function sectorLike(a?: string | null, b?: string | null): boolean {
   const x = (a ?? "").toLowerCase().trim();
   const y = (b ?? "").toLowerCase().trim();
   if (!x || !y) return false;
-  return x === y || x.includes(y) || y.includes(x);
+  if (x === y) return true;
+  const bounded = (haystack: string, needle: string) =>
+    new RegExp(`(^|[^a-z0-9])${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z0-9]|$)`)
+      .test(haystack);
+  return bounded(x, y) || bounded(y, x);
 }
 
 /**
