@@ -146,7 +146,20 @@ export async function authorizeAiRequest(
     return { response: json({ error: "Your account profile is missing. Please contact support." }, 403, cors) };
   }
 
-  const pro = isProActive(profile);
+  // The admin role grants Pro-level access without a subscription record: the
+  // team runs managed engagements through the Bid Studio. Usage limits below
+  // still apply, so admin usage is metered like any other Pro account.
+  let adminGranted = false;
+  if (!isProActive(profile)) {
+    const { data: isAdmin, error: roleError } = await admin.rpc("has_role", {
+      _user_id: user.id,
+      _role: "admin",
+    });
+    if (roleError) console.error("entitlements: has_role check failed", roleError);
+    adminGranted = isAdmin === true;
+  }
+
+  const pro = isProActive(profile) || adminGranted;
   const tier: "free" | "pro" = pro ? "pro" : "free";
 
   if (!pro) {
