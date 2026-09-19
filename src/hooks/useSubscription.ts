@@ -10,10 +10,12 @@ export interface SubscriptionInfo {
   amount: number | null;
   loading: boolean;
   isPro: boolean;
+  /** True when Pro access comes from the admin role rather than a subscription. */
+  proViaAdmin: boolean;
 }
 
 export const useSubscription = (): SubscriptionInfo => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [info, setInfo] = useState<Omit<SubscriptionInfo, "loading" | "isPro">>({
     tier: "free",
     plan: null,
