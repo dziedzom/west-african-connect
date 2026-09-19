@@ -86,9 +86,15 @@ const TelegramAlertsPanel = () => {
     if (!settings) return;
     setBusy("save");
     const sectors = sectorText.split(",").map((s) => s.trim()).filter(Boolean);
+    const leadDays: Record<string, number> = {};
+    for (const part of leadText.split(",")) {
+      const [name, days] = part.split(":").map((x) => (x ?? "").trim());
+      if (name && days && Number.isFinite(Number(days))) leadDays[name] = Number(days);
+    }
     const { error } = await supabase.from("telegram_alert_settings").update({
       enabled: settings.enabled,
       min_days_to_deadline: Number(settings.min_days_to_deadline) || 14,
+      sector_lead_days: leadDays,
       max_messages_per_run: Number(settings.max_messages_per_run) || 12,
       priority_sectors: sectors,
       send_unknown_deadline: settings.send_unknown_deadline,
