@@ -42,7 +42,8 @@ const relative = (iso: string) => {
 
 const MUTES: Array<{ key: keyof Settings; label: string }> = [
   { key: "mute_prospect_match", label: "Prospect-matched tenders" },
-  { key: "mute_priority_sector", label: "Priority-sector tenders" },
+  { key: "mute_priority_sector", label: "Priority-sector tenders (search discovery)" },
+  { key: "mute_scraped_tender", label: "New tenders from the scraped portals" },
   { key: "mute_candidate_portal", label: "New candidate portals" },
   { key: "mute_scraper_alerts", label: "Scraper credential & heartbeat failures" },
 ];
