@@ -174,10 +174,23 @@ const AdminDashboard = () => {
     fetchAll();
   }, []);
 
-  // Revenue calculations
+  // Effective subscription status: the stored tier/plan alone doesn't say
+  // whether the plan is still within its paid period — apply the same
+  // end-date rule as the server gate (valid through the end of that day).
+  type EffectiveStatus = "pro" | "trial" | "expired" | "free";
+  const effectiveStatus = (p: Profile): EffectiveStatus => {
+    if (p.subscription_tier !== "pro") return "free";
+    const active = !p.subscription_end ||
+      new Date(`${p.subscription_end}T23:59:59.999Z`).getTime() >= Date.now();
+    if (!active) return "expired";
+    return p.subscription_plan ? "pro" : "trial";
+  };
+
+  // Revenue calculations — only currently-active paid plans count.
   const proProfiles = profiles.filter((p) => p.subscription_tier === "pro");
-  const monthlySubscribers = proProfiles.filter((p) => p.subscription_plan === "monthly");
-  const annualSubscribers = proProfiles.filter((p) => p.subscription_plan === "annual");
+  const activePaid = proProfiles.filter((p) => effectiveStatus(p) === "pro");
+  const monthlySubscribers = activePaid.filter((p) => p.subscription_plan === "monthly");
+  const annualSubscribers = activePaid.filter((p) => p.subscription_plan === "annual");
   const mrr = monthlySubscribers.length * 40 + annualSubscribers.length * 32;
   const totalSuccessFeesInvoiced = wonContracts.reduce((sum, c) => sum + (c.success_fee || 0), 0);
   const totalSuccessFeesPaid = wonContracts.filter((c) => c.fee_paid).reduce((sum, c) => sum + (c.success_fee || 0), 0);
@@ -261,9 +274,13 @@ const AdminDashboard = () => {
                         <TableCell className="font-medium">{p.company_name || "—"}</TableCell>
                         <TableCell>{p.email || "—"}</TableCell>
                         <TableCell>
-                          <Badge variant={p.subscription_tier === "pro" ? "default" : "secondary"}>
-                            {p.subscription_tier === "pro" ? `Pro (${p.subscription_plan || "—"})` : "Free"}
-                          </Badge>
+                          {(() => {
+                            const status = effectiveStatus(p);
+                            if (status === "pro") return <Badge variant="default">Pro ({p.subscription_plan})</Badge>;
+                            if (status === "trial") return <Badge variant="default">Trial (ends {p.subscription_end ? format(new Date(p.subscription_end), "MMM d, yyyy") : "—"})</Badge>;
+                            if (status === "expired") return <Badge variant="destructive">Expired ({p.subscription_end ? format(new Date(p.subscription_end), "MMM d, yyyy") : "—"})</Badge>;
+                            return <Badge variant="secondary">Free</Badge>;
+                          })()}
                         </TableCell>
                         <TableCell>{p.location || "—"}</TableCell>
                         <TableCell>{format(new Date(p.created_at), "MMM d, yyyy")}</TableCell>
@@ -364,7 +381,13 @@ const AdminDashboard = () => {
                           <TableCell>{p.subscription_start ? format(new Date(p.subscription_start), "MMM d, yyyy") : "—"}</TableCell>
                           <TableCell>{p.subscription_end ? format(new Date(p.subscription_end), "MMM d, yyyy") : "—"}</TableCell>
                           <TableCell>
-                            <Badge variant="default">Active</Badge>
+                            {(() => {
+                              const status = effectiveStatus(p);
+                              if (status === "pro") return <Badge variant="default">Active</Badge>;
+                              if (status === "trial") return <Badge variant="secondary">Trial</Badge>;
+                              if (status === "expired") return <Badge variant="destructive">Expired</Badge>;
+                              return <Badge variant="secondary">Free</Badge>;
+                            })()}
                           </TableCell>
                         </TableRow>
                       ))}
