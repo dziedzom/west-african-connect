@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { cleanTextField } from "../_shared/clean-field.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -124,10 +125,10 @@ Deno.serve(async (req) => {
     .insert({
       title,
       description,
-      budget: budget ?? null,
+      budget: cleanTextField(budget),
       category: "agent_sourced",
-      organization: organization ?? null,
-      location: location ?? null,
+      organization: cleanTextField(organization),
+      location: cleanTextField(location),
       deadline: normalizedDeadline,
       status,
       source_url: source_url ?? `agent://${crypto.randomUUID()}`,

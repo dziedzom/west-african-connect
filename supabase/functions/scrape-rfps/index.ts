@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert, detectAuthFailure } from "../_shared/scrape-alerts.ts";
+import { cleanTextField } from "../_shared/clean-field.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -613,6 +614,15 @@ Return ONLY valid JSON via the function call.`,
 
   for (const rfp of rfps) {
     if (!rfp.title || !rfp.source_url) continue;
+
+    // Models sometimes emit the *word* "null" (or "N/A", "-", "unknown") instead of a
+    // real absent value. Normalise every free-text field to a true null before it is
+    // used for relevance checks, hashing or storage.
+    for (const field of ["location", "organization", "category", "budget", "description"] as const) {
+      const cleaned = cleanTextField((rfp as Record<string, unknown>)[field]);
+      (rfp as Record<string, unknown>)[field] = cleaned;
+    }
+
 
     if (detailEnabled && !rfp.deadline && isDetailCandidate(target, rfp.source_url)) {
       if (detailAttempted >= detailCap) {

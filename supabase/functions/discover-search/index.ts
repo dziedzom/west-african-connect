@@ -13,6 +13,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert } from "../_shared/scrape-alerts.ts";
+import { cleanTextField } from "../_shared/clean-field.ts";
 import {
   escapeHtml,
   leadDaysForSector,
@@ -456,15 +457,15 @@ serve(async (req) => {
         .from("scraped_rfps")
         .insert({
           title: row.title,
-          description: row.snippet ?? null,
-          description_source: row.snippet ? "search_result" : null,
+          description: cleanTextField(row.snippet),
+          description_source: cleanTextField(row.snippet) ? "search_result" : null,
           source_url: row.url,
           official_source_url: row.url,
           portal: `Search: ${host}`,
           source_domain: host,
           source_category: "other",
-          category: row.sector ?? null,
-          location: row.country ?? null,
+          category: cleanTextField(row.sector),
+          location: cleanTextField(row.country),
           status: "open",
           africa_relevant: true,
           content_hash: await sha256(`${titleKey(row.title)}|${host}`),
