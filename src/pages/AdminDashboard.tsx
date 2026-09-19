@@ -274,9 +274,13 @@ const AdminDashboard = () => {
                         <TableCell className="font-medium">{p.company_name || "—"}</TableCell>
                         <TableCell>{p.email || "—"}</TableCell>
                         <TableCell>
-                          <Badge variant={p.subscription_tier === "pro" ? "default" : "secondary"}>
-                            {p.subscription_tier === "pro" ? `Pro (${p.subscription_plan || "—"})` : "Free"}
-                          </Badge>
+                          {(() => {
+                            const status = effectiveStatus(p);
+                            if (status === "pro") return <Badge variant="default">Pro ({p.subscription_plan})</Badge>;
+                            if (status === "trial") return <Badge variant="default">Trial (ends {p.subscription_end ? format(new Date(p.subscription_end), "MMM d, yyyy") : "—"})</Badge>;
+                            if (status === "expired") return <Badge variant="destructive">Expired ({p.subscription_end ? format(new Date(p.subscription_end), "MMM d, yyyy") : "—"})</Badge>;
+                            return <Badge variant="secondary">Free</Badge>;
+                          })()}
                         </TableCell>
                         <TableCell>{p.location || "—"}</TableCell>
                         <TableCell>{format(new Date(p.created_at), "MMM d, yyyy")}</TableCell>
