@@ -334,6 +334,13 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    if (action === "notify_new") {
+      const hours = Number(body.hours) > 0 ? Number(body.hours) : 24;
+      const result = await notifyScrapedTenders(supabase, hours);
+      return new Response(JSON.stringify({ success: true, action: "notify_new", hours, ...result }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "test_alert") {
       const alert = await sendScrapeAlert(supabase, {
         type: "test",
