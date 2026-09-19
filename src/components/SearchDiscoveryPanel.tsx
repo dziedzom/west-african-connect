@@ -182,7 +182,7 @@ const SearchDiscoveryPanel = () => {
           </p>
 
           {/* Candidate portals — the valuable output */}
-          <div className="mt-7">
+          <div className="mt-7" id="discovery-candidates">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Candidate portals</h3>
             {(status?.candidates.length ?? 0) === 0 ? (
               <p className="mt-2 text-sm text-muted-foreground">None yet. A domain surfaces once it produces enough positive tender hits.</p>
@@ -229,7 +229,7 @@ const SearchDiscoveryPanel = () => {
             ) : (
               <div className="mt-3 divide-y divide-border border border-border">
                 {status!.pending.map((r) => (
-                  <div key={r.id} className="p-4">
+                  <div key={r.id} id={`discovery-${r.id}`} className="scroll-mt-24 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium">{r.title}</p>

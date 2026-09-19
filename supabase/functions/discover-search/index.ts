@@ -13,6 +13,172 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert } from "../_shared/scrape-alerts.ts";
+import {
+  escapeHtml,
+  loadTelegramSettings,
+  parseDeadlineHint,
+  sendTelegram,
+  type TelegramSettings,
+} from "../_shared/telegram.ts";
+
+const ACTIVE_PROSPECT_STATUSES = ["new", "contacted", "interested", "engaged"];
+
+/** Tolerant sector comparison — casing and partial labels both count. */
+function sectorLike(a?: string | null, b?: string | null): boolean {
+  const x = (a ?? "").toLowerCase().trim();
+  const y = (b ?? "").toLowerCase().trim();
+  if (!x || !y) return false;
+  return x === y || x.includes(y) || y.includes(x);
+}
+
+function placeLike(a?: string | null, b?: string | null): boolean {
+  const x = (a ?? "").toLowerCase().trim();
+  const y = (b ?? "").toLowerCase().trim();
+  if (!x || !y) return false;
+  return x.includes(y) || y.includes(x);
+}
+
+function reviewLink(settings: TelegramSettings, resultId: string): string {
+  return `${settings.admin_base_url.replace(/\/+$/, "")}/scrape#discovery-${resultId}`;
+}
+
+function formatDeadline(iso: string | null): string {
+  if (!iso) return "not stated on the page";
+  return new Date(iso).toISOString().slice(0, 10);
+}
+
+interface NotifyOutcome {
+  prospect_matches: number;
+  priority_sector: number;
+  candidate_portals: number;
+  suppressed: number;
+}
+
+/**
+ * Pushes only what is worth a team's attention: tenders matching an active
+ * prospect's sector and country, priority-sector tenders with real lead time,
+ * and newly surfaced candidate portals. Everything else stays in the queue.
+ */
+async function notifyDiscoveries(
+  supabase: any,
+  runId: string,
+  newlySurfacedDomains: string[],
+): Promise<NotifyOutcome> {
+  const outcome: NotifyOutcome = {
+    prospect_matches: 0, priority_sector: 0, candidate_portals: 0, suppressed: 0,
+  };
+  const settings = await loadTelegramSettings(supabase);
+  if (!settings.enabled) return outcome;
+
+  // Candidate portals are rare and always worth seeing.
+  for (const domain of newlySurfacedDomains) {
+    const { data: cand } = await supabase
+      .from("discovery_candidate_sources").select("*").eq("domain", domain).maybeSingle();
+    if (!cand) continue;
+    const res = await sendTelegram(supabase, {
+      category: "candidate_portal",
+      key: `candidate:${domain}`,
+      subject: `New candidate portal: ${domain}`,
+      settings,
+      html: [
+        `🆕 <b>New candidate portal</b>`,
+        `<b>${escapeHtml(domain)}</b>`,
+        `Positive tender hits: ${cand.positive_hits}`,
+        cand.countries?.length ? `Countries: ${escapeHtml(cand.countries.join(", "))}` : "",
+        cand.sample_titles?.length
+          ? `Examples:\n${cand.sample_titles.slice(0, 3).map((t: string) => `• ${escapeHtml(t)}`).join("\n")}`
+          : "",
+        `\n<a href="${settings.admin_base_url.replace(/\/+$/, "")}/scrape#discovery-candidates">Review candidate portals</a>`,
+      ].filter(Boolean).join("\n"),
+    });
+    if (res.status === "sent") outcome.candidate_portals++;
+  }
+
+  const { data: results } = await supabase
+    .from("discovery_results").select("*")
+    .eq("run_id", runId).eq("review_state", "pending");
+  if (!results || results.length === 0) return outcome;
+
+  const { data: prospects } = await supabase
+    .from("prospects").select("company_name, sector, location, status")
+    .in("status", ACTIVE_PROSPECT_STATUSES);
+
+  const minMs = Date.now() + settings.min_days_to_deadline * 86_400_000;
+  const priority = (settings.priority_sectors ?? []).filter(Boolean);
+
+  type Queued = { category: "prospect_match" | "priority_sector"; row: any; html: string; subject: string };
+  const queue: Queued[] = [];
+
+  for (const row of results) {
+    const haystack = `${row.title ?? ""} ${row.snippet ?? ""}`;
+    const deadline = parseDeadlineHint(haystack);
+    const base = [
+      `<b>${escapeHtml(String(row.title ?? "").slice(0, 200))}</b>`,
+      `Buyer / source: ${escapeHtml(row.domain ?? "unknown")}`,
+      `Country: ${escapeHtml(row.country ?? "not detected")}`,
+      `Sector: ${escapeHtml(row.sector ?? "unclassified")}`,
+      `Deadline: ${formatDeadline(deadline)}`,
+      `\n<a href="${reviewLink(settings, row.id)}">Open in the review queue</a>`,
+      `<a href="${escapeHtml(row.url)}">Original notice</a>`,
+    ];
+
+    const match = (prospects ?? []).find((p: any) =>
+      sectorLike(row.sector, p.sector) &&
+      (placeLike(row.country, p.location) || placeLike(haystack, p.location))
+    );
+
+    if (match) {
+      queue.push({
+        category: "prospect_match",
+        row,
+        subject: `Prospect match for ${match.company_name}`,
+        html: [`🎯 <b>Matches prospect: ${escapeHtml(match.company_name)}</b>`, ...base].join("\n"),
+      });
+      continue;
+    }
+
+    const isPriority = priority.some((s) => sectorLike(row.sector, s));
+    const hasLeadTime = deadline
+      ? new Date(deadline).getTime() >= minMs
+      : settings.send_unknown_deadline;
+
+    if (isPriority && hasLeadTime) {
+      queue.push({
+        category: "priority_sector",
+        row,
+        subject: `Priority sector tender: ${row.sector ?? "unclassified"}`,
+        html: [`📌 <b>Priority sector opportunity</b>`, ...base].join("\n"),
+      });
+    } else {
+      outcome.suppressed++;
+    }
+  }
+
+  // Prospect matches first, then priority sectors, capped per run so a noisy
+  // day can never flood the channel.
+  queue.sort((a, b) => (a.category === b.category ? 0 : a.category === "prospect_match" ? -1 : 1));
+  let sent = 0;
+  for (const item of queue) {
+    if (sent >= settings.max_messages_per_run) {
+      outcome.suppressed++;
+      continue;
+    }
+    const res = await sendTelegram(supabase, {
+      category: item.category,
+      key: `result:${item.row.id}`,
+      subject: item.subject,
+      settings,
+      html: item.html,
+    });
+    if (res.status === "sent") {
+      sent++;
+      if (item.category === "prospect_match") outcome.prospect_matches++;
+      else outcome.priority_sector++;
+    }
+  }
+
+  return outcome;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -403,6 +569,21 @@ serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "test_telegram") {
+      const res = await sendTelegram(supabase, {
+        category: "test",
+        key: `test:${Date.now()}`,
+        subject: "MiddlBrand Telegram test",
+        ignoreMute: true,
+        html: [
+          "✅ <b>MiddlBrand alerts connected</b>",
+          "This group will receive: prospect-matched tenders, priority-sector tenders with lead time, new candidate portals, and scraper credential or heartbeat failures.",
+          "Thresholds and mute switches live in the admin settings.",
+        ].join("\n"),
+      });
+      return json({ ok: res.status === "sent", telegram: res });
+    }
+
     if (action === "resume") {
       await supabase.from("discovery_state")
         .update({ paused: false, paused_reason: null, last_run_error: null }).eq("id", true);
@@ -565,6 +746,7 @@ serve(async (req) => {
 
     // --- Candidate portals: positive hits only ---
     let surfaced = 0;
+    const newlySurfacedDomains: string[] = [];
     for (const [domain, c] of candidateTouch) {
       const { data: existingSource } = await supabase
         .from("scrape_sources").select("id").eq("domain", domain).maybeSingle();
@@ -574,7 +756,10 @@ serve(async (req) => {
       const positive = (prev?.positive_hits ?? 0) + c.hits;
       const threshold = Math.min(prev?.threshold ?? c.threshold, c.threshold);
       const nowSurfaced = !existingSource && positive >= threshold;
-      if (nowSurfaced && !prev?.surfaced) surfaced++;
+      if (nowSurfaced && !prev?.surfaced) {
+        surfaced++;
+        newlySurfacedDomains.push(domain);
+      }
 
       const merge = (a: string[] = [], b: string[] = [], n = 8) =>
         Array.from(new Set([...(a ?? []), ...b])).slice(0, n);
@@ -593,6 +778,12 @@ serve(async (req) => {
         last_seen_at: new Date().toISOString(),
       }, { onConflict: "domain" });
     }
+
+    const telegram = await notifyDiscoveries(supabase, runId, newlySurfacedDomains)
+      .catch((e) => {
+        console.error("Telegram notification failed", e);
+        return null;
+      });
 
     const nextCursor = cursor + 1;
     await supabase.from("discovery_runs").update({
@@ -635,6 +826,7 @@ serve(async (req) => {
       duplicates_dropped: dupes,
       excluded_dropped: excluded,
       candidates_surfaced: surfaced,
+      telegram,
       est_search_cost_usd: Number((queriesIssued * SEARCH_COST_PER_QUERY).toFixed(4)),
       paused: !!halted,
       error: halted,
