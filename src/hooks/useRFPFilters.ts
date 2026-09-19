@@ -49,9 +49,35 @@ const AFRICAN_COUNTRIES = new Set([
   "uganda", "zambia", "zimbabwe", "africa",
 ]);
 
+/** Accent-insensitive, punctuation-tolerant normalisation so "Côte d'Ivoire",
+ *  "Cote d'Ivoire", "Tanzania, United Republic of" and "Accra, Ghana" all resolve. */
+const normalisePlace = (raw: string): string =>
+  raw
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const NORMALISED_AFRICAN = new Set(Array.from(AFRICAN_COUNTRIES).map(normalisePlace));
+
 const isAfricanLocation = (location: string | null | undefined): boolean => {
   if (!location) return true; // No location = keep it (benefit of doubt)
-  return AFRICAN_COUNTRIES.has(location.toLowerCase().trim());
+  const norm = normalisePlace(location);
+  if (!norm || norm === "null" || norm === "n a" || norm === "unknown") return true;
+  if (NORMALISED_AFRICAN.has(norm)) return true;
+  // Compound values: "Tanzania, United Republic of", "Congo, Dem. Republic", "Accra, Ghana"
+  for (const part of norm.split(/\s+/).length > 1 ? location.split(/[,;/|]|\s-\s/) : []) {
+    const p = normalisePlace(part);
+    if (p && NORMALISED_AFRICAN.has(p)) return true;
+  }
+  // Country name appearing inside a longer string ("republic of the gambia")
+  for (const country of NORMALISED_AFRICAN) {
+    if (country.length < 4) continue;
+    if (norm === country || norm.includes(` ${country}`) || norm.startsWith(`${country} `)) return true;
+  }
+  return false;
 };
 export const BUDGET_BOUNDS = { min: BUDGET_MIN, max: BUDGET_MAX } as const;
 
