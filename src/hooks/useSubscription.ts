@@ -10,22 +10,27 @@ export interface SubscriptionInfo {
   amount: number | null;
   loading: boolean;
   isPro: boolean;
+  /** True when Pro access comes from the admin role rather than a subscription. */
+  proViaAdmin: boolean;
 }
 
 export const useSubscription = (): SubscriptionInfo => {
-  const { user } = useAuth();
-  const [info, setInfo] = useState<Omit<SubscriptionInfo, "loading" | "isPro">>({
+  const { user, isAdmin } = useAuth();
+  type State = Omit<SubscriptionInfo, "loading" | "isPro">;
+  const empty: State = {
     tier: "free",
     plan: null,
     start: null,
     end: null,
     amount: null,
-  });
+    proViaAdmin: false,
+  };
+  const [info, setInfo] = useState<State>(empty);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
-      setInfo({ tier: "free", plan: null, start: null, end: null, amount: null });
+      setInfo(empty);
       setLoading(false);
       return;
     }
@@ -39,22 +44,24 @@ export const useSubscription = (): SubscriptionInfo => {
 
       if (data) {
         // Matches the server-side check in supabase/functions/_shared/entitlements.ts:
-        // the plan stays valid through the end of the subscription_end day.
+        // the plan stays valid through the end of the subscription_end day, and
+        // the admin role grants Pro-level access on its own.
         const isActive = data.subscription_tier === "pro" &&
           (!data.subscription_end ||
             new Date(`${data.subscription_end}T23:59:59.999Z`).getTime() >= Date.now());
         setInfo({
-          tier: isActive ? "pro" : "free",
+          tier: isActive || isAdmin ? "pro" : "free",
           plan: data.subscription_plan as "monthly" | "annual" | null,
           start: data.subscription_start,
           end: data.subscription_end,
           amount: data.subscription_amount,
+          proViaAdmin: !isActive && isAdmin,
         });
       }
       setLoading(false);
     };
     fetch();
-  }, [user]);
+  }, [user, isAdmin]);
 
-  return { ...info, loading, isPro: info.tier === "pro" };
+  return { ...info, loading, isPro: info.tier === "pro", proViaAdmin: info.proViaAdmin };
 };

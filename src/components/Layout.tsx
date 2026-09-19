@@ -46,7 +46,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const { user, isAdmin } = useAuth();
-  const { isPro } = useSubscription();
+  const { isPro, proViaAdmin } = useSubscription();
 
   useEffect(() => {
     if (dark) {
@@ -99,7 +99,9 @@ const Navbar = () => {
             {user ? (
               <div className="flex items-center gap-1">
                 {isPro ? (
-                  <Badge className="text-[10px] bg-accent text-accent-foreground font-data">Pro</Badge>
+                  <Badge className="text-[10px] bg-accent text-accent-foreground font-data">
+                    {proViaAdmin ? "Pro · admin" : "Pro"}
+                  </Badge>
                 ) : (
                   <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">Free</Badge>
                 )}
