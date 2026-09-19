@@ -86,6 +86,7 @@ export interface AlertOutcome {
   email_status: string;
   email_to: string | null;
   email_error?: string;
+  telegram_status?: string;
 }
 
 export async function sendScrapeAlert(
@@ -147,7 +148,25 @@ export async function sendScrapeAlert(
     email_error: emailError?.slice(0, 500) ?? null,
   }).then(() => {}, () => {});
 
-  console.log(`[alert:${alert.type}] ${alert.subject} -> email ${emailStatus}`);
+  // Same alert, second channel. The key carries the throttle bucket so a daily
+  // heartbeat failure repeats daily instead of being deduped away forever.
+  let telegramStatus = "skipped";
+  if (!throttled) {
+    const bucketMinutes = Math.max(throttleMinutes, 1);
+    const bucket = Math.floor(Date.now() / (bucketMinutes * 60_000));
+    const tg = await sendTelegram(supabase, {
+      category: "scraper",
+      key: `${alert.key}:${bucket}`,
+      subject: alert.subject,
+      html: [
+        `${(alert.severity ?? "warning") === "critical" ? "🚨" : "⚠️"} <b>${escapeHtml(alert.subject)}</b>`,
+        `<pre>${escapeHtml(alert.detail.slice(0, 2500))}</pre>`,
+      ].join("\n"),
+    }).catch(() => ({ status: "failed" as const }));
+    telegramStatus = tg.status;
+  }
+
+  console.log(`[alert:${alert.type}] ${alert.subject} -> email ${emailStatus}, telegram ${telegramStatus}`);
 
   return {
     recorded: true,
@@ -155,6 +174,7 @@ export async function sendScrapeAlert(
     email_status: emailStatus,
     email_to: adminEmail,
     email_error: emailError ?? undefined,
+    telegram_status: telegramStatus,
   };
 }
 
