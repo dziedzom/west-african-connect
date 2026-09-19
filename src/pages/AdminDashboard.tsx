@@ -381,7 +381,13 @@ const AdminDashboard = () => {
                           <TableCell>{p.subscription_start ? format(new Date(p.subscription_start), "MMM d, yyyy") : "—"}</TableCell>
                           <TableCell>{p.subscription_end ? format(new Date(p.subscription_end), "MMM d, yyyy") : "—"}</TableCell>
                           <TableCell>
-                            <Badge variant="default">Active</Badge>
+                            {(() => {
+                              const status = effectiveStatus(p);
+                              if (status === "pro") return <Badge variant="default">Active</Badge>;
+                              if (status === "trial") return <Badge variant="secondary">Trial</Badge>;
+                              if (status === "expired") return <Badge variant="destructive">Expired</Badge>;
+                              return <Badge variant="secondary">Free</Badge>;
+                            })()}
                           </TableCell>
                         </TableRow>
                       ))}
