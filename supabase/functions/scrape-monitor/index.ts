@@ -1,6 +1,121 @@
+// deno-lint-ignore-file no-explicit-any
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert } from "../_shared/scrape-alerts.ts";
+import {
+  escapeHtml,
+  leadDaysForSector,
+  loadTelegramSettings,
+  sectorLike,
+  sendTelegram,
+} from "../_shared/telegram.ts";
+
+const ACTIVE_PROSPECT_STATUSES = ["new", "contacted", "interested", "engaged"];
+
+function placeLike(a?: string | null, b?: string | null): boolean {
+  const x = (a ?? "").toLowerCase().trim();
+  const y = (b ?? "").toLowerCase().trim();
+  if (!x || !y) return false;
+  return x.includes(y) || y.includes(x);
+}
+
+/**
+ * Telegram alerts for tenders found by the regular scraper (UNGM, UNDP, AfDB
+ * and the rest), matching the same rules as search discovery: an active
+ * prospect's sector and country, or a priority sector with enough lead time for
+ * that sector. Deduped per listing, so a listing is only ever pushed once.
+ */
+async function notifyScrapedTenders(supabase: any, hours: number) {
+  const outcome = { prospect_matches: 0, priority_sector: 0, suppressed: 0, considered: 0 };
+  const settings = await loadTelegramSettings(supabase);
+  if (!settings.enabled) return outcome;
+
+  const since = new Date(Date.now() - hours * 3600_000).toISOString();
+  const { data: rows } = await supabase
+    .from("scraped_rfps")
+    .select("id, title, organization, portal, location, category, deadline, source_url, created_at")
+    .eq("africa_relevant", true)
+    .not("is_award_notice", "is", true)
+    .in("status", ["open", "closing_soon"])
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (!rows || rows.length === 0) return outcome;
+  outcome.considered = rows.length;
+
+  const { data: prospects } = await supabase
+    .from("prospects").select("company_name, sector, location, status")
+    .in("status", ACTIVE_PROSPECT_STATUSES);
+
+  const priority = (settings.priority_sectors ?? []).filter(Boolean);
+  const base = settings.admin_base_url.replace(/\/+$/, "");
+
+  type Queued = { category: "prospect_match" | "priority_sector"; id: string; subject: string; html: string };
+  const queue: Queued[] = [];
+
+  for (const row of rows as any[]) {
+    const lines = [
+      `<b>${escapeHtml(String(row.title ?? "").slice(0, 200))}</b>`,
+      `Buyer: ${escapeHtml(row.organization ?? "not stated")}`,
+      `Source: ${escapeHtml(row.portal ?? "unknown")}`,
+      `Country: ${escapeHtml(row.location ?? "not stated")}`,
+      `Sector: ${escapeHtml(row.category ?? "unclassified")}`,
+      `Deadline: ${row.deadline ? new Date(row.deadline).toISOString().slice(0, 10) : "not stated"}`,
+      `\n<a href="${base}/rfps">Open the opportunities list</a>`,
+      row.source_url ? `<a href="${escapeHtml(row.source_url)}">Original notice</a>` : "",
+    ].filter(Boolean);
+
+    const match = (prospects ?? []).find((p: any) =>
+      sectorLike(row.category, p.sector) && placeLike(row.location, p.location)
+    );
+    if (match) {
+      queue.push({
+        category: "prospect_match",
+        id: row.id,
+        subject: `Prospect match for ${match.company_name}`,
+        html: [`🎯 <b>Matches prospect: ${escapeHtml(match.company_name)}</b>`, ...lines].join("\n"),
+      });
+      continue;
+    }
+
+    const isPriority = priority.some((s) => sectorLike(row.category, s));
+    const leadMs = Date.now() + leadDaysForSector(settings, row.category) * 86_400_000;
+    const hasLeadTime = row.deadline
+      ? new Date(row.deadline).getTime() >= leadMs
+      : settings.send_unknown_deadline;
+
+    if (isPriority && hasLeadTime) {
+      queue.push({
+        category: "priority_sector",
+        id: row.id,
+        subject: `Priority sector tender: ${row.category ?? "unclassified"}`,
+        html: [`📌 <b>New scraped opportunity</b>`, ...lines].join("\n"),
+      });
+    } else {
+      outcome.suppressed++;
+    }
+  }
+
+  queue.sort((a, b) => (a.category === b.category ? 0 : a.category === "prospect_match" ? -1 : 1));
+  let sent = 0;
+  for (const item of queue) {
+    if (sent >= settings.max_messages_per_run) { outcome.suppressed++; continue; }
+    const res = await sendTelegram(supabase, {
+      category: "scraped_tender",
+      key: `rfp:${item.id}`,
+      subject: item.subject,
+      settings,
+      html: item.html,
+    });
+    if (res.status === "sent") {
+      sent++;
+      if (item.category === "prospect_match") outcome.prospect_matches++;
+      else outcome.priority_sector++;
+    }
+  }
+
+  return outcome;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -216,6 +331,13 @@ serve(async (req) => {
       }
 
       return new Response(JSON.stringify({ success: true, action: "auth_alert", failures: authRows?.length ?? 0, alert }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "notify_new") {
+      const hours = Number(body.hours) > 0 ? Number(body.hours) : 24;
+      const result = await notifyScrapedTenders(supabase, hours);
+      return new Response(JSON.stringify({ success: true, action: "notify_new", hours, ...result }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

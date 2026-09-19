@@ -12,7 +12,9 @@ interface Settings {
   enabled: boolean;
   chat_id: string | null;
   min_days_to_deadline: number;
+  sector_lead_days: Record<string, number> | null;
   priority_sectors: string[];
+  mute_scraped_tender: boolean;
   send_unknown_deadline: boolean;
   mute_prospect_match: boolean;
   mute_priority_sector: boolean;
@@ -40,7 +42,8 @@ const relative = (iso: string) => {
 
 const MUTES: Array<{ key: keyof Settings; label: string }> = [
   { key: "mute_prospect_match", label: "Prospect-matched tenders" },
-  { key: "mute_priority_sector", label: "Priority-sector tenders" },
+  { key: "mute_priority_sector", label: "Priority-sector tenders (search discovery)" },
+  { key: "mute_scraped_tender", label: "New tenders from the scraped portals" },
   { key: "mute_candidate_portal", label: "New candidate portals" },
   { key: "mute_scraper_alerts", label: "Scraper credential & heartbeat failures" },
 ];
@@ -49,6 +52,7 @@ const TelegramAlertsPanel = () => {
   const { toast } = useToast();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [sectorText, setSectorText] = useState("");
+  const [leadText, setLeadText] = useState("");
   const [log, setLog] = useState<LogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -65,6 +69,10 @@ const TelegramAlertsPanel = () => {
     } else if (s.data) {
       setSettings(s.data as unknown as Settings);
       setSectorText(((s.data as unknown as Settings).priority_sectors ?? []).join(", "));
+      setLeadText(
+        Object.entries((s.data as unknown as Settings).sector_lead_days ?? {})
+          .map(([k, v]) => `${k}: ${v}`).join(", "),
+      );
     }
     setLog((l.data ?? []) as LogRow[]);
     setLoading(false);
@@ -78,15 +86,22 @@ const TelegramAlertsPanel = () => {
     if (!settings) return;
     setBusy("save");
     const sectors = sectorText.split(",").map((s) => s.trim()).filter(Boolean);
+    const leadDays: Record<string, number> = {};
+    for (const part of leadText.split(",")) {
+      const [name, days] = part.split(":").map((x) => (x ?? "").trim());
+      if (name && days && Number.isFinite(Number(days))) leadDays[name] = Number(days);
+    }
     const { error } = await supabase.from("telegram_alert_settings").update({
       enabled: settings.enabled,
       min_days_to_deadline: Number(settings.min_days_to_deadline) || 14,
+      sector_lead_days: leadDays,
       max_messages_per_run: Number(settings.max_messages_per_run) || 12,
       priority_sectors: sectors,
       send_unknown_deadline: settings.send_unknown_deadline,
       mute_prospect_match: settings.mute_prospect_match,
       mute_priority_sector: settings.mute_priority_sector,
       mute_candidate_portal: settings.mute_candidate_portal,
+      mute_scraped_tender: settings.mute_scraped_tender,
       mute_scraper_alerts: settings.mute_scraper_alerts,
       admin_base_url: settings.admin_base_url,
       chat_id: settings.chat_id?.trim() || null,
@@ -152,7 +167,7 @@ const TelegramAlertsPanel = () => {
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
-              <Label className="text-xs text-muted-foreground">Minimum days before deadline</Label>
+              <Label className="text-xs text-muted-foreground">Minimum days before deadline (default for all sectors)</Label>
               <Input type="number" min={0} className="mt-1 h-9" value={settings.min_days_to_deadline}
                 onChange={(e) => patch({ min_days_to_deadline: Number(e.target.value) })} />
             </div>
@@ -164,6 +179,12 @@ const TelegramAlertsPanel = () => {
             <div className="md:col-span-2">
               <Label className="text-xs text-muted-foreground">Priority sectors (comma separated)</Label>
               <Input className="mt-1 h-9" value={sectorText} onChange={(e) => setSectorText(e.target.value)} />
+            </div>
+            <div className="md:col-span-2">
+              <Label className="text-xs text-muted-foreground">
+                Per-sector days before deadline (overrides the default) — e.g. Marketing: 3, Events: 3
+              </Label>
+              <Input className="mt-1 h-9" value={leadText} onChange={(e) => setLeadText(e.target.value)} />
             </div>
             <div className="md:col-span-2">
               <Label className="text-xs text-muted-foreground">Review link base address</Label>

@@ -1965,8 +1965,10 @@ export type Database = {
           mute_candidate_portal: boolean
           mute_priority_sector: boolean
           mute_prospect_match: boolean
+          mute_scraped_tender: boolean
           mute_scraper_alerts: boolean
           priority_sectors: string[]
+          sector_lead_days: Json
           send_unknown_deadline: boolean
           updated_at: string
         }
@@ -1981,8 +1983,10 @@ export type Database = {
           mute_candidate_portal?: boolean
           mute_priority_sector?: boolean
           mute_prospect_match?: boolean
+          mute_scraped_tender?: boolean
           mute_scraper_alerts?: boolean
           priority_sectors?: string[]
+          sector_lead_days?: Json
           send_unknown_deadline?: boolean
           updated_at?: string
         }
@@ -1997,8 +2001,10 @@ export type Database = {
           mute_candidate_portal?: boolean
           mute_priority_sector?: boolean
           mute_prospect_match?: boolean
+          mute_scraped_tender?: boolean
           mute_scraper_alerts?: boolean
           priority_sectors?: string[]
+          sector_lead_days?: Json
           send_unknown_deadline?: boolean
           updated_at?: string
         }

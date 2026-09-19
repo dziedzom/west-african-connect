@@ -15,21 +15,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert } from "../_shared/scrape-alerts.ts";
 import {
   escapeHtml,
+  leadDaysForSector,
   loadTelegramSettings,
   parseDeadlineHint,
+  sectorLike,
   sendTelegram,
   type TelegramSettings,
 } from "../_shared/telegram.ts";
 
 const ACTIVE_PROSPECT_STATUSES = ["new", "contacted", "interested", "engaged"];
 
-/** Tolerant sector comparison — casing and partial labels both count. */
-function sectorLike(a?: string | null, b?: string | null): boolean {
-  const x = (a ?? "").toLowerCase().trim();
-  const y = (b ?? "").toLowerCase().trim();
-  if (!x || !y) return false;
-  return x === y || x.includes(y) || y.includes(x);
-}
 
 function placeLike(a?: string | null, b?: string | null): boolean {
   const x = (a ?? "").toLowerCase().trim();
@@ -103,7 +98,6 @@ async function notifyDiscoveries(
     .from("prospects").select("company_name, sector, location, status")
     .in("status", ACTIVE_PROSPECT_STATUSES);
 
-  const minMs = Date.now() + settings.min_days_to_deadline * 86_400_000;
   const priority = (settings.priority_sectors ?? []).filter(Boolean);
 
   type Queued = { category: "prospect_match" | "priority_sector"; row: any; html: string; subject: string };
@@ -138,8 +132,9 @@ async function notifyDiscoveries(
     }
 
     const isPriority = priority.some((s) => sectorLike(row.sector, s));
+    const leadMs = Date.now() + leadDaysForSector(settings, row.sector) * 86_400_000;
     const hasLeadTime = deadline
-      ? new Date(deadline).getTime() >= minMs
+      ? new Date(deadline).getTime() >= leadMs
       : settings.send_unknown_deadline;
 
     if (isPriority && hasLeadTime) {
