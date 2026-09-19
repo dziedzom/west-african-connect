@@ -18,6 +18,7 @@ import {
   leadDaysForSector,
   loadTelegramSettings,
   parseDeadlineHint,
+  sectorLike,
   sendTelegram,
   type TelegramSettings,
 } from "../_shared/telegram.ts";
