@@ -779,6 +779,12 @@ serve(async (req) => {
       }, { onConflict: "domain" });
     }
 
+    const telegram = await notifyDiscoveries(supabase, runId, newlySurfacedDomains)
+      .catch((e) => {
+        console.error("Telegram notification failed", e);
+        return null;
+      });
+
     const nextCursor = cursor + 1;
     await supabase.from("discovery_runs").update({
       finished_at: new Date().toISOString(),
@@ -820,6 +826,7 @@ serve(async (req) => {
       duplicates_dropped: dupes,
       excluded_dropped: excluded,
       candidates_surfaced: surfaced,
+      telegram,
       est_search_cost_usd: Number((queriesIssued * SEARCH_COST_PER_QUERY).toFixed(4)),
       paused: !!halted,
       error: halted,
