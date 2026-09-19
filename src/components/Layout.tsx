@@ -46,7 +46,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const { user, isAdmin } = useAuth();
-  const { isPro } = useSubscription();
+  const { isPro, proViaAdmin } = useSubscription();
 
   useEffect(() => {
     if (dark) {
