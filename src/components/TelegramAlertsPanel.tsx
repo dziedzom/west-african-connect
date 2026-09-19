@@ -101,6 +101,7 @@ const TelegramAlertsPanel = () => {
       mute_prospect_match: settings.mute_prospect_match,
       mute_priority_sector: settings.mute_priority_sector,
       mute_candidate_portal: settings.mute_candidate_portal,
+      mute_scraped_tender: settings.mute_scraped_tender,
       mute_scraper_alerts: settings.mute_scraper_alerts,
       admin_base_url: settings.admin_base_url,
       chat_id: settings.chat_id?.trim() || null,
