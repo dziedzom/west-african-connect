@@ -24,13 +24,6 @@ import {
 
 const ACTIVE_PROSPECT_STATUSES = ["new", "contacted", "interested", "engaged"];
 
-/** Tolerant sector comparison — casing and partial labels both count. */
-function sectorLike(a?: string | null, b?: string | null): boolean {
-  const x = (a ?? "").toLowerCase().trim();
-  const y = (b ?? "").toLowerCase().trim();
-  if (!x || !y) return false;
-  return x === y || x.includes(y) || y.includes(x);
-}
 
 function placeLike(a?: string | null, b?: string | null): boolean {
   const x = (a ?? "").toLowerCase().trim();
