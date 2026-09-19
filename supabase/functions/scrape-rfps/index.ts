@@ -24,9 +24,7 @@ const MAX_EXTRACTION_CHUNKS = 4; // long notice lists (UNDP) run well past one w
 const CHUNK_TIME_RESERVE_MS = 30_000; // stop reading extra chunks near the run ceiling
 const CHUNK_PORTAL_RESERVE_MS = 45_000; // a further window needs this much portal time left
 // Award / signature notices are records of a closed procurement, not something to bid on.
-import { cleanTextField } from "../_shared/clean-field.ts";
-
-const AWARD_NOTICE_RE =   /\b(contract award|award notice|notice of award|awarded contract|contract signature|attribution du march|avis d.attribution)\b/i;
+const AWARD_NOTICE_RE = /\b(contract award|award notice|notice of award|awarded contract|contract signature|attribution du march|avis d.attribution)\b/i;
 const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more room
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
