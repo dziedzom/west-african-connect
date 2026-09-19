@@ -13,6 +13,7 @@ export type TelegramCategory =
   | "prospect_match"
   | "priority_sector"
   | "candidate_portal"
+  | "scraped_tender"
   | "scraper"
   | "test";
 
@@ -20,6 +21,7 @@ const MUTE_COLUMN: Record<TelegramCategory, string | null> = {
   prospect_match: "mute_prospect_match",
   priority_sector: "mute_priority_sector",
   candidate_portal: "mute_candidate_portal",
+  scraped_tender: "mute_scraped_tender",
   scraper: "mute_scraper_alerts",
   test: null,
 };
@@ -28,11 +30,14 @@ export interface TelegramSettings {
   enabled: boolean;
   chat_id: string | null;
   min_days_to_deadline: number;
+  /** Per-sector override of the lead-time rule, e.g. { "Marketing": 3 }. */
+  sector_lead_days: Record<string, number>;
   priority_sectors: string[];
   send_unknown_deadline: boolean;
   mute_prospect_match: boolean;
   mute_priority_sector: boolean;
   mute_candidate_portal: boolean;
+  mute_scraped_tender: boolean;
   mute_scraper_alerts: boolean;
   max_messages_per_run: number;
   admin_base_url: string;
@@ -42,15 +47,41 @@ const DEFAULTS: TelegramSettings = {
   enabled: true,
   chat_id: null,
   min_days_to_deadline: 14,
+  sector_lead_days: {},
   priority_sectors: [],
   send_unknown_deadline: false,
   mute_prospect_match: false,
   mute_priority_sector: false,
   mute_candidate_portal: false,
+  mute_scraped_tender: false,
   mute_scraper_alerts: false,
   max_messages_per_run: 12,
   admin_base_url: "https://www.middlbrand.com",
 };
+
+/** Tolerant sector comparison — casing and partial labels both count. */
+export function sectorLike(a?: string | null, b?: string | null): boolean {
+  const x = (a ?? "").toLowerCase().trim();
+  const y = (b ?? "").toLowerCase().trim();
+  if (!x || !y) return false;
+  return x === y || x.includes(y) || y.includes(x);
+}
+
+/**
+ * Lead time required for a sector. Short-window sectors (UN marketing and
+ * communications work routinely posts under two weeks out) can be set lower
+ * than the global default without a deploy.
+ */
+export function leadDaysForSector(
+  settings: TelegramSettings,
+  sector?: string | null,
+): number {
+  const overrides = settings.sector_lead_days ?? {};
+  for (const [key, days] of Object.entries(overrides)) {
+    if (sectorLike(sector, key) && Number.isFinite(Number(days))) return Number(days);
+  }
+  return settings.min_days_to_deadline;
+}
 
 export async function loadTelegramSettings(
   supabase: SupabaseClient,
