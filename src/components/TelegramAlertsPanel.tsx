@@ -52,6 +52,7 @@ const TelegramAlertsPanel = () => {
   const { toast } = useToast();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [sectorText, setSectorText] = useState("");
+  const [leadText, setLeadText] = useState("");
   const [log, setLog] = useState<LogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
