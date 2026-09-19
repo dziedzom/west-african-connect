@@ -104,7 +104,6 @@ async function notifyDiscoveries(
     .from("prospects").select("company_name, sector, location, status")
     .in("status", ACTIVE_PROSPECT_STATUSES);
 
-  const minMs = Date.now() + settings.min_days_to_deadline * 86_400_000;
   const priority = (settings.priority_sectors ?? []).filter(Boolean);
 
   type Queued = { category: "prospect_match" | "priority_sector"; row: any; html: string; subject: string };
