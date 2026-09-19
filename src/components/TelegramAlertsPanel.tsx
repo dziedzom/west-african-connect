@@ -167,7 +167,7 @@ const TelegramAlertsPanel = () => {
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
-              <Label className="text-xs text-muted-foreground">Minimum days before deadline</Label>
+              <Label className="text-xs text-muted-foreground">Minimum days before deadline (default for all sectors)</Label>
               <Input type="number" min={0} className="mt-1 h-9" value={settings.min_days_to_deadline}
                 onChange={(e) => patch({ min_days_to_deadline: Number(e.target.value) })} />
             </div>
