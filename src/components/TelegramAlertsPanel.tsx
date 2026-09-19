@@ -12,7 +12,9 @@ interface Settings {
   enabled: boolean;
   chat_id: string | null;
   min_days_to_deadline: number;
+  sector_lead_days: Record<string, number> | null;
   priority_sectors: string[];
+  mute_scraped_tender: boolean;
   send_unknown_deadline: boolean;
   mute_prospect_match: boolean;
   mute_priority_sector: boolean;
