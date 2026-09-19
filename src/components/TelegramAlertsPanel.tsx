@@ -69,6 +69,10 @@ const TelegramAlertsPanel = () => {
     } else if (s.data) {
       setSettings(s.data as unknown as Settings);
       setSectorText(((s.data as unknown as Settings).priority_sectors ?? []).join(", "));
+      setLeadText(
+        Object.entries((s.data as unknown as Settings).sector_lead_days ?? {})
+          .map(([k, v]) => `${k}: ${v}`).join(", "),
+      );
     }
     setLog((l.data ?? []) as LogRow[]);
     setLoading(false);
