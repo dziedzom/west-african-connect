@@ -15,6 +15,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert } from "../_shared/scrape-alerts.ts";
 import {
   escapeHtml,
+  leadDaysForSector,
   loadTelegramSettings,
   parseDeadlineHint,
   sendTelegram,
