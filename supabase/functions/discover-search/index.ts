@@ -138,8 +138,9 @@ async function notifyDiscoveries(
     }
 
     const isPriority = priority.some((s) => sectorLike(row.sector, s));
+    const leadMs = Date.now() + leadDaysForSector(settings, row.sector) * 86_400_000;
     const hasLeadTime = deadline
-      ? new Date(deadline).getTime() >= minMs
+      ? new Date(deadline).getTime() >= leadMs
       : settings.send_unknown_deadline;
 
     if (isPriority && hasLeadTime) {
