@@ -1,0 +1,1 @@
+DROP POLICY "Anyone can view open, unexpired rfps" ON public.rfps_deprecated_20260914;
