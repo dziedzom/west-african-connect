@@ -24,21 +24,9 @@ const MAX_EXTRACTION_CHUNKS = 4; // long notice lists (UNDP) run well past one w
 const CHUNK_TIME_RESERVE_MS = 30_000; // stop reading extra chunks near the run ceiling
 const CHUNK_PORTAL_RESERVE_MS = 45_000; // a further window needs this much portal time left
 // Award / signature notices are records of a closed procurement, not something to bid on.
-/** Placeholder words an extraction model emits when a field is genuinely absent. */
-const EMPTY_FIELD_VALUES = new Set([
-  "", "null", "none", "n/a", "na", "n.a.", "-", "--", "undefined", "nil", "not specified",
-  "not available", "unknown", "unspecified", "tbd", "to be determined", "no data",
-]);
+import { cleanTextField } from "../_shared/clean-field.ts";
 
-/** Returns a trimmed string, or null when the value is absent or a placeholder word. */
-export function cleanTextField(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  if (EMPTY_FIELD_VALUES.has(trimmed.toLowerCase().replace(/\s+/g, " "))) return null;
-  return trimmed;
-}
-
-const AWARD_NOTICE_RE =  /\b(contract award|award notice|notice of award|awarded contract|contract signature|attribution du march|avis d.attribution)\b/i;
+const AWARD_NOTICE_RE =   /\b(contract award|award notice|notice of award|awarded contract|contract signature|attribution du march|avis d.attribution)\b/i;
 const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more room
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
