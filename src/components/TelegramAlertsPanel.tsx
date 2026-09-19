@@ -181,6 +181,12 @@ const TelegramAlertsPanel = () => {
               <Input className="mt-1 h-9" value={sectorText} onChange={(e) => setSectorText(e.target.value)} />
             </div>
             <div className="md:col-span-2">
+              <Label className="text-xs text-muted-foreground">
+                Per-sector days before deadline (overrides the default) — e.g. Marketing: 3, Events: 3
+              </Label>
+              <Input className="mt-1 h-9" value={leadText} onChange={(e) => setLeadText(e.target.value)} />
+            </div>
+            <div className="md:col-span-2">
               <Label className="text-xs text-muted-foreground">Review link base address</Label>
               <Input className="mt-1 h-9" value={settings.admin_base_url}
                 onChange={(e) => patch({ admin_base_url: e.target.value })} />
