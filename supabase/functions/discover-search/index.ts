@@ -569,6 +569,21 @@ serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "test_telegram") {
+      const res = await sendTelegram(supabase, {
+        category: "test",
+        key: `test:${Date.now()}`,
+        subject: "MiddlBrand Telegram test",
+        ignoreMute: true,
+        html: [
+          "✅ <b>MiddlBrand alerts connected</b>",
+          "This group will receive: prospect-matched tenders, priority-sector tenders with lead time, new candidate portals, and scraper credential or heartbeat failures.",
+          "Thresholds and mute switches live in the admin settings.",
+        ].join("\n"),
+      });
+      return json({ ok: res.status === "sent", telegram: res });
+    }
+
     if (action === "resume") {
       await supabase.from("discovery_state")
         .update({ paused: false, paused_reason: null, last_run_error: null }).eq("id", true);
@@ -731,6 +746,7 @@ serve(async (req) => {
 
     // --- Candidate portals: positive hits only ---
     let surfaced = 0;
+    const newlySurfacedDomains: string[] = [];
     for (const [domain, c] of candidateTouch) {
       const { data: existingSource } = await supabase
         .from("scrape_sources").select("id").eq("domain", domain).maybeSingle();
@@ -740,7 +756,10 @@ serve(async (req) => {
       const positive = (prev?.positive_hits ?? 0) + c.hits;
       const threshold = Math.min(prev?.threshold ?? c.threshold, c.threshold);
       const nowSurfaced = !existingSource && positive >= threshold;
-      if (nowSurfaced && !prev?.surfaced) surfaced++;
+      if (nowSurfaced && !prev?.surfaced) {
+        surfaced++;
+        newlySurfacedDomains.push(domain);
+      }
 
       const merge = (a: string[] = [], b: string[] = [], n = 8) =>
         Array.from(new Set([...(a ?? []), ...b])).slice(0, n);
