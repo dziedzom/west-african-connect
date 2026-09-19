@@ -1920,6 +1920,90 @@ export type Database = {
           },
         ]
       }
+      telegram_alert_log: {
+        Row: {
+          alert_key: string
+          category: string
+          chat_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          alert_key: string
+          category: string
+          chat_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          alert_key?: string
+          category?: string
+          chat_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          status?: string
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      telegram_alert_settings: {
+        Row: {
+          admin_base_url: string
+          chat_id: string | null
+          created_at: string
+          enabled: boolean
+          id: boolean
+          max_messages_per_run: number
+          min_days_to_deadline: number
+          mute_candidate_portal: boolean
+          mute_priority_sector: boolean
+          mute_prospect_match: boolean
+          mute_scraper_alerts: boolean
+          priority_sectors: string[]
+          send_unknown_deadline: boolean
+          updated_at: string
+        }
+        Insert: {
+          admin_base_url?: string
+          chat_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          max_messages_per_run?: number
+          min_days_to_deadline?: number
+          mute_candidate_portal?: boolean
+          mute_priority_sector?: boolean
+          mute_prospect_match?: boolean
+          mute_scraper_alerts?: boolean
+          priority_sectors?: string[]
+          send_unknown_deadline?: boolean
+          updated_at?: string
+        }
+        Update: {
+          admin_base_url?: string
+          chat_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          max_messages_per_run?: number
+          min_days_to_deadline?: number
+          mute_candidate_portal?: boolean
+          mute_priority_sector?: boolean
+          mute_prospect_match?: boolean
+          mute_scraper_alerts?: boolean
+          priority_sectors?: string[]
+          send_unknown_deadline?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_knowledge_base: {
         Row: {
           category: string
