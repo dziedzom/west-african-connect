@@ -48,7 +48,7 @@ export function isTransientFailure(message: string): boolean {
 // Firecrawl's per-minute quota is shared across scraping, deep-read and
 // discovery, so calls are spaced and 429s retried with backoff rather than
 // thrown at the source's health record.
-const FIRECRAWL_MIN_GAP_MS = 2_500;
+const FIRECRAWL_MIN_GAP_MS = 4_000;
 const FIRECRAWL_RATE_RETRIES = 3;
 let lastFirecrawlAt = 0;
 
