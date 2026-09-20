@@ -442,28 +442,14 @@ async function scrapePortal(
   const portalStartedMs = Date.now();
   const portalBudgetMs = target.follow_detail_pages ? PORTAL_TIMEOUT_DETAIL_MS : PORTAL_TIMEOUT_MS;
 
-  const scrapeRes = await fetch(`${FIRECRAWL_API}/scrape`, {
-    method: "POST",
-    headers: {
-      // Gateway-backed Firecrawl connection: the connector key is a connection
-      // key for the Lovable gateway, not a Firecrawl API key.
-      Authorization: `Bearer ${lovableKey}`,
-      "X-Connection-Api-Key": firecrawlKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      url: target.url,
-      formats: ["markdown", "links"],
-      // Whole-page read: on several portals (AU, SADC, Gavi, GCF, IsDB, AFD,
-      // SA eTenders) the tender table sits outside the "main content" region,
-      // so main-content-only reading returned an empty page.
-      onlyMainContent: false,
-      waitFor: 5000,
-    }),
-
-  });
-
-  const scrapeText = await scrapeRes.text();
+  // Whole-page read: on several portals (AU, SADC, Gavi, GCF, IsDB, AFD,
+  // SA eTenders) the tender table sits outside the "main content" region,
+  // so main-content-only reading returned an empty page. Paced + 429-retried.
+  const { res: scrapeRes, text: scrapeText } = await firecrawlScrape(
+    { url: target.url, formats: ["markdown", "links"], onlyMainContent: false, waitFor: 5000 },
+    lovableKey,
+    firecrawlKey,
+  );
   let scrapeData: any = {};
   try { scrapeData = JSON.parse(scrapeText); } catch { scrapeData = {}; }
   if (!scrapeRes.ok) {
