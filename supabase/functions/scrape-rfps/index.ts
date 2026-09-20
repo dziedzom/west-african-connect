@@ -1049,15 +1049,20 @@ serve(async (req) => {
         results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, duration_ms: Date.now() - startTs, error: msg });
 
         if (target.id !== "custom") {
-          const newFailures = (target.consecutive_failures || 0) + 1;
-          const autoDisable = newFailures >= AUTO_DISABLE_AFTER_FAILURES
+          // Our own rate limit, a timeout or a transient network fault says
+          // nothing about the source: record it, retry next run, never count it.
+          const transient = isTransientFailure(msg);
+          const newFailures = transient
+            ? (target.consecutive_failures || 0)
+            : (target.consecutive_failures || 0) + 1;
+          const autoDisable = !transient && newFailures >= AUTO_DISABLE_AFTER_FAILURES
             ? new Date(Date.now() + AUTO_DISABLE_DAYS * 86400_000).toISOString()
             : null;
           await supabase.from("scrape_sources").update({
             last_run_at: new Date().toISOString(),
-            last_error: msg.slice(0, 500),
+            last_error: (transient ? `[transient, not counted] ${msg}` : msg).slice(0, 500),
             consecutive_failures: newFailures,
-            auto_disabled_until: autoDisable,
+            ...(autoDisable ? { auto_disabled_until: autoDisable } : {}),
             total_runs: (await supabase.from("scrape_sources").select("total_runs").eq("id", target.id).single()).data?.total_runs as number + 1 || 1,
           }).eq("id", target.id);
 
