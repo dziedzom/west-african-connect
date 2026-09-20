@@ -30,6 +30,70 @@ const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more ro
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
 
+// ---- Our own limits are not the source's fault -----------------------------
+// Rate limits, timeouts and transient network faults say nothing about whether
+// a portal still publishes tenders, so they must never count towards the
+// consecutive-failure disable. Only genuine source failures do.
+const TRANSIENT_FAILURE_RE =
+  /(rate limit|too many requests|\b429\b|timed? ?out|timeout|etimedout|econnreset|socket hang up|network error|temporarily unavailable|\b(?:502|503|504)\b|gateway time-?out|fetch failed)/i;
+
+export function isTransientFailure(message: string): boolean {
+  const m = message || "";
+  // A tunnel/connection refusal that repeats is a real source failure, so it is
+  // deliberately excluded from the transient set.
+  if (/ERR_TUNNEL_CONNECTION_FAILED|ERR_CONNECTION_REFUSED|ERR_NAME_NOT_RESOLVED/i.test(m)) return false;
+  return TRANSIENT_FAILURE_RE.test(m);
+}
+
+// Firecrawl's per-minute quota is shared across scraping, deep-read and
+// discovery, so calls are spaced and 429s retried with backoff rather than
+// thrown at the source's health record.
+const FIRECRAWL_MIN_GAP_MS = 2_500;
+const FIRECRAWL_RATE_RETRIES = 3;
+let lastFirecrawlAt = 0;
+
+function retryAfterMs(bodyText: string, header: string | null): number {
+  const fromHeader = header ? Number(header) : NaN;
+  if (Number.isFinite(fromHeader) && fromHeader > 0) return Math.min(fromHeader * 1000, 30_000);
+  const m = /retry after (\d+)s/i.exec(bodyText || "");
+  if (m) return Math.min(Number(m[1]) * 1000, 30_000);
+  return 8_000;
+}
+
+/** Paced Firecrawl scrape with backoff on our own rate limit. */
+async function firecrawlScrape(
+  payload: Record<string, unknown>,
+  lovableKey: string,
+  firecrawlKey: string,
+): Promise<{ res: Response; text: string }> {
+  for (let attempt = 0; ; attempt++) {
+    const wait = lastFirecrawlAt + FIRECRAWL_MIN_GAP_MS - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    lastFirecrawlAt = Date.now();
+
+    const res = await fetch(`${FIRECRAWL_API}/scrape`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableKey}`,
+        "X-Connection-Api-Key": firecrawlKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const text = await res.text();
+
+    const rateLimited = res.status === 429 || (!res.ok && /rate limit/i.test(text));
+    if (rateLimited && attempt < FIRECRAWL_RATE_RETRIES) {
+      const delay = retryAfterMs(text, res.headers.get("retry-after")) * (attempt + 1);
+      console.log(`Firecrawl rate limited; backing off ${delay}ms (attempt ${attempt + 1})`);
+      await new Promise((r) => setTimeout(r, delay));
+      continue;
+    }
+    return { res, text };
+  }
+}
+
+
 const AFRICAN_COUNTRIES = [
   "algeria","angola","benin","botswana","burkina faso","burundi","cameroon","cape verde","cabo verde",
   "central african republic","chad","comoros","congo","dr congo","democratic republic of the congo",
