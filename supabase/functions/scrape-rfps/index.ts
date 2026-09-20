@@ -285,22 +285,11 @@ async function fetchDetailDeadline(
   lovableKey: string,
   todayISO: string,
 ): Promise<string | null> {
-  const res = await fetch(`${FIRECRAWL_API}/scrape`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${lovableKey}`,
-      "X-Connection-Api-Key": firecrawlKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      url: detailUrl,
-      formats: ["markdown"],
-      onlyMainContent: true,
-      waitFor: 2000,
-    }),
-  });
-
-  const text = await res.text();
+  const { res, text } = await firecrawlScrape(
+    { url: detailUrl, formats: ["markdown"], onlyMainContent: true, waitFor: 2000 },
+    lovableKey,
+    firecrawlKey,
+  );
   if (!res.ok) {
     if (detectAuthFailure(res.status, text)) {
       // Bubble up: a credential failure must not be swallowed as a per-item miss.
