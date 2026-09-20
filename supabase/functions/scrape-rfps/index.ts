@@ -30,6 +30,70 @@ const PORTAL_TIMEOUT_DETAIL_MS = 100_000; // detail-enabled portals need more ro
 const AUTO_DISABLE_AFTER_FAILURES = 3;
 const AUTO_DISABLE_DAYS = 7;
 
+// ---- Our own limits are not the source's fault -----------------------------
+// Rate limits, timeouts and transient network faults say nothing about whether
+// a portal still publishes tenders, so they must never count towards the
+// consecutive-failure disable. Only genuine source failures do.
+const TRANSIENT_FAILURE_RE =
+  /(rate limit|too many requests|\b429\b|timed? ?out|timeout|etimedout|econnreset|socket hang up|network error|temporarily unavailable|\b(?:502|503|504)\b|gateway time-?out|fetch failed)/i;
+
+export function isTransientFailure(message: string): boolean {
+  const m = message || "";
+  // A tunnel/connection refusal that repeats is a real source failure, so it is
+  // deliberately excluded from the transient set.
+  if (/ERR_TUNNEL_CONNECTION_FAILED|ERR_CONNECTION_REFUSED|ERR_NAME_NOT_RESOLVED/i.test(m)) return false;
+  return TRANSIENT_FAILURE_RE.test(m);
+}
+
+// Firecrawl's per-minute quota is shared across scraping, deep-read and
+// discovery, so calls are spaced and 429s retried with backoff rather than
+// thrown at the source's health record.
+const FIRECRAWL_MIN_GAP_MS = 4_000;
+const FIRECRAWL_RATE_RETRIES = 3;
+let lastFirecrawlAt = 0;
+
+function retryAfterMs(bodyText: string, header: string | null): number {
+  const fromHeader = header ? Number(header) : NaN;
+  if (Number.isFinite(fromHeader) && fromHeader > 0) return Math.min(fromHeader * 1000, 30_000);
+  const m = /retry after (\d+)s/i.exec(bodyText || "");
+  if (m) return Math.min(Number(m[1]) * 1000, 30_000);
+  return 8_000;
+}
+
+/** Paced Firecrawl scrape with backoff on our own rate limit. */
+async function firecrawlScrape(
+  payload: Record<string, unknown>,
+  lovableKey: string,
+  firecrawlKey: string,
+): Promise<{ res: Response; text: string }> {
+  for (let attempt = 0; ; attempt++) {
+    const wait = lastFirecrawlAt + FIRECRAWL_MIN_GAP_MS - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    lastFirecrawlAt = Date.now();
+
+    const res = await fetch(`${FIRECRAWL_API}/scrape`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableKey}`,
+        "X-Connection-Api-Key": firecrawlKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const text = await res.text();
+
+    const rateLimited = res.status === 429 || (!res.ok && /rate limit/i.test(text));
+    if (rateLimited && attempt < FIRECRAWL_RATE_RETRIES) {
+      const delay = retryAfterMs(text, res.headers.get("retry-after")) * (attempt + 1);
+      console.log(`Firecrawl rate limited; backing off ${delay}ms (attempt ${attempt + 1})`);
+      await new Promise((r) => setTimeout(r, delay));
+      continue;
+    }
+    return { res, text };
+  }
+}
+
+
 const AFRICAN_COUNTRIES = [
   "algeria","angola","benin","botswana","burkina faso","burundi","cameroon","cape verde","cabo verde",
   "central african republic","chad","comoros","congo","dr congo","democratic republic of the congo",
@@ -221,22 +285,11 @@ async function fetchDetailDeadline(
   lovableKey: string,
   todayISO: string,
 ): Promise<string | null> {
-  const res = await fetch(`${FIRECRAWL_API}/scrape`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${lovableKey}`,
-      "X-Connection-Api-Key": firecrawlKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      url: detailUrl,
-      formats: ["markdown"],
-      onlyMainContent: true,
-      waitFor: 2000,
-    }),
-  });
-
-  const text = await res.text();
+  const { res, text } = await firecrawlScrape(
+    { url: detailUrl, formats: ["markdown"], onlyMainContent: true, waitFor: 2000 },
+    lovableKey,
+    firecrawlKey,
+  );
   if (!res.ok) {
     if (detectAuthFailure(res.status, text)) {
       // Bubble up: a credential failure must not be swallowed as a per-item miss.
@@ -389,28 +442,14 @@ async function scrapePortal(
   const portalStartedMs = Date.now();
   const portalBudgetMs = target.follow_detail_pages ? PORTAL_TIMEOUT_DETAIL_MS : PORTAL_TIMEOUT_MS;
 
-  const scrapeRes = await fetch(`${FIRECRAWL_API}/scrape`, {
-    method: "POST",
-    headers: {
-      // Gateway-backed Firecrawl connection: the connector key is a connection
-      // key for the Lovable gateway, not a Firecrawl API key.
-      Authorization: `Bearer ${lovableKey}`,
-      "X-Connection-Api-Key": firecrawlKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      url: target.url,
-      formats: ["markdown", "links"],
-      // Whole-page read: on several portals (AU, SADC, Gavi, GCF, IsDB, AFD,
-      // SA eTenders) the tender table sits outside the "main content" region,
-      // so main-content-only reading returned an empty page.
-      onlyMainContent: false,
-      waitFor: 5000,
-    }),
-
-  });
-
-  const scrapeText = await scrapeRes.text();
+  // Whole-page read: on several portals (AU, SADC, Gavi, GCF, IsDB, AFD,
+  // SA eTenders) the tender table sits outside the "main content" region,
+  // so main-content-only reading returned an empty page. Paced + 429-retried.
+  const { res: scrapeRes, text: scrapeText } = await firecrawlScrape(
+    { url: target.url, formats: ["markdown", "links"], onlyMainContent: false, waitFor: 5000 },
+    lovableKey,
+    firecrawlKey,
+  );
   let scrapeData: any = {};
   try { scrapeData = JSON.parse(scrapeText); } catch { scrapeData = {}; }
   if (!scrapeRes.ok) {
@@ -1010,15 +1049,20 @@ serve(async (req) => {
         results.push({ portal: target.name, url: target.url, rfps_found: 0, skipped_expired: 0, deduped: 0, non_africa: 0, duration_ms: Date.now() - startTs, error: msg });
 
         if (target.id !== "custom") {
-          const newFailures = (target.consecutive_failures || 0) + 1;
-          const autoDisable = newFailures >= AUTO_DISABLE_AFTER_FAILURES
+          // Our own rate limit, a timeout or a transient network fault says
+          // nothing about the source: record it, retry next run, never count it.
+          const transient = isTransientFailure(msg);
+          const newFailures = transient
+            ? (target.consecutive_failures || 0)
+            : (target.consecutive_failures || 0) + 1;
+          const autoDisable = !transient && newFailures >= AUTO_DISABLE_AFTER_FAILURES
             ? new Date(Date.now() + AUTO_DISABLE_DAYS * 86400_000).toISOString()
             : null;
           await supabase.from("scrape_sources").update({
             last_run_at: new Date().toISOString(),
-            last_error: msg.slice(0, 500),
+            last_error: (transient ? `[transient, not counted] ${msg}` : msg).slice(0, 500),
             consecutive_failures: newFailures,
-            auto_disabled_until: autoDisable,
+            ...(autoDisable ? { auto_disabled_until: autoDisable } : {}),
             total_runs: (await supabase.from("scrape_sources").select("total_runs").eq("id", target.id).single()).data?.total_runs as number + 1 || 1,
           }).eq("id", target.id);
 

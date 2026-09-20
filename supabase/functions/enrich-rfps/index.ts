@@ -76,6 +76,20 @@ class HaltError extends Error {
 }
 class RateLimited extends Error {}
 
+// Firecrawl's per-minute quota is shared with the portal scraper and search
+// discovery, so document reads are paced and rate limits retried with backoff.
+const FIRECRAWL_MIN_GAP_MS = 6_500;
+const FIRECRAWL_RATE_RETRIES = 2;
+let lastFirecrawlAt = 0;
+
+function retryAfterMs(bodyText: string, header: string | null): number {
+  const fromHeader = header ? Number(header) : NaN;
+  if (Number.isFinite(fromHeader) && fromHeader > 0) return Math.min(fromHeader * 1000, 30_000);
+  const m = /retry after (\d+)s/i.exec(bodyText || "");
+  if (m) return Math.min(Number(m[1]) * 1000, 30_000);
+  return 8_000;
+}
+
 async function firecrawlMarkdown(
   url: string,
   firecrawlKey: string,
@@ -83,31 +97,47 @@ async function firecrawlMarkdown(
   wantLinks: boolean,
   timeoutMs: number,
 ): Promise<{ markdown: string; links: string[] }> {
-  const res = await withTimeout(
-    fetch(`${FIRECRAWL_API}/scrape`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        "X-Connection-Api-Key": firecrawlKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url,
-        formats: wantLinks ? ["markdown", "links"] : ["markdown"],
-        onlyMainContent: false,
-        timeout: 25_000,
-      }),
-    }),
-    timeoutMs,
-    "firecrawl",
-  );
+  let res!: Response;
+  let text = "";
 
-  const text = await res.text();
+  for (let attempt = 0; ; attempt++) {
+    const wait = lastFirecrawlAt + FIRECRAWL_MIN_GAP_MS - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    lastFirecrawlAt = Date.now();
+
+    res = await withTimeout(
+      fetch(`${FIRECRAWL_API}/scrape`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableKey}`,
+          "X-Connection-Api-Key": firecrawlKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url,
+          formats: wantLinks ? ["markdown", "links"] : ["markdown"],
+          onlyMainContent: false,
+          timeout: 25_000,
+        }),
+      }),
+      timeoutMs,
+      "firecrawl",
+    );
+
+    text = await res.text();
+    const rateLimited = res.status === 429 || (!res.ok && /rate limit/i.test(text));
+    if (rateLimited && attempt < FIRECRAWL_RATE_RETRIES) {
+      await new Promise((r) => setTimeout(r, retryAfterMs(text, res.headers.get("retry-after")) * (attempt + 1)));
+      continue;
+    }
+    break;
+  }
+
   if (!res.ok) {
     if (detectAuthFailure(res.status, text)) {
       throw new HaltError(`Firecrawl credential refused (${res.status}): ${text.slice(0, 200)}`, "firecrawl_auth");
     }
-    if (res.status === 429) throw new RateLimited(`Firecrawl rate limited`);
+    if (res.status === 429 || /rate limit/i.test(text)) throw new RateLimited(`Firecrawl rate limited`);
     if (res.status === 402 || res.status === 403) {
       throw new HaltError(`Firecrawl blocked (${res.status}): ${text.slice(0, 200)}`, "firecrawl_blocked");
     }
