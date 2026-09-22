@@ -391,6 +391,7 @@ serve(async (req) => {
 
     const rows = queue || [];
     let processed = 0, valuesFound = 0, deadlinesFound = 0, summariesFound = 0, failed = 0, rateLimitHits = 0;
+    let buyersFound = 0, countriesFound = 0;
     let halt: HaltError | null = null;
 
     for (const row of rows as any[]) {
