@@ -106,6 +106,35 @@ export function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
+/**
+ * Plain-English time left, so the team can triage without counting days.
+ * Calendar days are used (not 24h blocks) — a deadline later today reads
+ * "closes today", tomorrow reads "1 day left".
+ */
+export function daysRemainingLabel(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const day = (t: Date) => Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());
+  const days = Math.round((day(d) - day(new Date())) / 86_400_000);
+  if (days < 0) return "closed";
+  if (days === 0) return "closes today";
+  if (days === 1) return "1 day left";
+  if (days < 14) return `${days} days left`;
+  const weeks = Math.floor(days / 7);
+  if (days < 60) return `${weeks} weeks left`;
+  const months = Math.round(days / 30);
+  return `${months} months left`;
+}
+
+/** "Deadline: 2026-09-30 · 8 days left" — or "Deadline: not stated". */
+export function deadlineLine(iso: string | null | undefined, unknownText = "not stated"): string {
+  if (!iso) return `Deadline: ${unknownText}`;
+  const date = new Date(iso).toISOString().slice(0, 10);
+  const left = daysRemainingLabel(iso);
+  return `Deadline: ${date}${left ? ` · <b>${left}</b>` : ""}`;
+}
+
 export interface TelegramResult {
   status: "sent" | "muted" | "duplicate" | "disabled" | "failed" | "no_chat" | "no_token";
   error?: string;
