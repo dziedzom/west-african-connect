@@ -35,7 +35,6 @@ async function notifyScrapedTenders(supabase: any, hours: number) {
   // closing soonest first), and a creation-window filter meant those were never
   // alerted at all. Every still-open tender is considered on every pass; the
   // unique (category, alert_key) index guarantees each is only ever sent once.
-  const since = new Date(Date.now() - hours * 3600_000).toISOString();
   const { data: rows } = await supabase
     .from("scraped_rfps")
     .select("id, title, organization, portal, location, category, deadline, source_url, created_at")
@@ -47,7 +46,6 @@ async function notifyScrapedTenders(supabase: any, hours: number) {
     .limit(500);
   if (!rows || rows.length === 0) return outcome;
   outcome.considered = rows.length;
-  void since;
 
 
   const { data: prospects } = await supabase
