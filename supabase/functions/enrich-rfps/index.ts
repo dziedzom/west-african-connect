@@ -161,7 +161,11 @@ interface Extraction {
   official_source_url: string | null;
   summary: string | null;
   is_award_notice: boolean;
+  /** Recovered only to fill gaps left by the listing page, never to overwrite. */
+  buyer: string | null;
+  country: string | null;
 }
+
 
 async function extractFromContent(
   row: { title: string; organization: string | null },
