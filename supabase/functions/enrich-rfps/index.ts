@@ -200,8 +200,12 @@ STRICT, NO INFERENCE — every field may be null, and null is a correct, expecte
 - summary: a factual scope-of-work summary of THIS opportunity in English, 2-6 sentences (max 1500 characters), built only from wording in the supplied content: what is being procured, for whom, lots/quantities, place of performance, and stated eligibility or submission requirements. Condense and translate; never add claims, benefits, or context that is not written there. Null when the content carries no scope description.
 - is_award_notice: true when the content shows this is a notice of a contract ALREADY awarded or signed rather than an open invitation to bid; false otherwise.
 
+- buyer: the buying organisation running this procurement, exactly as named in the content (e.g. "UNDP", "UNICEF", "Ministry of Health"). Null when no organisation is named. Never a reference code, notice type or country.
+- country: the country where the work or delivery takes place, in English, only when written in the content. Null when not stated or when it covers several countries.
+
 A bid bond, tender fee, document purchase price, registration fee, or insurance figure is NOT the contract value. Return null rather than any of those.`,
           },
+
           {
             role: "user",
             content: `Opportunity: ${row.title}\nIssuing organisation: ${row.organization || "unknown"}\n\n${corpus}`,
