@@ -464,6 +464,17 @@ serve(async (req) => {
 
         if (ex?.official_source_url) update.official_source_url = ex.official_source_url;
 
+        // Gap filling only: the listing page stays authoritative where it had a value.
+        if (ex?.buyer && !(row as { organization?: string | null }).organization) {
+          update.organization = ex.buyer.slice(0, 300);
+          buyersFound++;
+        }
+        if (ex?.country && !(row as { location?: string | null }).location) {
+          update.location = ex.country.slice(0, 120);
+          countriesFound++;
+        }
+
+
         // Only replace the stored summary when the document read produced something fuller.
         const existingSummary = ((row as { description?: string | null }).description || "").trim();
         if (ex?.summary && ex.summary.length > existingSummary.length) {
