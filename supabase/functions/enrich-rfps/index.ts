@@ -10,6 +10,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert, detectAuthFailure } from "../_shared/scrape-alerts.ts";
+import { cleanTextField } from "../_shared/clean-field.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -233,7 +234,7 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
                   country: { type: ["string", "null"] },
                 },
 
-                required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url", "summary", "is_award_notice"],
+                required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url", "summary", "is_award_notice", "buyer", "country"],
                 additionalProperties: false,
               },
             },
@@ -381,7 +382,7 @@ serve(async (req) => {
 
     const { data: queue } = await supabase
       .from("scraped_rfps")
-      .select("id, title, organization, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
+      .select("id, title, organization, location, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
       .eq("enrichment_status", "pending")
       .eq("africa_relevant", true)
       .in("status", ["open", "closing_soon"])
@@ -560,6 +561,8 @@ serve(async (req) => {
       values_found: valuesFound,
       deadlines_recovered: deadlinesFound,
       summaries_written: summariesFound,
+      buyers_recovered: buyersFound,
+      countries_recovered: countriesFound,
       failed,
       rate_limited: rateLimitHits,
       was_probe: paused,
