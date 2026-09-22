@@ -250,7 +250,16 @@ interface ScrapeSource {
   follow_detail_pages?: boolean;
   detail_link_pattern?: string | null;
   detail_max_per_run?: number | null;
+  /**
+   * Optional Firecrawl browser actions run before the page is read. Needed on
+   * portals whose default view is not the newest notices — UNGM, for example,
+   * loads only the 15 tenders closing soonest, so a notice published weeks ago
+   * first becomes visible on its deadline day. Clicking the "Published" column
+   * and scrolling brings the most recently published notices into view instead.
+   */
+  scrape_actions?: unknown[] | null;
 }
+
 
 interface PortalResult {
   portal: string;
@@ -445,11 +454,21 @@ async function scrapePortal(
   // Whole-page read: on several portals (AU, SADC, Gavi, GCF, IsDB, AFD,
   // SA eTenders) the tender table sits outside the "main content" region,
   // so main-content-only reading returned an empty page. Paced + 429-retried.
+  const configuredActions = Array.isArray(target.scrape_actions) && target.scrape_actions.length > 0
+    ? target.scrape_actions
+    : null;
   const { res: scrapeRes, text: scrapeText } = await firecrawlScrape(
-    { url: target.url, formats: ["markdown", "links"], onlyMainContent: false, waitFor: 5000 },
+    {
+      url: target.url,
+      formats: ["markdown", "links"],
+      onlyMainContent: false,
+      waitFor: 5000,
+      ...(configuredActions ? { actions: configuredActions } : {}),
+    },
     lovableKey,
     firecrawlKey,
   );
+
   let scrapeData: any = {};
   try { scrapeData = JSON.parse(scrapeText); } catch { scrapeData = {}; }
   if (!scrapeRes.ok) {
@@ -525,6 +544,8 @@ CRITICAL RULES:
    - Grants & Implementing Partners: calls for proposals for grants, small grants programmes, implementing partner or sub-recipient selection, expressions of interest for funding.
    - Prefer a specific label over Other: renovation and civil works are Construction, medical or hospital supplies are Health, air-quality or climate monitoring is Environment, pipes and water systems are Water.
 5. For location, give the country name in English. Use "Africa" or a regional label (e.g. "Sub-Saharan Africa") if multi-country.
+5a. **ROW ALIGNMENT — country and buyer**: when the content is a table or list of notices, every field must come from the SAME row as the title. Never carry a country, buying organisation, reference or date over from the row above or below. If a row's country column is empty, return null for location rather than the neighbouring row's country.
+5b. **organization is the buying organisation** (the agency or ministry running the procurement), taken from that row's organisation column or from wording such as "UNDP", "UNICEF", "Ministry of Health". If the row carries a reference code like "UNDP-MUS-00234", the agency is the leading abbreviation (UNDP). Return null only when no organisation appears anywhere for that item — never return a reference code, a country or a notice type as the organisation.
 6. For source_url, pick the most specific link from the links list; if none match, use the portal URL.
 7. **description — REQUIRED, NEVER INVENTED**: write a factual summary of the scope of work for that specific opportunity, in English, using only wording present in the supplied content: what is being bought, for whom, quantities/lots, place of delivery, and any eligibility or submission detail that is written there. Aim for 2-5 sentences (up to ~1200 characters) when the content supports it. Condense and translate — do not paraphrase into claims the content does not make, and never pad with generic filler. If the page truly carries nothing beyond the title (a bare table row), return null. Null is acceptable; a fabricated summary is a critical error.
 8. is_award_notice: true when the item announces a contract that has ALREADY been awarded, or is a general procurement notice for information only (titles such as "Contract Award", "Award Notice", "Notice of Award", "Attribution du marché", "Contract Signature"). These are not biddable. Otherwise false.
@@ -558,18 +579,25 @@ Return ONLY valid JSON via the function call.`,
                       deadline: { type: "string" },
                       category: { type: "string" },
                       budget: { type: "string" },
-                      location: { type: "string" },
-                      organization: { type: "string" },
+                      location: {
+                        type: ["string", "null"],
+                        description: "Country for THIS row only, in English; null when that row carries no country.",
+                      },
+                      organization: {
+                        type: ["string", "null"],
+                        description: "The buying organisation for THIS row (agency, ministry or UN entity); null only when none appears.",
+                      },
                       source_url: { type: "string" },
                       is_award_notice: {
                         type: "boolean",
                         description: "True when the item announces an already-awarded contract rather than an open tender.",
                       },
                     },
-                    required: ["title", "source_url", "description", "is_award_notice"],
+                    required: ["title", "source_url", "description", "is_award_notice", "location", "organization"],
                     additionalProperties: false,
                   },
                 },
+
               },
               required: ["rfps"],
               additionalProperties: false,

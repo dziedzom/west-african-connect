@@ -1680,6 +1680,7 @@ export type Database = {
           name: string
           notes: string | null
           priority: number
+          scrape_actions: Json | null
           successful_runs: number
           total_runs: number
           updated_at: string
@@ -1702,6 +1703,7 @@ export type Database = {
           name: string
           notes?: string | null
           priority?: number
+          scrape_actions?: Json | null
           successful_runs?: number
           total_runs?: number
           updated_at?: string
@@ -1724,6 +1726,7 @@ export type Database = {
           name?: string
           notes?: string | null
           priority?: number
+          scrape_actions?: Json | null
           successful_runs?: number
           total_runs?: number
           updated_at?: string

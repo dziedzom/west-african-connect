@@ -10,6 +10,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert, detectAuthFailure } from "../_shared/scrape-alerts.ts";
+import { cleanTextField } from "../_shared/clean-field.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -161,7 +162,11 @@ interface Extraction {
   official_source_url: string | null;
   summary: string | null;
   is_award_notice: boolean;
+  /** Recovered only to fill gaps left by the listing page, never to overwrite. */
+  buyer: string | null;
+  country: string | null;
 }
+
 
 async function extractFromContent(
   row: { title: string; organization: string | null },
@@ -196,8 +201,12 @@ STRICT, NO INFERENCE — every field may be null, and null is a correct, expecte
 - summary: a factual scope-of-work summary of THIS opportunity in English, 2-6 sentences (max 1500 characters), built only from wording in the supplied content: what is being procured, for whom, lots/quantities, place of performance, and stated eligibility or submission requirements. Condense and translate; never add claims, benefits, or context that is not written there. Null when the content carries no scope description.
 - is_award_notice: true when the content shows this is a notice of a contract ALREADY awarded or signed rather than an open invitation to bid; false otherwise.
 
+- buyer: the buying organisation running this procurement, exactly as named in the content (e.g. "UNDP", "UNICEF", "Ministry of Health"). Null when no organisation is named. Never a reference code, notice type or country.
+- country: the country where the work or delivery takes place, in English, only when written in the content. Null when not stated or when it covers several countries.
+
 A bid bond, tender fee, document purchase price, registration fee, or insurance figure is NOT the contract value. Return null rather than any of those.`,
           },
+
           {
             role: "user",
             content: `Opportunity: ${row.title}\nIssuing organisation: ${row.organization || "unknown"}\n\n${corpus}`,
@@ -221,8 +230,11 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
                   official_source_url: { type: ["string", "null"] },
                   summary: { type: ["string", "null"] },
                   is_award_notice: { type: "boolean" },
+                  buyer: { type: ["string", "null"] },
+                  country: { type: ["string", "null"] },
                 },
-                required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url", "summary", "is_award_notice"],
+
+                required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url", "summary", "is_award_notice", "buyer", "country"],
                 additionalProperties: false,
               },
             },
@@ -280,8 +292,11 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
       ? parsed.summary.trim().slice(0, 2000)
       : null,
     is_award_notice: parsed.is_award_notice === true,
+    buyer: cleanTextField(parsed.buyer),
+    country: cleanTextField(parsed.country),
   };
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -367,7 +382,7 @@ serve(async (req) => {
 
     const { data: queue } = await supabase
       .from("scraped_rfps")
-      .select("id, title, organization, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
+      .select("id, title, organization, location, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
       .eq("enrichment_status", "pending")
       .eq("africa_relevant", true)
       .in("status", ["open", "closing_soon"])
@@ -376,6 +391,7 @@ serve(async (req) => {
 
     const rows = queue || [];
     let processed = 0, valuesFound = 0, deadlinesFound = 0, summariesFound = 0, failed = 0, rateLimitHits = 0;
+    let buyersFound = 0, countriesFound = 0;
     let halt: HaltError | null = null;
 
     for (const row of rows as any[]) {
@@ -449,6 +465,17 @@ serve(async (req) => {
         }
 
         if (ex?.official_source_url) update.official_source_url = ex.official_source_url;
+
+        // Gap filling only: the listing page stays authoritative where it had a value.
+        if (ex?.buyer && !(row as { organization?: string | null }).organization) {
+          update.organization = ex.buyer.slice(0, 300);
+          buyersFound++;
+        }
+        if (ex?.country && !(row as { location?: string | null }).location) {
+          update.location = ex.country.slice(0, 120);
+          countriesFound++;
+        }
+
 
         // Only replace the stored summary when the document read produced something fuller.
         const existingSummary = ((row as { description?: string | null }).description || "").trim();
@@ -535,6 +562,8 @@ serve(async (req) => {
       values_found: valuesFound,
       deadlines_recovered: deadlinesFound,
       summaries_written: summariesFound,
+      buyers_recovered: buyersFound,
+      countries_recovered: countriesFound,
       failed,
       rate_limited: rateLimitHits,
       was_probe: paused,
