@@ -250,7 +250,16 @@ interface ScrapeSource {
   follow_detail_pages?: boolean;
   detail_link_pattern?: string | null;
   detail_max_per_run?: number | null;
+  /**
+   * Optional Firecrawl browser actions run before the page is read. Needed on
+   * portals whose default view is not the newest notices — UNGM, for example,
+   * loads only the 15 tenders closing soonest, so a notice published weeks ago
+   * first becomes visible on its deadline day. Clicking the "Published" column
+   * and scrolling brings the most recently published notices into view instead.
+   */
+  scrape_actions?: unknown[] | null;
 }
+
 
 interface PortalResult {
   portal: string;
@@ -445,11 +454,21 @@ async function scrapePortal(
   // Whole-page read: on several portals (AU, SADC, Gavi, GCF, IsDB, AFD,
   // SA eTenders) the tender table sits outside the "main content" region,
   // so main-content-only reading returned an empty page. Paced + 429-retried.
+  const configuredActions = Array.isArray(target.scrape_actions) && target.scrape_actions.length > 0
+    ? target.scrape_actions
+    : null;
   const { res: scrapeRes, text: scrapeText } = await firecrawlScrape(
-    { url: target.url, formats: ["markdown", "links"], onlyMainContent: false, waitFor: 5000 },
+    {
+      url: target.url,
+      formats: ["markdown", "links"],
+      onlyMainContent: false,
+      waitFor: 5000,
+      ...(configuredActions ? { actions: configuredActions } : {}),
+    },
     lovableKey,
     firecrawlKey,
   );
+
   let scrapeData: any = {};
   try { scrapeData = JSON.parse(scrapeText); } catch { scrapeData = {}; }
   if (!scrapeRes.ok) {

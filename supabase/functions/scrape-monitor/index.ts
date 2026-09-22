@@ -30,6 +30,11 @@ async function notifyScrapedTenders(supabase: any, hours: number) {
   const settings = await loadTelegramSettings(supabase);
   if (!settings.enabled) return outcome;
 
+  // Deliberately NOT limited to rows created in the last `hours`: a portal can
+  // surface a tender long after it was published (UNGM shows the notices
+  // closing soonest first), and a creation-window filter meant those were never
+  // alerted at all. Every still-open tender is considered on every pass; the
+  // unique (category, alert_key) index guarantees each is only ever sent once.
   const since = new Date(Date.now() - hours * 3600_000).toISOString();
   const { data: rows } = await supabase
     .from("scraped_rfps")
@@ -37,11 +42,13 @@ async function notifyScrapedTenders(supabase: any, hours: number) {
     .eq("africa_relevant", true)
     .not("is_award_notice", "is", true)
     .in("status", ["open", "closing_soon"])
-    .gte("created_at", since)
-    .order("created_at", { ascending: false })
+    .or(`deadline.gte.${new Date().toISOString()},deadline.is.null`)
+    .order("deadline", { ascending: true, nullsFirst: false })
     .limit(500);
   if (!rows || rows.length === 0) return outcome;
   outcome.considered = rows.length;
+  void since;
+
 
   const { data: prospects } = await supabase
     .from("prospects").select("company_name, sector, location, status")
