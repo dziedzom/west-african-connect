@@ -229,7 +229,10 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
                   official_source_url: { type: ["string", "null"] },
                   summary: { type: ["string", "null"] },
                   is_award_notice: { type: "boolean" },
+                  buyer: { type: ["string", "null"] },
+                  country: { type: ["string", "null"] },
                 },
+
                 required: ["value_amount", "value_currency", "value_basis", "value_evidence", "value_confidence", "deadline", "official_source_url", "summary", "is_award_notice"],
                 additionalProperties: false,
               },
