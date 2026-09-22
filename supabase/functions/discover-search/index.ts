@@ -16,6 +16,7 @@ import { sendScrapeAlert } from "../_shared/scrape-alerts.ts";
 import { cleanTextField } from "../_shared/clean-field.ts";
 import {
   escapeHtml,
+  deadlineLine,
   leadDaysForSector,
   loadTelegramSettings,
   parseDeadlineHint,
@@ -39,8 +40,7 @@ function reviewLink(settings: TelegramSettings, resultId: string): string {
 }
 
 function formatDeadline(iso: string | null): string {
-  if (!iso) return "not stated on the page";
-  return new Date(iso).toISOString().slice(0, 10);
+  return deadlineLine(iso, "not stated on the page").replace(/^Deadline: /, "");
 }
 
 interface NotifyOutcome {

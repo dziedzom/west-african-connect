@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendScrapeAlert } from "../_shared/scrape-alerts.ts";
 import {
   escapeHtml,
+  deadlineLine,
   leadDaysForSector,
   loadTelegramSettings,
   sectorLike,
@@ -65,7 +66,7 @@ async function notifyScrapedTenders(supabase: any, hours: number) {
       `Source: ${escapeHtml(row.portal ?? "unknown")}`,
       `Country: ${escapeHtml(row.location ?? "not stated")}`,
       `Sector: ${escapeHtml(row.category ?? "unclassified")}`,
-      `Deadline: ${row.deadline ? new Date(row.deadline).toISOString().slice(0, 10) : "not stated"}`,
+      deadlineLine(row.deadline),
       `\n<a href="${base}/rfps">Open the opportunities list</a>`,
       row.source_url ? `<a href="${escapeHtml(row.source_url)}">Original notice</a>` : "",
     ].filter(Boolean);
