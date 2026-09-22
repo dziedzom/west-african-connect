@@ -291,8 +291,11 @@ A bid bond, tender fee, document purchase price, registration fee, or insurance 
       ? parsed.summary.trim().slice(0, 2000)
       : null,
     is_award_notice: parsed.is_award_notice === true,
+    buyer: cleanTextField(parsed.buyer),
+    country: cleanTextField(parsed.country),
   };
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
