@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { tenderPath } from "@/lib/tenderSeo";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { invokeAi } from "@/lib/invokeAi";
@@ -277,6 +279,9 @@ const RFPDetailModal = ({ rfp, open, onOpenChange }: RFPDetailModalProps) => {
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">{rfp.title}</DialogTitle>
+            {rfp.source === "scraped" && (
+              <Link to={tenderPath(rfp)} onClick={() => onOpenChange(false)} className="text-xs text-accent hover:underline">View full page</Link>
+            )}
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

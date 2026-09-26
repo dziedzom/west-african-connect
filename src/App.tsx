@@ -35,6 +35,8 @@ import CompanyVerification from "./pages/CompanyVerification";
 import AdminVerifications from "./pages/AdminVerifications";
 import AdminManaged from "./pages/AdminManaged";
 import AdminEngagement from "./pages/AdminEngagement";
+import TenderPage from "./pages/TenderPage";
+import TenderLanding from "./pages/TenderLanding";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +67,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/rfps" element={<RFPListings />} />
+              <Route path="/tenders/sector/:sector" element={<TenderLanding kind="sector" />} />
+              <Route path="/tenders/:country" element={<TenderLanding kind="country" />} />
+              <Route path="/tenders/:country/:slug" element={<TenderPage />} />
               <Route path="/join" element={<CompanySignUp />} />
               <Route path="/about" element={<About />} />
               <Route path="/learn" element={<Learn />} />
