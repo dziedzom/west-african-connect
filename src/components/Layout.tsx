@@ -18,11 +18,6 @@ const publicLinks = [
   { to: "/join", label: "Join" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
-  { to: "/tenders/ghana", label: "Tenders in Ghana" },
-  { to: "/tenders/nigeria", label: "Tenders in Nigeria" },
-  { to: "/tenders/kenya", label: "Tenders in Kenya" },
-  { to: "/tenders/south-africa", label: "Tenders in South Africa" },
-  { to: "/tenders/sector/marketing-communications", label: "Marketing tenders" },
 ];
 
 const publicRoutes = new Set(["/", "/pricing", "/partnerships", "/join", "/about", "/contact", "/learn", "/auth", "/forgot-password", "/reset-password"]);
@@ -44,6 +39,11 @@ const footerLinks = [
   { to: "/partnerships", label: "Partners" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
+  { to: "/tenders/ghana", label: "Tenders in Ghana" },
+  { to: "/tenders/nigeria", label: "Tenders in Nigeria" },
+  { to: "/tenders/kenya", label: "Tenders in Kenya" },
+  { to: "/tenders/south-africa", label: "Tenders in South Africa" },
+  { to: "/tenders/sector/marketing-communications", label: "Marketing tenders" },
 ];
 
 const Navbar = () => {
