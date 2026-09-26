@@ -19,7 +19,7 @@ const TenderLanding = ({ kind }: { kind: "country" | "sector" }) => {
     let rows: PublicTender[] = [];
     if (kind === "country") {
       rows = all.filter((t) => countrySlug(t.location) === country);
-      label = country === "africa" ? "Africa (regional and multi-country)" : rows.find((r) => r.location)?.location ?? "";
+      label = country === "africa" ? "Africa (regional and multi-country)" : (rows.find((r) => r.location)?.location ?? "").split(/[,;/(]/)[0].trim();
     } else {
       const g = sectorGroupFor(sector, sectors);
       if (g) {

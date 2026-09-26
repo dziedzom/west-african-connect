@@ -1,9 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import type { PublicTender } from "@/lib/tenderSeo";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rpc = supabase.rpc as any;
+// Public read-only functions, called over plain REST (the client proxy is unreliable in preview).
+const BASE = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/rest/v1/rpc`;
+const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+async function rpc(fn: string, body: Record<string, unknown>) {
+  try {
+    const res = await fetch(`${BASE}/${fn}`, {
+      method: "POST",
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return { data: null, error: new Error(`${fn} ${res.status}`) };
+    return { data: await res.json(), error: null };
+  } catch (e) {
+    return { data: null, error: e as Error };
+  }
+}
 
 /** All public tenders (open, closing soon, expired, awards). Cached for landing pages and related links. */
 export function usePublicTenders() {
