@@ -1761,6 +1761,8 @@ export type Database = {
           organization: string | null
           portal: string
           scraped_at: string
+          short_id: string | null
+          slug: string | null
           source_category:
             | Database["public"]["Enums"]["scrape_source_category"]
             | null
@@ -1803,6 +1805,8 @@ export type Database = {
           organization?: string | null
           portal: string
           scraped_at?: string
+          short_id?: string | null
+          slug?: string | null
           source_category?:
             | Database["public"]["Enums"]["scrape_source_category"]
             | null
@@ -1845,6 +1849,8 @@ export type Database = {
           organization?: string | null
           portal?: string
           scraped_at?: string
+          short_id?: string | null
+          slug?: string | null
           source_category?:
             | Database["public"]["Enums"]["scrape_source_category"]
             | null
@@ -2203,6 +2209,31 @@ export type Database = {
           total_recorded_value: number
         }[]
       }
+      get_public_tender: {
+        Args: { _short_id: string }
+        Returns: {
+          category: string
+          created_at: string
+          deadline: string
+          description: string
+          document_urls: string[]
+          id: string
+          is_award_notice: boolean
+          location: string
+          official_source_url: string
+          organization: string
+          portal: string
+          short_id: string
+          slug: string
+          source_url: string
+          status: string
+          title: string
+          updated_at: string
+          value_amount: number
+          value_basis: string
+          value_currency: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2214,7 +2245,28 @@ export type Database = {
         Args: { _engagement_id: string }
         Returns: boolean
       }
+      list_public_tenders: {
+        Args: { _limit?: number }
+        Returns: {
+          category: string
+          deadline: string
+          description: string
+          id: string
+          is_award_notice: boolean
+          location: string
+          organization: string
+          portal: string
+          short_id: string
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+          value_amount: number
+          value_currency: string
+        }[]
+      }
       refresh_homepage_live_stats: { Args: never; Returns: undefined }
+      seo_slugify: { Args: { t: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

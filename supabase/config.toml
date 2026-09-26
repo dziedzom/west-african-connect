@@ -19,3 +19,6 @@ project_id = "tjuunlzlspznabgldvjr"
     verify_jwt = false
   [functions.scrape-rfps]
     verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false

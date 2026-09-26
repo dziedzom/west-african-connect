@@ -2,13 +2,16 @@ import { useEffect } from "react";
 
 interface SEOProps {
   title?: string;
+  /** Use the title as-is, without appending the site name. */
+  rawTitle?: boolean;
   description?: string;
   path?: string;
   type?: "website" | "article";
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
 }
 
-const BASE_URL = "https://middlbrand.com";
+const BASE_URL = "https://www.middlbrand.com";
 const SITE_NAME = "MiddlBrand";
 const DEFAULT_DESCRIPTION =
   "The bridge between high-growth companies and winning RFP contracts. Connecting vetted African businesses to real opportunities.";
@@ -16,12 +19,16 @@ const OG_IMAGE = `${BASE_URL}/og-image.png`;
 
 const SEO = ({
   title,
+  rawTitle = false,
   description = DEFAULT_DESCRIPTION,
   path = "/",
   type = "website",
   jsonLd,
+  noindex = false,
 }: SEOProps) => {
-  const fullTitle = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — The Bridge to Winning RFP Contracts`;
+  const fullTitle = title
+    ? rawTitle ? title : `${title} — ${SITE_NAME}`
+    : `${SITE_NAME} — The Bridge to Winning RFP Contracts`;
   const canonicalUrl = `${BASE_URL}${path}`;
 
   const defaultJsonLd = {
@@ -39,11 +46,11 @@ const SEO = ({
     },
   };
 
+  const ldKey = JSON.stringify(jsonLd ?? null);
+
   useEffect(() => {
-    // Title
     document.title = fullTitle;
 
-    // Helper to set/create meta tags
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) {
@@ -54,10 +61,9 @@ const SEO = ({
       el.setAttribute("content", content);
     };
 
-    // Description
     setMeta("name", "description", description);
+    setMeta("name", "robots", noindex ? "noindex, follow" : "index, follow");
 
-    // Canonical
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) {
       canonical = document.createElement("link");
@@ -66,7 +72,6 @@ const SEO = ({
     }
     canonical.setAttribute("href", canonicalUrl);
 
-    // Open Graph
     setMeta("property", "og:type", type);
     setMeta("property", "og:site_name", SITE_NAME);
     setMeta("property", "og:title", fullTitle);
@@ -75,14 +80,12 @@ const SEO = ({
     setMeta("property", "og:url", canonicalUrl);
     setMeta("property", "og:locale", "en_US");
 
-    // Twitter
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:site", "@MiddlBrand");
     setMeta("name", "twitter:title", fullTitle);
     setMeta("name", "twitter:description", description);
     setMeta("name", "twitter:image", OG_IMAGE);
 
-    // JSON-LD
     const ldData = jsonLd || defaultJsonLd;
     let script = document.querySelector('script[data-seo-jsonld]') as HTMLScriptElement | null;
     if (!script) {
@@ -92,7 +95,8 @@ const SEO = ({
       document.head.appendChild(script);
     }
     script.textContent = JSON.stringify(ldData);
-  }, [fullTitle, description, canonicalUrl, type, jsonLd]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fullTitle, description, canonicalUrl, type, ldKey, noindex]);
 
   return null;
 };

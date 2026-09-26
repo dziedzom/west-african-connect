@@ -39,6 +39,11 @@ const footerLinks = [
   { to: "/partnerships", label: "Partners" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
+  { to: "/tenders/ghana", label: "Tenders in Ghana" },
+  { to: "/tenders/nigeria", label: "Tenders in Nigeria" },
+  { to: "/tenders/kenya", label: "Tenders in Kenya" },
+  { to: "/tenders/south-africa", label: "Tenders in South Africa" },
+  { to: "/tenders/sector/marketing-communications", label: "Marketing tenders" },
 ];
 
 const Navbar = () => {
