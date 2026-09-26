@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { tenderPath } from "@/lib/tenderSeo";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
