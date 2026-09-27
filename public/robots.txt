@@ -14,4 +14,3 @@ User-agent: *
 Allow: /
 
 Sitemap: https://www.middlbrand.com/sitemap.xml
-Sitemap: https://tjuunlzlspznabgldvjr.supabase.co/functions/v1/sitemap
