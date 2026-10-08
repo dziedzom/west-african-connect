@@ -406,7 +406,7 @@ serve(async (req) => {
         .eq("africa_relevant", true)
         .eq("status", "expired")
         .order("deadline", { ascending: false, nullsFirst: false })
-        .limit(300);
+        .limit(1000);
       // Thin = no buyer, or no summary / summary under 40 chars (same rule as the public page).
       const thin = (closedThin || []).filter((r: any) =>
         !r.organization || !r.description || String(r.description).trim().length < 40);
