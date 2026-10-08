@@ -15,6 +15,8 @@ const BASE_URL = "https://www.middlbrand.com";
 const SITE_NAME = "MiddlBrand";
 const DEFAULT_DESCRIPTION =
   "The bridge between high-growth companies and winning RFP contracts. Connecting vetted African businesses to real opportunities.";
+// Signed-in, admin and auth screens are never indexed, whatever the page passes.
+const PRIVATE_PATH = /^\/(admin|scrape|indexing|dashboard|profile|knowledge-base|proposals|verification|bid-studio|auth|forgot-password|reset-password)(\/|$)/;
 const OG_IMAGE = `${BASE_URL}/og-image.png`;
 
 const SEO = ({
@@ -62,7 +64,8 @@ const SEO = ({
     };
 
     setMeta("name", "description", description);
-    setMeta("name", "robots", noindex ? "noindex, follow" : "index, follow");
+    const blocked = noindex || PRIVATE_PATH.test(window.location.pathname);
+    setMeta("name", "robots", blocked ? "noindex, follow" : "index, follow");
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) {
