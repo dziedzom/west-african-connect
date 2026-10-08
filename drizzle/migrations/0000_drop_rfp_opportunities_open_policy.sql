@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Anyone can view rfp opportunities" ON public.rfp_opportunities;
+COMMENT ON TABLE public.rfp_opportunities IS 'DEPRECATED: unused legacy table; RLS on, no policies, no API grants.';
