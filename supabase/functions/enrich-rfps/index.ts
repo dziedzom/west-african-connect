@@ -396,7 +396,20 @@ serve(async (req) => {
       return json({ error: "queue read failed", details: queueError.message }, 500);
     }
 
-    const rows = queue || [];
+    const rows: any[] = [...(queue || [])];
+    // Behind the open queue: closed tenders whose public page is held back for missing buyer/summary.
+    if (rows.length < batchSize) {
+      const { data: closedThin } = await supabase
+        .from("scraped_rfps")
+        .select("id, title, organization, location, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
+        .eq("enrichment_status", "pending")
+        .eq("africa_relevant", true)
+        .eq("status", "expired")
+        .or("organization.is.null,description.is.null")
+        .order("deadline", { ascending: false, nullsFirst: false })
+        .limit(batchSize - rows.length);
+      rows.push(...(closedThin || []));
+    }
     let processed = 0, valuesFound = 0, deadlinesFound = 0, summariesFound = 0, failed = 0, rateLimitHits = 0;
     let buyersFound = 0, countriesFound = 0;
     let halt: HaltError | null = null;
