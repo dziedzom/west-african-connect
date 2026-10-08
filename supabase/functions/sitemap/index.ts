@@ -31,7 +31,7 @@ Deno.serve(async () => {
   const PAGE = 1000;
   const rows: Row[] = [];
   for (let from = 0; from < 20000; from += PAGE) {
-    const { data, error } = await sb.rpc("list_public_tenders", { _limit: 20000 }).range(from, from + PAGE - 1);
+    const { data, error } = await sb.rpc("list_public_tenders", { _limit: PAGE, _offset: from });
     if (error) return new Response("sitemap unavailable", { status: 500 });
     rows.push(...((data ?? []) as Row[]));
     if (!data || data.length < PAGE) break;

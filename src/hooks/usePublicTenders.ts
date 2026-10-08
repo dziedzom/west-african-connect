@@ -30,7 +30,7 @@ export function usePublicTenders() {
       const PAGE = 1000;
       const all: PublicTender[] = [];
       for (let from = 0; from < 20000; from += PAGE) {
-        const { data, error } = await rpc("list_public_tenders", { _limit: 20000 }, [from, from + PAGE - 1]);
+        const { data, error } = await rpc("list_public_tenders", { _limit: PAGE, _offset: from });
         if (error) throw error;
         all.push(...((data ?? []) as PublicTender[]));
         if (!data || data.length < PAGE) break;
