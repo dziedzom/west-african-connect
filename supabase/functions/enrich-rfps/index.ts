@@ -380,7 +380,7 @@ serve(async (req) => {
     const runDeadline = Date.now() + TIME_BUDGET_MS;
     const todayISO = new Date().toISOString().slice(0, 10);
 
-    const { data: queue } = await supabase
+    const { data: queue, error: queueError } = await supabase
       .from("scraped_rfps")
       .select("id, title, organization, location, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
       .eq("enrichment_status", "pending")
@@ -388,6 +388,13 @@ serve(async (req) => {
       .in("status", ["open", "closing_soon"])
       .order("deadline", { ascending: true, nullsFirst: false })
       .limit(batchSize);
+    if (queueError) {
+      console.error("enrich queue read failed", queueError);
+      await supabase.from("enrichment_job_state")
+        .update({ lease_until: null, lease_holder: null, last_run_at: new Date().toISOString(), last_run_error: `queue read failed: ${queueError.message}` })
+        .eq("id", true);
+      return json({ error: "queue read failed", details: queueError.message }, 500);
+    }
 
     const rows = queue || [];
     let processed = 0, valuesFound = 0, deadlinesFound = 0, summariesFound = 0, failed = 0, rateLimitHits = 0;
