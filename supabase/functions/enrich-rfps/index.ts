@@ -405,10 +405,12 @@ serve(async (req) => {
         .eq("enrichment_status", "pending")
         .eq("africa_relevant", true)
         .eq("status", "expired")
-        .or("organization.is.null,description.is.null")
         .order("deadline", { ascending: false, nullsFirst: false })
-        .limit(batchSize - rows.length);
-      rows.push(...(closedThin || []));
+        .limit(1000);
+      // Thin = no buyer, or no summary / summary under 40 chars (same rule as the public page).
+      const thin = (closedThin || []).filter((r: any) =>
+        !r.organization || !r.description || String(r.description).trim().length < 40);
+      rows.push(...thin.slice(0, batchSize - rows.length));
     }
     let processed = 0, valuesFound = 0, deadlinesFound = 0, summariesFound = 0, failed = 0, rateLimitHits = 0;
     let buyersFound = 0, countriesFound = 0;
