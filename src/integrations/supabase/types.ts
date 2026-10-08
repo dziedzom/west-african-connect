@@ -2246,7 +2246,7 @@ export type Database = {
         Returns: boolean
       }
       list_public_tenders: {
-        Args: { _limit?: number }
+        Args: { _limit?: number; _offset?: number }
         Returns: {
           category: string
           deadline: string

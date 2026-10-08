@@ -27,9 +27,15 @@ interface Row {
 
 Deno.serve(async () => {
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
-  const { data, error } = await sb.rpc("list_public_tenders", { _limit: 20000 });
-  if (error) return new Response("sitemap unavailable", { status: 500 });
-  const rows = (data ?? []) as Row[];
+  // The API returns at most 1,000 rows per request, so read in pages.
+  const PAGE = 1000;
+  const rows: Row[] = [];
+  for (let from = 0; from < 20000; from += PAGE) {
+    const { data, error } = await sb.rpc("list_public_tenders", { _limit: PAGE, _offset: from });
+    if (error) return new Response("sitemap unavailable", { status: 500 });
+    rows.push(...((data ?? []) as Row[]));
+    if (!data || data.length < PAGE) break;
+  }
 
   const urls: { loc: string; lastmod?: string }[] = [
     "/", "/rfps", "/pricing", "/join", "/partnerships", "/about", "/contact",
