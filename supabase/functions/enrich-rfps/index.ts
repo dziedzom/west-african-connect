@@ -192,7 +192,7 @@ async function extractFromContent(
 
 STRICT, NO INFERENCE — every field may be null, and null is a correct, expected answer:
 - value_amount: the single monetary figure for THIS opportunity's contract/budget/ceiling, as a plain number (no separators, no currency symbol, no words such as "million" — expand them: "USD 2.5 million" => 2500000). Only when explicitly stated. If only a range is given, use the upper figure and say so in value_basis. NEVER estimate, average, guess, or derive a figure from unrelated numbers (page numbers, fees, quantities, bid bonds, dates, percentages).
-- value_currency: the ISO code of that figure's currency exactly as stated (USD, EUR, ZAR, KES, NGN, GHS, XOF...). Null when the figure has no stated currency.
+- value_currency: the ISO 4217 code of the currency WRITTEN ON THE PAGE for that figure — as a code (USD, UGX, KES...), a symbol ($, €, £, R, ₦, GH₵), a local word (Shs/UShs => UGX, KSh => KES, FCFA/CFA => XOF or XAF as written, Naira => NGN, Cedi => GHS, Rand => ZAR, Birr => ETB), or a column/table header for that figure such as "Amount (UGX)". NEVER assume USD. A bare number with no currency written anywhere for it => value_amount null and value_currency null. A figure from a national e-procurement portal is in that country's currency unless USD or another currency is explicitly written.
 - value_basis: one of "estimated_budget", "ceiling", "contract_award", "range_upper", "other" — what the figure actually is.
 - value_evidence: the exact sentence or table line the figure was read from, verbatim, max 300 characters.
 - value_confidence: "high" when the figure is labelled as the contract/budget value for this opportunity; "medium" when the label is indirect but unambiguous; null when there is no figure.
@@ -204,7 +204,7 @@ STRICT, NO INFERENCE — every field may be null, and null is a correct, expecte
 - buyer: the buying organisation running this procurement, exactly as named in the content (e.g. "UNDP", "UNICEF", "Ministry of Health"). Null when no organisation is named. Never a reference code, notice type or country.
 - country: the country where the work or delivery takes place, in English, only when written in the content. Null when not stated or when it covers several countries.
 
-A bid bond, tender fee, document purchase price, registration fee, or insurance figure is NOT the contract value. Return null rather than any of those.`,
+A bidder's offer, quoted price or bid amount (including amounts listed against bidder names in a bid-opening record), a programme/loan/grant financing total, a bid bond, tender fee, document purchase price, registration fee, or insurance figure is NOT the contract value. Return null rather than any of those.`,
           },
 
           {
@@ -382,7 +382,7 @@ serve(async (req) => {
 
     const { data: queue, error: queueError } = await supabase
       .from("scraped_rfps")
-      .select("id, title, organization, location, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
+      .select("id, title, organization, location, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts, reread_reason")
       .eq("enrichment_status", "pending")
       .eq("africa_relevant", true)
       .in("status", ["open", "closing_soon"])
@@ -401,7 +401,7 @@ serve(async (req) => {
     if (rows.length < batchSize) {
       const { data: closedThin } = await supabase
         .from("scraped_rfps")
-        .select("id, title, organization, location, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts")
+        .select("id, title, organization, location, source_url, additional_source_urls, deadline, value_amount, description, enrichment_attempts, reread_reason")
         .eq("enrichment_status", "pending")
         .eq("africa_relevant", true)
         .eq("status", "expired")
@@ -409,7 +409,7 @@ serve(async (req) => {
         .limit(1000);
       // Thin = no buyer, or no summary / summary under 40 chars (same rule as the public page).
       const thin = (closedThin || []).filter((r: any) =>
-        !r.organization || !r.description || String(r.description).trim().length < 40);
+        r.reread_reason || !r.organization || !r.description || String(r.description).trim().length < 40);
       rows.push(...thin.slice(0, batchSize - rows.length));
     }
     let processed = 0, valuesFound = 0, deadlinesFound = 0, summariesFound = 0, failed = 0, rateLimitHits = 0;
@@ -454,6 +454,7 @@ serve(async (req) => {
 
         if (readSources.length === 0) throw new Error("no readable content on notice page or documents");
 
+        const rereadDeadline = (row as { reread_reason?: string | null }).reread_reason === "deadline";
         const ex = await extractFromContent(row, readSources, LOVABLE_KEY, todayISO);
 
         const update: Record<string, unknown> = {
@@ -465,8 +466,9 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         };
 
-        if (ex?.value_amount != null) {
-          const currency = ex.value_currency || "USD";
+        if (ex?.value_amount != null && ex.value_currency) {
+          const currency = ex.value_currency as string;
+          update.value_source = "deep_read";
           update.value_amount = ex.value_amount;
           update.value_currency = currency;
           update.value_basis = ex.value_basis;
@@ -478,9 +480,16 @@ serve(async (req) => {
           valuesFound++;
         }
 
-        if (ex?.deadline && !row.deadline) {
+        if (rereadDeadline && !ex?.deadline) {
+          // Corrective re-read found no closing date: the earlier one was a guess. Keep the row closed.
+          update.deadline = null;
+          update.deadline_source = null;
+          update.needs_review = true;
+        }
+        if (ex?.deadline && (!row.deadline || rereadDeadline)) {
           const normalized = normalizeDeadline(ex.deadline);
           update.deadline = normalized;
+          update.deadline_source = "deep_read";
           update.status = deadlineStatus(normalized);
           update.needs_review = false;
           deadlinesFound++;
@@ -491,6 +500,7 @@ serve(async (req) => {
         // Gap filling only: the listing page stays authoritative where it had a value.
         if (ex?.buyer && !(row as { organization?: string | null }).organization) {
           update.organization = ex.buyer.slice(0, 300);
+          update.organization_source = "deep_read";
           buyersFound++;
         }
         if (ex?.country && !(row as { location?: string | null }).location) {
@@ -508,6 +518,7 @@ serve(async (req) => {
         }
 
         if (ex?.is_award_notice) update.is_award_notice = true;
+        update.reread_reason = null;
 
         await supabase.from("scraped_rfps").update(update).eq("id", row.id);
         processed++;

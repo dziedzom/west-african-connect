@@ -1743,6 +1743,7 @@ export type Database = {
           content_hash: string | null
           created_at: string
           deadline: string | null
+          deadline_source: string | null
           description: string | null
           description_source: string | null
           discovery_method: string
@@ -1759,7 +1760,9 @@ export type Database = {
           needs_review: boolean
           official_source_url: string | null
           organization: string | null
+          organization_source: string | null
           portal: string
+          reread_reason: string | null
           scraped_at: string
           short_id: string | null
           slug: string | null
@@ -1777,6 +1780,7 @@ export type Database = {
           value_confidence: string | null
           value_currency: string | null
           value_evidence: string | null
+          value_source: string | null
           value_source_url: string | null
         }
         Insert: {
@@ -1787,6 +1791,7 @@ export type Database = {
           content_hash?: string | null
           created_at?: string
           deadline?: string | null
+          deadline_source?: string | null
           description?: string | null
           description_source?: string | null
           discovery_method?: string
@@ -1803,7 +1808,9 @@ export type Database = {
           needs_review?: boolean
           official_source_url?: string | null
           organization?: string | null
+          organization_source?: string | null
           portal: string
+          reread_reason?: string | null
           scraped_at?: string
           short_id?: string | null
           slug?: string | null
@@ -1821,6 +1828,7 @@ export type Database = {
           value_confidence?: string | null
           value_currency?: string | null
           value_evidence?: string | null
+          value_source?: string | null
           value_source_url?: string | null
         }
         Update: {
@@ -1831,6 +1839,7 @@ export type Database = {
           content_hash?: string | null
           created_at?: string
           deadline?: string | null
+          deadline_source?: string | null
           description?: string | null
           description_source?: string | null
           discovery_method?: string
@@ -1847,7 +1856,9 @@ export type Database = {
           needs_review?: boolean
           official_source_url?: string | null
           organization?: string | null
+          organization_source?: string | null
           portal?: string
+          reread_reason?: string | null
           scraped_at?: string
           short_id?: string | null
           slug?: string | null
@@ -1865,6 +1876,7 @@ export type Database = {
           value_confidence?: string | null
           value_currency?: string | null
           value_evidence?: string | null
+          value_source?: string | null
           value_source_url?: string | null
         }
         Relationships: []
