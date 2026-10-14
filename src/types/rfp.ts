@@ -30,7 +30,8 @@ export interface RFP {
 /** Formats a recorded value for display. Returns null when no value was recorded. */
 export function formatRecordedValue(rfp: RFP): string | null {
   if (rfp.value_amount == null || !isFinite(rfp.value_amount)) return null;
-  const currency = (rfp.value_currency || "USD").toUpperCase();
+  // Never assume a currency: a figure without one is shown bare.
+  const currency = (rfp.value_currency || "").toUpperCase();
   const amount = rfp.value_amount;
   const abs = Math.abs(amount);
   const short = abs >= 1_000_000
@@ -38,7 +39,7 @@ export function formatRecordedValue(rfp: RFP): string | null {
     : abs >= 1_000
       ? `${(amount / 1_000).toFixed(amount % 1_000 === 0 ? 0 : 1)}K`
       : amount.toLocaleString("en-GB");
-  return `${currency} ${short}`;
+  return `${currency} ${short}`.trim();
 }
 
 const BASIS_LABELS: Record<string, string> = {

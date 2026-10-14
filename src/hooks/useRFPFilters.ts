@@ -102,6 +102,7 @@ export function useRFPFilters() {
         .from("scraped_rfps")
         .select("*")
         .or(`deadline.is.null,deadline.gte.${nowISO}`)
+        .neq("status", "expired")
         .not("is_award_notice", "is", true)
         .order("scraped_at", { ascending: false });
 
@@ -187,7 +188,13 @@ export function useRFPFilters() {
 
       const [lo, hi] = filters.budgetRange;
       if (lo !== BUDGET_MIN || hi !== BUDGET_MAX) {
-        const budget = r.value_amount ?? parseBudgetValue(r.value) ?? parseBudgetValue(r.budget);
+        // The range is in USD: only USD figures are compared. Other currencies count as "value unknown"
+        // rather than being compared as if they were dollars (UGX 3.5M is ~USD 950, not USD 3.5M).
+        const budget = r.value_amount != null
+          ? ((r.value_currency || "").toUpperCase() === "USD" ? r.value_amount : null)
+          : /\$|usd/i.test(`${r.value ?? ""} ${r.budget ?? ""}`)
+            ? (parseBudgetValue(r.value) ?? parseBudgetValue(r.budget))
+            : null;
         if (budget !== null && (budget < lo || budget > hi)) return false;
       }
 
